@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { db } from './lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
-import { Analytics } from '@vercel/analytics/next';
-import { SpeedInsights } from "@vercel/speed-insights/next"
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 
@@ -28,8 +26,6 @@ export default function Home() {
         <h1 className="text-3xl font-bold mb-2">Factur’Peyi</h1>
         <p className="text-yellow-400 text-lg mb-6">la compta simple et locale</p>
       </div>
-      <Analytics />
-      <SpeedInsights/>
       <section className="w-full max-w-md bg-white p-6 rounded-xl shadow">
         <h2 className="text-xl font-semibold mb-4">Pré-inscription</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
