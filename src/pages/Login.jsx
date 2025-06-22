@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { auth } from "../lib/firebase";
+import './Login.css';
 import { FacebookAuthProvider } from "firebase/auth";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";

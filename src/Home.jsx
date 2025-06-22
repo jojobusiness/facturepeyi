@@ -26,8 +26,8 @@ export default function Home() {
       <div className="bg-[#1B5E20] text-white rounded-2xl p-6 w-full max-w-sm shadow-xl text-center">
         <h1 className="text-3xl font-bold mb-2">Factur’Peyi</h1>
         <p className="text-yellow-400 text-lg mb-6">la compta simple et locale</p>
-        <Login />
       </div>
+      <Login />
       <section className="w-full max-w-md bg-white p-6 rounded-xl shadow">
         <h2 className="text-xl font-semibold mb-4">Pré-inscription</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
