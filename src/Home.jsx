@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { db } from './lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
-import Login from './Login';
+import Login from './pages/Login';
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 
