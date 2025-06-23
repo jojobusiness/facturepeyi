@@ -35,33 +35,46 @@ export default function Login() {
   };
 
 return (
-    <form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow w-full max-w-md space-y-3">
-      <h2 className="text-lg font-semibold text-center">{isNew ? "Inscription" : "Connexion"}</h2>
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="w-full p-2 border rounded"
-        required
-      />
-      <input
-        type="password"
-        placeholder="Mot de passe"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="w-full p-2 border rounded"
-        required
-      />
-      <button type="submit" className="bg-[#1B5E20] text-white w-full p-2 rounded hover:bg-[#2e7d32]">
-        {isNew ? "S’inscrire" : "Se connecter"}
-      </button>
-      <p
-        onClick={() => setIsNew(!isNew)}
-        className="text-sm text-blue-600 text-center cursor-pointer"
+    <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-6 rounded shadow w-full max-w-md space-y-4"
       >
-        {isNew ? "Déjà inscrit ? Se connecter" : "Pas encore de compte ? S’inscrire"}
-      </p>
-    </form>
+        <h2 className="text-xl font-semibold text-center text-[#1B5E20]">
+          {isNew ? "Créer un compte" : "Connexion"}
+        </h2>
+
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full p-2 border rounded"
+          required
+        />
+        <input
+          type="password"
+          placeholder="Mot de passe"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-2 border rounded"
+          required
+        />
+
+        <button
+          type="submit"
+          className="bg-[#1B5E20] text-white w-full p-2 rounded hover:bg-[#2e7d32]"
+        >
+          {isNew ? "S’inscrire" : "Se connecter"}
+        </button>
+
+        <p
+          onClick={() => setIsNew(!isNew)}
+          className="text-sm text-blue-600 text-center cursor-pointer"
+        >
+          {isNew ? "Déjà inscrit ? Se connecter" : "Pas encore de compte ? S’inscrire"}
+        </p>
+      </form>
+    </main>
   );
 }
