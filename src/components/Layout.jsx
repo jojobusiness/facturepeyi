@@ -13,7 +13,7 @@ export default function Layout() {
   return (
     <div>
       <nav style={{ padding: 10, background: "#eee", marginBottom: 20 }}>
-        <Link to="/" style={{ margin: 10 }}>🏠 Dashboard</Link>
+        <Link to="/dashboard" style={{ margin: 10 }}>🏠 Dashboard</Link>
         <Link to="/facture/nouvelle" style={{ margin: 10 }}>➕ Nouvelle facture</Link>
         <Link to="/factures" style={{ margin: 10 }}>📁 Mes factures</Link>
         <Link to="/clients" style={{ margin: 10 }}>👥 Clients</Link>
