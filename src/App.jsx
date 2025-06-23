@@ -32,14 +32,18 @@ export default function App() {
   return (
     <Router>
       <Routes>
+        {/* Public Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>} />
-        <Route path="/facture/nouvelle" element={<PrivateRoute><CreateInvoice /></PrivateRoute>} />
-        <Route path="/factures" element={<PrivateRoute><InvoiceList /></PrivateRoute>} />
-        <Route path="/clients" element={<PrivateRoute><Clients /></PrivateRoute>} />
-        <Route path="/parametres" element={<PrivateRoute><Settings /></PrivateRoute>} />
-        <Route path="*" element={<Navigate to="/" />} />
+
+        {/* Private Routes with Layout */}
+        <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="facture/nouvelle" element={<CreateInvoice />} />
+          <Route path="factures" element={<InvoiceList />} />
+          <Route path="clients" element={<Clients />} />
+          <Route path="parametres" element={<Settings />} />
+        </Route>
       </Routes>
     </Router>
   );
