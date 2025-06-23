@@ -12,10 +12,6 @@ import InvoiceList from './pages/InvoiceList';
 import Clients from './pages/Clients';
 import Settings from './pages/Settings';
 
-function App() {
-  return <Home />;
-}
-
 function PrivateRoute({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -37,8 +33,8 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/" element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>}/>
-        <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+        <Route path="/" element={<Home />} />
+        <Route path="/dashboard" element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>}/>
         <Route path="/facture/nouvelle" element={<PrivateRoute><CreateInvoice /></PrivateRoute>} />
         <Route path="/factures" element={<PrivateRoute><InvoiceList /></PrivateRoute>} />
         <Route path="/clients" element={<PrivateRoute><Clients /></PrivateRoute>} />

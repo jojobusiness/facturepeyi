@@ -21,6 +21,7 @@ export default function Login() {
         await signInWithEmailAndPassword(auth, email, password);
         alert("Connecté !");
       }
+      navigate("/dashboard");
     } catch (err) {
       alert(err.message);
     }
@@ -28,10 +29,10 @@ export default function Login() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) navigate("/");
+      if (user) navigate("/dashboard");
     });
     return () => unsubscribe();
-  }, []);
+  }, [navigate]);
 
 return (
     <form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow w-full max-w-md space-y-3">
