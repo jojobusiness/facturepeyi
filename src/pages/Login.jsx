@@ -2,6 +2,7 @@ import { auth } from "../lib/firebase";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import './Login.css';
+import './Dashboard'; 
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 
 
@@ -10,6 +11,13 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [isNew, setIsNew] = useState(false); // toggle inscription / connexion
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) navigate("/dashboard");
+    });
+    return () => unsubscribe();
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,13 +34,6 @@ export default function Login() {
       alert(err.message);
     }
   };
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) navigate("/dashboard");
-    });
-    return () => unsubscribe();
-  }, [navigate]);
 
 return (
     <form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow w-full max-w-md space-y-3">

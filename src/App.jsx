@@ -34,7 +34,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Home />} />
-        <Route path="/dashboard" element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>}/>
+        <Route path="/" element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>}/>
         <Route path="/facture/nouvelle" element={<PrivateRoute><CreateInvoice /></PrivateRoute>} />
         <Route path="/factures" element={<PrivateRoute><InvoiceList /></PrivateRoute>} />
         <Route path="/clients" element={<PrivateRoute><Clients /></PrivateRoute>} />
