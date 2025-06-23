@@ -4,12 +4,6 @@ import { useNavigate } from "react-router-dom";
 import './Login.css';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 
-useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, (user) => {
-    if (user) navigate("/");
-  });
-  return () => unsubscribe();
-}, []);
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -30,6 +24,13 @@ export default function Login() {
       alert(err.message);
     }
   };
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) navigate("/");
+    });
+    return () => unsubscribe();
+  }, []);
 
   return (
     <form onSubmit={handleSubmit}>
