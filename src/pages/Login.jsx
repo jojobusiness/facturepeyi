@@ -1,7 +1,15 @@
 import { useState } from "react";
 import { auth } from "../lib/firebase";
+import { useNavigate } from "react-router-dom";
 import './Login.css';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    if (user) navigate("/");
+  });
+  return () => unsubscribe();
+}, []);
 
 export default function Login() {
   const [email, setEmail] = useState("");
