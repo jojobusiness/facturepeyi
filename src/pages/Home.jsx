@@ -25,10 +25,8 @@ export default function Home() {
         <h1 className="text-3xl font-bold mb-2">Factur’Peyi</h1>
         <p className="text-yellow-400 text-lg mb-6">la compta simple et locale</p>
       </div>
-      <Link
-        to = "/login"
-        className="bg-[#1B5E20] text-white px-6 py-3 rounded hover:bg-[#2e7d32] transition"
-      ></Link>
+      <Link to = "/login" className="bg-[#1B5E20] text-white px-6 py-3 rounded hover:bg-[#2e7d32] transition"
+      >Connection et Inscription</Link>
       <section className="w-full max-w-md bg-white p-6 rounded-xl shadow">
         <h2 className="text-xl font-semibold mb-4">Pré-inscription</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
