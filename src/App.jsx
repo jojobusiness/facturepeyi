@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './lib/firebase';
 
@@ -30,21 +30,14 @@ function PrivateRoute({ children }) {
 
 export default function App() {
   return (
-    <Router>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-
-        {/* Private Routes with Layout */}
-        <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="facture/nouvelle" element={<CreateInvoice />} />
-          <Route path="factures" element={<InvoiceList />} />
-          <Route path="clients" element={<Clients />} />
-          <Route path="parametres" element={<Settings />} />
-        </Route>
-      </Routes>
-    </Router>
+    <Routes>
+      <Route path="/" element={<Navigate to="/dashboard" />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/dashboard" element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>} />
+      <Route path="/facture/nouvelle" element={<PrivateRoute><Layout><CreateInvoice /></Layout></PrivateRoute>} />
+      <Route path="/factures" element={<PrivateRoute><Layout><InvoiceList /></Layout></PrivateRoute>} />
+      <Route path="/clients" element={<PrivateRoute><Layout><Clients /></Layout></PrivateRoute>} />
+      <Route path="/parametres" element={<PrivateRoute><Layout><Settings /></Layout></PrivateRoute>} />
+    </Routes>
   );
 }
