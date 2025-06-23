@@ -1,10 +1,13 @@
 import { signOut } from "firebase/auth";
 import { auth } from "../lib/firebase";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet , useNavigate} from "react-router-dom";
 
-export default function Layout({ children }) {
-  const handleLogout = () => {
-    signOut(auth);
+export default function Layout() {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate("/login");
   };
 
   return (
