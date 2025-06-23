@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth } from "../lib/firebase";
 import { Link, Outlet } from "react-router-dom";
@@ -18,7 +17,6 @@ export default function Layout({ children }) {
         <Link to="/parametres" style={{ margin: 10 }}>⚙️ Paramètres</Link>
         <button onClick={handleLogout} style={{ margin: 10 }}>🔓 Déconnexion</button>
       </nav>
-      
       <div style={{ padding: 20 }}>
         <Outlet /> {/* ← c'est ici que s'affiche la page active */}
       </div>
