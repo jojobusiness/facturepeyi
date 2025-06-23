@@ -1,6 +1,6 @@
-import { useState } from "react";
 import { auth } from "../lib/firebase";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import './Login.css';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 
@@ -9,6 +9,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isNew, setIsNew] = useState(false); // toggle inscription / connexion
+  const navigate = useNavigate();
   
   const handleSubmit = async (e) => {
     e.preventDefault();
