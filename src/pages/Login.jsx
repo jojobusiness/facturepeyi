@@ -74,6 +74,13 @@ return (
         >
           {isNew ? "Déjà inscrit ? Se connecter" : "Pas encore de compte ? S’inscrire"}
         </p>
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="text-sm text-gray-600 underline w-full text-center mt-2"
+        >
+            ← Revenir à l’accueil
+        </button>
       </form>
     </main>
   );
