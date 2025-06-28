@@ -33,11 +33,12 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/dashboard" element={<PrivateRoute><Layout><Dashboard /></Layout></PrivateRoute>} />
-      <Route path="/facture/nouvelle" element={<PrivateRoute><Layout><CreateInvoice /></Layout></PrivateRoute>} />
-      <Route path="/factures" element={<PrivateRoute><Layout><InvoiceList /></Layout></PrivateRoute>} />
-      <Route path="/clients" element={<PrivateRoute><Layout><Clients /></Layout></PrivateRoute>} />
-      <Route path="/parametres" element={<PrivateRoute><Layout><Settings /></Layout></PrivateRoute>} />
+      <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+      <Route path="/facture/nouvelle" element={<PrivateRoute><CreateInvoice /></PrivateRoute>} />
+      <Route path="/factures" element={<PrivateRoute><InvoiceList /></PrivateRoute>} />
+      <Route path="/clients" element={<PrivateRoute><Clients /></PrivateRoute>} />
+      <Route path="/parametres" element={<PrivateRoute><Settings /></PrivateRoute>} />
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
 }
