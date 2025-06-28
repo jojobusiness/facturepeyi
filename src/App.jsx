@@ -13,21 +13,6 @@ import Clients from './pages/Clients';
 import Settings from './pages/Settings';
 import PrivateRoute from './components/PrivateRoute';
 
-function PrivateRoute({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  if (loading) return <p>Chargement...</p>;
-  return user ? children : <Navigate to="/login" />;
-}
 
 export default function App() {
   return (
