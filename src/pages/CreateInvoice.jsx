@@ -1,23 +1,34 @@
 import { useState } from "react";
+import { db } from "../lib/firebase";
+import { addDoc, collection, Timestamp } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
 
 export default function CreateInvoice() {
   const [client, setClient] = useState("");
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState("");
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newInvoice = {
-      client,
-      description,
-      amount: parseFloat(amount),
-      date,
-      status: "en attente"
-    };
-    console.log("Nouvelle facture :", newInvoice);
-    alert("Facture créée !");
-    // onClearForm(); // facultatif
+    try {
+      const newInvoice = {
+        client,
+        description,
+        amount: parseFloat(amount),
+        date: Timestamp.fromDate(new Date(date)),
+        status: "en attente",
+        createdAt: Timestamp.now(),
+      };
+
+      await addDoc(collection(db, "factures"), newInvoice);
+      alert("Facture enregistrée !");
+      navigate("/factures");
+    } catch (err) {
+      console.error("Erreur Firestore :", err);
+      alert("Erreur lors de l'enregistrement.");
+    }
   };
 
   return (
