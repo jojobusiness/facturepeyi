@@ -3,7 +3,6 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './lib/firebase';
 
-import Layout from "./components/Layout";
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -36,7 +35,7 @@ export default function App() {
       <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/facture/nouvelle" element={<PrivateRoute><CreateInvoice /></PrivateRoute>} />
       <Route path="/factures" element={<PrivateRoute><InvoiceList /></PrivateRoute>} />
-      <Route path="/facture/modifier/:id" element={<PrivateRoute><EditInvoice /></PrivateRoute>} />
+      <Route path="/facture/modifier/" element={<PrivateRoute><EditInvoice /></PrivateRoute>} />
       <Route path="/clients" element={<PrivateRoute><Clients /></PrivateRoute>} />
       <Route path="/parametres" element={<PrivateRoute><Settings /></PrivateRoute>} />
       <Route path="*" element={<Navigate to="/" />} />
