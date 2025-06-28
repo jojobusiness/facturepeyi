@@ -23,7 +23,7 @@ export default function App() {
       <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/facture/nouvelle" element={<PrivateRoute><CreateInvoice /></PrivateRoute>} />
       <Route path="/factures" element={<PrivateRoute><InvoiceList /></PrivateRoute>} />
-      <Route path="/facture/modifier/id" element={<PrivateRoute><EditInvoice /></PrivateRoute>} />
+      <Route path="/facture/modifier/:id" element={<PrivateRoute><EditInvoice /></PrivateRoute>} />
       <Route path="/clients" element={<PrivateRoute><Clients /></PrivateRoute>} />
       <Route path="/parametres" element={<PrivateRoute><Settings /></PrivateRoute>} />
       <Route path="*" element={<Navigate to="/" />} />
