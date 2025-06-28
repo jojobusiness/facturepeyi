@@ -6,6 +6,7 @@ import { auth } from './lib/firebase';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import EditInvoice from './pages/EditInvoice';
 import CreateInvoice from './pages/CreateInvoice';
 import InvoiceList from './pages/InvoiceList';
 import Clients from './pages/Clients';
