@@ -2,10 +2,14 @@ import { useState } from 'react';
 import { db } from '../lib/firebase';
 import { Link } from "react-router-dom";
 import { collection, addDoc } from 'firebase/firestore';
+import { useAuth } from '../context/AuthContext';
 
 export default function Home() {
   const [name, setName] = useState('');
   const [contact, setContact] = useState('');
+  
+  const { user } = useAuth();
+  console.log('Utilisateur connecté :', user);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
