@@ -1,9 +1,12 @@
-import { useEffect, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import { collection, getDocs, query, orderBy, deleteDoc, doc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { db } from "../lib/firebase";
+import { useAuth } from '../context/AuthContext';
 
 const navigate = useNavigate();
+
+const AuthContext = createContext(null);
 
 const handleDelete = async (id) => {
   const confirm = window.confirm("Supprimer cette facture ?");
@@ -21,6 +24,20 @@ const handleDelete = async (id) => {
 const handleEdit = (id) => {
   navigate(`/facture/modifier/${id}`);
 };
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+
+  return (
+    <AuthContext.Provider value={{ user, setUser }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  return useContext(AuthContext);
+}
 
 export default function InvoiceList() {
   const [invoices, setInvoices] = useState([]);
