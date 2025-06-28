@@ -1,22 +1,62 @@
-import React from "react";
+import { useEffect, useState } from "react";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { db } from "../lib/firebase";
 
 export default function InvoiceList() {
-  // Exemple statique
-  const invoices = [
-    { id: 1, client: "Client A", amount: 200 },
-    { id: 2, client: "Client B", amount: 450 },
-  ];
+  const [invoices, setInvoices] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        const q = query(collection(db, "factures"), orderBy("createdAt", "desc"));
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setInvoices(data);
+      } catch (err) {
+        console.error("Erreur lors de la récupération :", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInvoices();
+  }, []);
+
+  if (loading) return <p className="p-4">Chargement des factures...</p>;
 
   return (
-    <div>
-      <h2>Liste des factures</h2>
-      <ul>
-        {invoices.map((inv) => (
-          <li key={inv.id}>
-            {inv.client} - {inv.amount} €
-          </li>
-        ))}
-      </ul>
-    </div>
+    <main className="min-h-screen bg-gray-100 p-4">
+      <h2 className="text-2xl font-bold mb-6">Mes Factures</h2>
+
+      {invoices.length === 0 ? (
+        <p>Aucune facture enregistrée.</p>
+      ) : (
+        <table className="w-full bg-white shadow rounded">
+          <thead className="bg-[#1B5E20] text-white">
+            <tr>
+              <th className="text-left p-2">Client</th>
+              <th className="text-left p-2">Description</th>
+              <th className="text-left p-2">Montant</th>
+              <th className="text-left p-2">Date</th>
+              <th className="text-left p-2">Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            {invoices.map(invoice => (
+              <tr key={invoice.id} className="border-t">
+                <td className="p-2">{invoice.client}</td>
+                <td className="p-2">{invoice.description}</td>
+                <td className="p-2">{invoice.amount} €</td>
+                <td className="p-2">
+                  {invoice.date?.toDate().toLocaleDateString()}
+                </td>
+                <td className="p-2 capitalize">{invoice.status}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </main>
   );
 }
