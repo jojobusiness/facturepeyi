@@ -10,8 +10,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <BrowserRouter>
     <AuthProvider>
       <App />
-      <Analytics/>
-      <SpeedInsights/>
+      
     </AuthProvider>
   </BrowserRouter>
 );
