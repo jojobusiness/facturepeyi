@@ -1,6 +1,26 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, deleteDoc, doc } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
 import { db } from "../lib/firebase";
+
+const navigate = useNavigate();
+
+const handleDelete = async (id) => {
+  const confirm = window.confirm("Supprimer cette facture ?");
+  if (!confirm) return;
+
+  try {
+    await deleteDoc(doc(db, "factures", id));
+    setInvoices(invoices.filter(inv => inv.id !== id)); // MAJ l'état local
+  } catch (err) {
+    console.error("Erreur suppression :", err);
+    alert("Erreur lors de la suppression.");
+  }
+};
+
+const handleEdit = (id) => {
+  navigate(`/facture/modifier/${id}`);
+};
 
 export default function InvoiceList() {
   const [invoices, setInvoices] = useState([]);
@@ -48,10 +68,16 @@ export default function InvoiceList() {
                 <td className="p-2">{invoice.client}</td>
                 <td className="p-2">{invoice.description}</td>
                 <td className="p-2">{invoice.amount} €</td>
-                <td className="p-2">
-                  {invoice.date?.toDate().toLocaleDateString()}
-                </td>
+                <td className="p-2">{invoice.date?.toDate().toLocaleDateString()}</td>
                 <td className="p-2 capitalize">{invoice.status}</td>
+                <td className="p-2 space-x-2">
+                  <button onClick={() => handleEdit(invoice.id)} className="text-blue-600 hover:underline">
+                    Modifier
+                  </button>
+                  <button onClick={() => handleDelete(invoice.id)} className="text-red-600 hover:underline">
+                    Supprimer
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
