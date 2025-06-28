@@ -11,6 +11,7 @@ import CreateInvoice from './pages/CreateInvoice';
 import InvoiceList from './pages/InvoiceList';
 import Clients from './pages/Clients';
 import Settings from './pages/Settings';
+import PrivateRoute from './components/PrivateRoute';
 
 function PrivateRoute({ children }) {
   const [user, setUser] = useState(null);
