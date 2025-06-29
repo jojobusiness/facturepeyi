@@ -22,7 +22,6 @@ export default function App() {
       <Route path="/facture/modifier/:id" element={<PrivateRoute><EditInvoice /></PrivateRoute>} />
       <Route path="/clients" element={<PrivateRoute><Clients /></PrivateRoute>} />
       <Route path="/parametres" element={<PrivateRoute><Settings /></PrivateRoute>} />
-      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
 }
