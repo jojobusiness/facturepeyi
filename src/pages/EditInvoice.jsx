@@ -14,22 +14,41 @@ export default function EditInvoice() {
     status: "en attente",
   });
 
-  useEffect(() => {
-    const fetchInvoice = async () => {
+useEffect(() => {
+  const fetchInvoice = async () => {
+    try {
+      if (!id) {
+        console.error("ID de facture manquant");
+        return;
+      }
+
       const docRef = doc(db, "factures", id);
       const snap = await getDoc(docRef);
+
       if (snap.exists()) {
         const data = snap.data();
+        console.log("Facture récupérée :", data);
+
         setForm({
-          client: data.client,
-          description: data.description,
-          amount: data.amount,
-          status: data.status,
+          client: data.client || "",
+          description: data.description || "",
+          amount: data.amount || "",
+          status: data.status || "en attente",
         });
+      } else {
+        alert("La facture n'existe pas.");
+        navigate("/factures");
       }
-    };
-    fetchInvoice();
-  }, [id]);
+    } catch (err) {
+      console.error("Erreur lors du chargement de la facture :", err);
+      alert("Erreur lors du chargement de la facture.");
+      navigate("/factures");
+    }
+  };
+
+  fetchInvoice();
+}, [id, navigate]);
+
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
