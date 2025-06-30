@@ -1,30 +1,64 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
+import { collection, getDocs, query, orderBy, deleteDoc, doc } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
+import { db } from "../lib/firebase";
 
-export default function Clients() {
-  const [clients, setClients] = useState(["Client A", "Client B"]);
-  const [newClient, setNewClient] = useState("");
+export default function ClientList() {
+  const [clients, setClients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  const addClient = () => {
-    if (newClient.trim()) {
-      setClients([...clients, newClient.trim()]);
-      setNewClient("");
-    }
+  const handleDelete = async (id) => {
+    if (!window.confirm("Supprimer ce client ?")) return;
+    await deleteDoc(doc(db, "clients", id));
+    setClients(clients.filter(c => c.id !== id));
   };
 
+  const handleEdit = (id) => navigate(`/clients/modifier/${id}`);
+
+  useEffect(() => {
+    const fetchClients = async () => {
+      const q = query(collection(db, "clients"), orderBy("createdAt", "desc"));
+      const snap = await getDocs(q);
+      setClients(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setLoading(false);
+    };
+    fetchClients();
+  }, []);
+
+  if (loading) return <p className="p-4">Chargement...</p>;
+
   return (
-    <div>
-      <h2>Vos clients</h2>
-      <ul>
-        {clients.map((c, i) => (
-          <li key={i}>{c}</li>
-        ))}
-      </ul>
-      <input
-        placeholder="Nouveau client"
-        value={newClient}
-        onChange={(e) => setNewClient(e.target.value)}
-      />
-      <button onClick={addClient}>Ajouter</button>
-    </div>
+    <main className="p-4 bg-gray-100 min-h-screen">
+      <h2 className="text-2xl font-bold mb-6">Mes Clients</h2>
+      <button onClick={() => navigate("/clients/ajouter")} className="bg-[#1B5E20] text-white px-4 py-2 rounded mb-4">Ajouter un client</button>
+      {clients.length === 0 ? <p>Aucun client.</p> : (
+        <table className="w-full bg-white rounded shadow">
+          <thead className="bg-[#1B5E20] text-white">
+            <tr>
+              <th className="text-left p-2">Nom</th>
+              <th className="text-left p-2">Email</th>
+              <th className="text-left p-2">Téléphone</th>
+              <th className="text-left p-2">Adresse</th>
+              <th className="text-left p-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {clients.map(client => (
+              <tr key={client.id} className="border-t">
+                <td className="p-2">{client.nom}</td>
+                <td className="p-2">{client.email}</td>
+                <td className="p-2">{client.tel}</td>
+                <td className="p-2">{client.adresse}</td>
+                <td className="p-2 space-x-2">
+                  <button onClick={() => handleEdit(client.id)} className="text-blue-600 hover:underline">Modifier</button>
+                  <button onClick={() => handleDelete(client.id)} className="text-red-600 hover:underline">Supprimer</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </main>
   );
 }
