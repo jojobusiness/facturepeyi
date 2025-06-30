@@ -1,30 +1,29 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, orderBy, deleteDoc, doc} from "firebase/firestore";
+import { collection, getDocs, query, orderBy, deleteDoc, doc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { db } from "../lib/firebase";
-
-const navigate = useNavigate();
-
-const handleDelete = async (id) => {
-  const confirm = window.confirm("Supprimer cette facture ?");
-  if (!confirm) return;
-
-  try {
-    await deleteDoc(doc(db, "factures", id));
-    setInvoices(invoices.filter(inv => inv.id !== id)); // MAJ l'état local
-  } catch (err) {
-    console.error("Erreur suppression :", err);
-    alert("Erreur lors de la suppression.");
-  }
-};
-
-const handleEdit = (id) => {
-  navigate(`/facture/modifier/${id}`);
-};
 
 export default function InvoiceList() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate(); // ✅ doit être ici, dans le composant
+
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm("Supprimer cette facture ?");
+    if (!confirmDelete) return;
+
+    try {
+      await deleteDoc(doc(db, "factures", id));
+      setInvoices(invoices.filter(inv => inv.id !== id));
+    } catch (err) {
+      console.error("Erreur suppression :", err);
+      alert("Erreur lors de la suppression.");
+    }
+  };
+
+  const handleEdit = (id) => {
+    navigate(`/facture/modifier/${id}`);
+  };
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -60,6 +59,7 @@ export default function InvoiceList() {
               <th className="text-left p-2">Montant</th>
               <th className="text-left p-2">Date</th>
               <th className="text-left p-2">Statut</th>
+              <th className="text-left p-2">Actions</th>
             </tr>
           </thead>
           <tbody>
