@@ -65,7 +65,7 @@ export default function InvoiceList() {
           <tbody>
             {invoices.map(invoice => (
               <tr key={invoice.id} className="border-t">
-                <td className="p-2">{invoice.client}</td>
+                <td className="p-2">{invoice.clientNom || "—"}</td>
                 <td className="p-2">{invoice.description}</td>
                 <td className="p-2">{invoice.amount} €</td>
                 <td className="p-2">{invoice.date?.toDate().toLocaleDateString()}</td>
