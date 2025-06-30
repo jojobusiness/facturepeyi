@@ -8,7 +8,7 @@ export default function EditInvoice() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    clientId: "",
+    clientId: prefilledClientId || "",
     clientNom: "",
     description: "",
     amount: "",
