@@ -9,6 +9,7 @@ import InvoiceList from './pages/InvoiceList';
 import Clients from './pages/Clients';
 import AddClient from './pages/AddClient';
 import EditClient from './pages/EditClient';
+import ClientDetails from './pages/ClientDetails';
 import Settings from './pages/Settings';
 import PrivateRoute from './components/PrivateRoute';
 
@@ -25,6 +26,7 @@ export default function App() {
       <Route path="/clients" element={<PrivateRoute><Clients /></PrivateRoute>} />
       <Route path="/clients/ajouter" element={<PrivateRoute><AddClient /></PrivateRoute>} />
       <Route path="/clients/modifier/:id" element={<PrivateRoute><EditClient /></PrivateRoute>} />
+      <Route path="/client/:id" element={<PrivateRoute><ClientDetails /></PrivateRoute>} />
       <Route path="/parametres" element={<PrivateRoute><Settings /></PrivateRoute>} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
