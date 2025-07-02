@@ -2,6 +2,23 @@ import { useEffect, useState } from "react";
 import { collection, getDocs, query, orderBy, deleteDoc, doc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { db } from "../lib/firebase";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+
+const generatePDF = (invoice) => {
+  const doc = new jsPDF();
+  const content = `
+    Facture #: ${invoice.id}
+    Client : ${invoice.clientNom}
+    Description : ${invoice.description}
+    Montant : ${invoice.amount} €
+    Statut : ${invoice.status}
+    Date : ${invoice.date?.toDate().toLocaleDateString() || ""}
+  `;
+
+  doc.text(content, 10, 10);
+  doc.save(`facture-${invoice.id}.pdf`);
+};
 
 export default function InvoiceList() {
   const [invoices, setInvoices] = useState([]);
@@ -76,6 +93,9 @@ export default function InvoiceList() {
                   </button>
                   <button onClick={() => handleDelete(invoice.id)} className="text-red-600 hover:underline">
                     Supprimer
+                  </button>
+                  <button onClick={() => generatePDF(invoice)} className="text-green-700 hover:underline">
+                     PDF
                   </button>
                 </td>
               </tr>

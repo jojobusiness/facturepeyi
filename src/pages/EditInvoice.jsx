@@ -1,7 +1,23 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams} from "react-router-dom";
 import { doc, getDoc, updateDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "../lib/firebase";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import InvoicePDF from "../components/InvoicePDF"; // importe ton composant
+
+function generatePDF() {
+  const input = document.getElementById("pdf-content");
+  html2canvas(input).then((canvas) => {
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save("facture.pdf");
+  });
+}
 
 export default function EditInvoice() {
   const { id } = useParams();
@@ -82,6 +98,7 @@ export default function EditInvoice() {
   return (
     <main className="min-h-screen bg-gray-100 p-4">
       <h2 className="text-2xl font-bold mb-4">Modifier la facture</h2>
+      <InvoicePDF invoice={form} />
       <form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow space-y-4 max-w-md">
         <select value={form.clientId} onChange={handleClientChange} className="w-full p-2 border rounded" required>
           <option value="">-- Sélectionner un client --</option>
@@ -99,6 +116,7 @@ export default function EditInvoice() {
         </select>
 
         <button type="submit" className="bg-[#1B5E20] text-white w-full p-2 rounded">Enregistrer</button>
+        <button onClick={generatePDF}className="mt-4 bg-[#1B5E20] text-white p-2 rounded">Télécharger PDF</button>
       </form>
     </main>
   );
