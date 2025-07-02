@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Settings() {
   return (
@@ -8,3 +9,17 @@ export default function Settings() {
     </div>
   );
 }
+
+export default function BoutonRetourDashboard() {
+  const navigate = useNavigate();
+
+  return (
+    <button
+      onClick={() => navigate("/dashboard")}
+      className="mb-4 px-4 py-2 bg-[#1B5E20] text-white rounded hover:bg-green-800"
+    >
+      ← Retour au tableau de bord
+    </button>
+  );
+}
+
