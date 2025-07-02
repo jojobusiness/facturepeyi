@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { doc, getDoc, updateDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
 export default function EditInvoice() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const prefilledClientId = searchParams.get("clientId");
 
   const [form, setForm] = useState({
     clientId: prefilledClientId || "",
