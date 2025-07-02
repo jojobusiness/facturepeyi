@@ -22,7 +22,7 @@ export default function InvoiceList() {
   };
 
   const handleEdit = (id) => {
-    navigate(`/facture/modifier/${invoices.id}`);
+    navigate(`/facture/modifier/${id}`);
   };
 
   useEffect(() => {
