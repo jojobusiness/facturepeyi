@@ -2,22 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, useSearchParams} from "react-router-dom";
 import { doc, getDoc, updateDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "../lib/firebase";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
-import InvoicePDF from "../components/InvoicePDF"; // importe ton composant
-
-function generatePDF() {
-  const input = document.getElementById("pdf-content");
-  html2canvas(input).then((canvas) => {
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-    pdf.save("facture.pdf");
-  });
-}
+import InvoicePDF from "../components/InvoicePDF";
 
 export default function EditInvoice() {
   const { id } = useParams();
@@ -114,9 +99,7 @@ export default function EditInvoice() {
           <option value="payée">Payée</option>
           <option value="annulée">Annulée</option>
         </select>
-
         <button type="submit" className="bg-[#1B5E20] text-white w-full p-2 rounded">Enregistrer</button>
-        <button onClick={generatePDF}className="mt-4 bg-[#1B5E20] text-white p-2 rounded">Télécharger PDF</button>
       </form>
     </main>
   );
