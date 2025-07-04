@@ -32,8 +32,7 @@ export default function InvoiceList() {
   const generatePDF = async (invoice) => {
   setSelectedInvoice(invoice);
 
-  // Laisse le DOM se mettre à jour
-  setTimeout(async () => {
+  requestAnimationFrame(async () => {
     const element = document.getElementById("invoice-pdf");
 
     if (!element) {
@@ -51,8 +50,9 @@ export default function InvoiceList() {
     pdf.save(`facture-${invoice.id}.pdf`);
 
     setSelectedInvoice(null);
-  }, 500); // ⏱ suffisant pour permettre au DOM de se mettre à jour
+  });
 };
+
 
 
   useEffect(() => {
