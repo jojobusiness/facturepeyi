@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { db } from "../lib/firebase";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
 import Papa from "papaparse";
 
 export default function ImportDepenses() {
   const [csvFile, setCsvFile] = useState(null);
-
+  const navigate = useNavigate();
+  
   const handleImport = async () => {
     if (!csvFile) return;
     Papa.parse(csvFile, {

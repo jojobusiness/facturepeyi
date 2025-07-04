@@ -20,18 +20,22 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // Factures de revenus
+      // 📥 Récupération des factures
       const revenusSnap = await getDocs(collection(db, 'factures'));
       const revenusData = revenusSnap.docs.map(doc => doc.data());
 
-      // Factures de dépenses
-      const depensesSnap = await getDocs(collection(db, 'depenses')); // Change 'depenses' si ta collection a un autre nom
+      // 📥 Récupération des dépenses
+      const depensesSnap = await getDocs(collection(db, 'depenses'));
       const depensesData = depensesSnap.docs.map(doc => doc.data());
 
-      // Calcul des totaux
-      const revenus = revenusData.reduce((sum, f) => f.status !== 'impayée' ? sum + parseFloat(f.amount) : sum, 0);
+      // 💰 Calcul des totaux
+      const revenus = revenusData.reduce((sum, f) =>
+        f.status !== 'impayée' ? sum + parseFloat(f.amount || 0) : sum, 0);
+
       const paiements = revenusData.filter(f => f.status === 'payée').length;
-      const totalDepenses = depensesData.reduce((sum, d) => sum + parseFloat(d.amount || 0), 0);
+
+      const totalDepenses = depensesData.reduce((sum, d) =>
+        sum + parseFloat(d.amount || 0), 0);
 
       setInvoices(revenusData);
       setDepenses(depensesData);
@@ -53,7 +57,7 @@ export default function Dashboard() {
         </button>
       </header>
 
-      {/* MENU DE NAVIGATION */}
+      {/* 🔗 Menu */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
         <DashboardCard title="➕ Créer une facture" subtitle="Nouvelle facture à générer" onClick={() => navigate('/facture/nouvelle')} />
         <DashboardCard title="📁 Mes factures" subtitle="Voir toutes les factures" onClick={() => navigate('/factures')} />
@@ -63,13 +67,14 @@ export default function Dashboard() {
         <DashboardCard title="📄 Rapports PDF" subtitle="Exporter vos documents" onClick={() => navigate('/rapports')} />
       </section>
 
-      {/* STATISTIQUES */}
+      {/* 📈 Statistiques et Graphique */}
       <section className="bg-white rounded shadow p-6">
         <h2 className="text-xl font-bold text-[#1B5E20] mb-4">📈 Statistiques générales</h2>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <StatCard label="💰 Revenus encaissés" value={`${totals.revenus} €`} />
+          <StatCard label="💰 Revenus encaissés" value={`${totals.revenus.toFixed(2)} €`} />
           <StatCard label="📬 Paiements reçus" value={totals.paiements} />
-          <StatCard label="💸 Dépenses totales" value={`${totals.depenses} €`} />
+          <StatCard label="💸 Dépenses totales" value={`${totals.depenses.toFixed(2)} €`} />
         </div>
 
         <div className="w-full h-72">
@@ -89,7 +94,7 @@ export default function Dashboard() {
   );
 }
 
-// 🧱 Composants réutilisables
+// 🧱 Cartes
 function DashboardCard({ title, subtitle, onClick }) {
   return (
     <div
@@ -111,7 +116,7 @@ function StatCard({ label, value }) {
   );
 }
 
-// 📊 Fonction pour fusionner les données mensuelles revenus + dépenses
+// 📊 Préparer les données pour le graphique
 function prepareMonthlyData(factures, depenses) {
   const moisMap = [
     "Jan", "Fév", "Mar", "Avr", "Mai", "Juin",
@@ -126,17 +131,17 @@ function prepareMonthlyData(factures, depenses) {
 
   // Revenus
   for (const f of factures) {
-    const date = f.date?.toDate?.();
-    if (!date || f.status === 'impayée') continue;
-    const m = date.getMonth();
+    const rawDate = f.date?.toDate?.() || new Date(f.date);
+    if (!rawDate || f.status === 'impayée') continue;
+    const m = rawDate.getMonth();
     data[m].revenu += parseFloat(f.amount || 0);
   }
 
   // Dépenses
   for (const d of depenses) {
-    const date = d.date?.toDate?.();
-    if (!date) continue;
-    const m = date.getMonth();
+    const rawDate = d.date?.toDate?.() || new Date(d.date);
+    if (!rawDate) continue;
+    const m = rawDate.getMonth();
     data[m].depense += parseFloat(d.amount || 0);
   }
 
