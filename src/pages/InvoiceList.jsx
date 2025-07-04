@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { db } from "../lib/firebase";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import InvoicePDF from "./InvoicePDF"; // ton composant d'affichage
+import InvoicePDF from "../components/InvoicePDF"; // ton composant d'affichage
 
 export default function InvoiceList() {
   const [invoices, setInvoices] = useState([]);
