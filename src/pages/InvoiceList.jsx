@@ -4,26 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { db } from "../lib/firebase";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-
-const generatePDF = (invoice) => {
-  const doc = new jsPDF();
-  const content = `
-    Facture #: ${invoice.id}
-    Client : ${invoice.clientNom}
-    Description : ${invoice.description}
-    Montant : ${invoice.amount} €
-    Statut : ${invoice.status}
-    Date : ${invoice.date?.toDate().toLocaleDateString() || ""}
-  `;
-
-  doc.text(content, 10, 10);
-  doc.save(`facture-${invoice.id}.pdf`);
-};
+import InvoicePDF from "../components/InvoicePDF";
 
 export default function InvoiceList() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate(); // ✅ doit être ici, dans le composant
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const navigate = useNavigate();
 
   const handleDelete = async (id) => {
     const confirmDelete = window.confirm("Supprimer cette facture ?");
@@ -40,6 +27,24 @@ export default function InvoiceList() {
 
   const handleEdit = (id) => {
     navigate(`/facture/modifier/${id}`);
+  };
+
+  const generatePDF = async (invoice) => {
+    setSelectedInvoice(invoice); // Rend le composant visible
+
+    setTimeout(async () => {
+      const element = document.getElementById("invoice-pdf");
+      const canvas = await html2canvas(element);
+      const imgData = canvas.toDataURL("image/png");
+
+      const pdf = new jsPDF("p", "mm", "a4");
+      const width = pdf.internal.pageSize.getWidth();
+      const height = pdf.internal.pageSize.getHeight();
+      pdf.addImage(imgData, "PNG", 0, 0, width, height);
+      pdf.save(`facture-${invoice.id}.pdf`);
+
+      setSelectedInvoice(null); // Cache à nouveau
+    }, 500);
   };
 
   useEffect(() => {
@@ -95,7 +100,7 @@ export default function InvoiceList() {
                     Supprimer
                   </button>
                   <button onClick={() => generatePDF(invoice)} className="text-green-700 hover:underline">
-                     PDF
+                    PDF
                   </button>
                 </td>
               </tr>
@@ -103,12 +108,20 @@ export default function InvoiceList() {
           </tbody>
         </table>
       )}
+
       <button
-      onClick={() => navigate("/dashboard")}
-      className="mb-4 px-4 py-2 bg-[#1B5E20] text-white rounded hover:bg-green-800"
+        onClick={() => navigate("/dashboard")}
+        className="mt-4 px-4 py-2 bg-[#1B5E20] text-white rounded hover:bg-green-800"
       >
-      ← Retour au tableau de bord
+        ← Retour au tableau de bord
       </button>
+
+      {/* Composant caché utilisé pour générer le PDF */}
+      {selectedInvoice && (
+        <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+          <InvoicePDF invoice={selectedInvoice} />
+        </div>
+      )}
     </main>
   );
 }
