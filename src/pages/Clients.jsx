@@ -53,6 +53,7 @@ export default function ClientList() {
                 <td className="p-2 space-x-2">
                   <button onClick={() => handleEdit(client.id)} className="text-blue-600 hover:underline">Modifier</button>
                   <button onClick={() => handleDelete(client.id)} className="text-red-600 hover:underline">Supprimer</button>
+                  <button onClick={() => navigate(`/factures/client/${client.id}`)}className="text-blue-600 hover:underline">Voir factures</button>
                 </td>
               </tr>
             ))}

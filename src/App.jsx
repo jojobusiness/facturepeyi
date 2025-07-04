@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import EditInvoice from './pages/EditInvoice';
 import CreateInvoice from './pages/CreateInvoice';
 import InvoiceList from './pages/InvoiceList';
+import FacturesClient from './pages/FacturesClient';
 import Clients from './pages/Clients';
 import AddClient from './pages/AddClient';
 import EditClient from './pages/EditClient';
@@ -23,6 +24,7 @@ export default function App() {
       <Route path="/facture/nouvelle" element={<PrivateRoute><CreateInvoice /></PrivateRoute>} />
       <Route path="/factures" element={<PrivateRoute><InvoiceList /></PrivateRoute>} />
       <Route path="/facture/modifier/:id" element={<PrivateRoute><EditInvoice /></PrivateRoute>} />
+      <Route path="/factures/client/:clientId" element={<PrivateRoute><FacturesClient /></PrivateRoute>} />
       <Route path="/clients" element={<PrivateRoute><Clients /></PrivateRoute>} />
       <Route path="/clients/ajouter" element={<PrivateRoute><AddClient /></PrivateRoute>} />
       <Route path="/clients/modifier/:id" element={<PrivateRoute><EditClient /></PrivateRoute>} />
