@@ -4,12 +4,12 @@ import { useNavigate } from "react-router-dom";
 import { db } from "../lib/firebase";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import InvoicePDF from "../components/InvoicePDF";
+import InvoicePDF from "./InvoicePDF"; // ton composant d'affichage
 
 export default function InvoiceList() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [selectedInvoice, setSelectedInvoice] = useState(null); // ← nécessaire pour le PDF
   const navigate = useNavigate();
 
   const handleDelete = async (id) => {
@@ -29,31 +29,43 @@ export default function InvoiceList() {
     navigate(`/facture/modifier/${id}`);
   };
 
-  const generatePDF = async (invoice) => {
-  setSelectedInvoice(invoice);
+  const handleGeneratePDF = (invoice) => {
+    setSelectedInvoice(invoice);
+  };
 
-  requestAnimationFrame(async () => {
-    const element = document.getElementById("invoice-pdf");
+  // 📄 Une fois que selectedInvoice est défini, on attend que le DOM le rende
+  useEffect(() => {
+    if (!selectedInvoice) return;
 
-    if (!element) {
-      alert("Erreur : élément PDF introuvable.");
-      return;
-    }
+    const generate = async () => {
+      // ⏳ attend que l'élément apparaisse dans le DOM
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
-    const canvas = await html2canvas(element);
-    const imgData = canvas.toDataURL("image/png");
+      const element = document.getElementById("invoice-pdf");
 
-    const pdf = new jsPDF("p", "mm", "a4");
-    const width = pdf.internal.pageSize.getWidth();
-    const height = pdf.internal.pageSize.getHeight();
-    pdf.addImage(imgData, "PNG", 0, 0, width, height);
-    pdf.save(`facture-${invoice.id}.pdf`);
+      if (!element) {
+        alert("Erreur : élément PDF introuvable.");
+        setSelectedInvoice(null);
+        return;
+      }
 
-    setSelectedInvoice(null);
-  });
-};
+      try {
+        const canvas = await html2canvas(element);
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF("p", "mm", "a4");
+        const width = pdf.internal.pageSize.getWidth();
+        const height = pdf.internal.pageSize.getHeight();
+        pdf.addImage(imgData, "PNG", 0, 0, width, height);
+        pdf.save(`facture-${selectedInvoice.id}.pdf`);
+      } catch (err) {
+        console.error("Erreur génération PDF :", err);
+      } finally {
+        setSelectedInvoice(null);
+      }
+    };
 
-
+    generate();
+  }, [selectedInvoice]);
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -101,15 +113,9 @@ export default function InvoiceList() {
                 <td className="p-2">{invoice.date?.toDate().toLocaleDateString()}</td>
                 <td className="p-2 capitalize">{invoice.status}</td>
                 <td className="p-2 space-x-2">
-                  <button onClick={() => handleEdit(invoice.id)} className="text-blue-600 hover:underline">
-                    Modifier
-                  </button>
-                  <button onClick={() => handleDelete(invoice.id)} className="text-red-600 hover:underline">
-                    Supprimer
-                  </button>
-                  <button onClick={() => generatePDF(invoice)} className="text-green-700 hover:underline">
-                    PDF
-                  </button>
+                  <button onClick={() => handleEdit(invoice.id)} className="text-blue-600 hover:underline">Modifier</button>
+                  <button onClick={() => handleDelete(invoice.id)} className="text-red-600 hover:underline">Supprimer</button>
+                  <button onClick={() => handleGeneratePDF(invoice)} className="text-green-700 hover:underline">PDF</button>
                 </td>
               </tr>
             ))}
@@ -124,9 +130,9 @@ export default function InvoiceList() {
         ← Retour au tableau de bord
       </button>
 
-      {/* Composant caché utilisé pour générer le PDF */}
+      {/* 👇 élément caché à capturer en PDF */}
       {selectedInvoice && (
-        <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+        <div style={{ position: "absolute", top: "-9999px", left: "-9999px" }}>
           <InvoicePDF invoice={selectedInvoice} />
         </div>
       )}
