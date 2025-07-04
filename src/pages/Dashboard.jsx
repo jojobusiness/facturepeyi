@@ -1,9 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import { auth, db } from '../lib/firebase';
 import { useEffect, useState } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../lib/firebase';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
@@ -11,7 +10,8 @@ import {
 export default function Dashboard() {
   const navigate = useNavigate();
   const [invoices, setInvoices] = useState([]);
-  const [totals, setTotals] = useState({ revenus: 0, paiements: 0 });
+  const [depenses, setDepenses] = useState([]);
+  const [totals, setTotals] = useState({ revenus: 0, paiements: 0, depenses: 0 });
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -19,18 +19,26 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    const fetchInvoices = async () => {
-      const snapshot = await getDocs(collection(db, 'factures'));
-      const data = snapshot.docs.map(doc => doc.data());
-      setInvoices(data);
+    const fetchData = async () => {
+      // Factures de revenus
+      const revenusSnap = await getDocs(collection(db, 'factures'));
+      const revenusData = revenusSnap.docs.map(doc => doc.data());
 
-      // Calcul des totaux simples
-      const revenus = data.reduce((sum, f) => f.status !== 'impayée' ? sum + parseFloat(f.amount) : sum, 0);
-      const paiements = data.filter(f => f.status === 'payée').length;
-      setTotals({ revenus, paiements });
+      // Factures de dépenses
+      const depensesSnap = await getDocs(collection(db, 'depenses')); // Change 'depenses' si ta collection a un autre nom
+      const depensesData = depensesSnap.docs.map(doc => doc.data());
+
+      // Calcul des totaux
+      const revenus = revenusData.reduce((sum, f) => f.status !== 'impayée' ? sum + parseFloat(f.amount) : sum, 0);
+      const paiements = revenusData.filter(f => f.status === 'payée').length;
+      const totalDepenses = depensesData.reduce((sum, d) => sum + parseFloat(d.amount || 0), 0);
+
+      setInvoices(revenusData);
+      setDepenses(depensesData);
+      setTotals({ revenus, paiements, depenses: totalDepenses });
     };
 
-    fetchInvoices();
+    fetchData();
   }, []);
 
   return (
@@ -47,36 +55,12 @@ export default function Dashboard() {
 
       {/* MENU DE NAVIGATION */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-        <DashboardCard
-          title="➕ Créer une facture"
-          subtitle="Nouvelle facture à générer"
-          onClick={() => navigate('/facture/nouvelle')}
-        />
-        <DashboardCard
-          title="📁 Mes factures"
-          subtitle="Voir toutes les factures"
-          onClick={() => navigate('/factures')}
-        />
-        <DashboardCard
-          title="👥 Mes clients"
-          subtitle="Liste et gestion des clients"
-          onClick={() => navigate('/clients')}
-        />
-        <DashboardCard
-          title="⚙️ Paramètres"
-          subtitle="Personnalisation du compte"
-          onClick={() => navigate('/parametres')}
-        />
-        <DashboardCard
-          title="🧾 Statistiques"
-          subtitle="Revenus, paiements, etc."
-          onClick={() => window.scrollTo({ top: 800, behavior: 'smooth' })}
-        />
-        <DashboardCard
-          title="📄 Rapports PDF"
-          subtitle="Exporter vos documents"
-          onClick={() => navigate('/rapports')}
-        />
+        <DashboardCard title="➕ Créer une facture" subtitle="Nouvelle facture à générer" onClick={() => navigate('/facture/nouvelle')} />
+        <DashboardCard title="📁 Mes factures" subtitle="Voir toutes les factures" onClick={() => navigate('/factures')} />
+        <DashboardCard title="👥 Mes clients" subtitle="Liste et gestion des clients" onClick={() => navigate('/clients')} />
+        <DashboardCard title="⚙️ Paramètres" subtitle="Personnalisation du compte" onClick={() => navigate('/parametres')} />
+        <DashboardCard title="📦 Dépenses" subtitle="Ajouter ou consulter les achats" onClick={() => navigate('/depenses')} />
+        <DashboardCard title="📄 Rapports PDF" subtitle="Exporter vos documents" onClick={() => navigate('/rapports')} />
       </section>
 
       {/* STATISTIQUES */}
@@ -85,17 +69,18 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <StatCard label="💰 Revenus encaissés" value={`${totals.revenus} €`} />
           <StatCard label="📬 Paiements reçus" value={totals.paiements} />
-          <StatCard label="📄 Total factures" value={invoices.length} />
+          <StatCard label="💸 Dépenses totales" value={`${totals.depenses} €`} />
         </div>
 
         <div className="w-full h-72">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={prepareMonthlyData(invoices)}>
+            <BarChart data={prepareMonthlyData(invoices, depenses)}>
               <XAxis dataKey="mois" />
               <YAxis />
               <Tooltip />
               <Legend />
               <Bar dataKey="revenu" fill="#2E7D32" name="Revenus (€)" />
+              <Bar dataKey="depense" fill="#C62828" name="Dépenses (€)" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -104,7 +89,7 @@ export default function Dashboard() {
   );
 }
 
-// CARTE DE MENU
+// 🧱 Composants réutilisables
 function DashboardCard({ title, subtitle, onClick }) {
   return (
     <div
@@ -117,7 +102,6 @@ function DashboardCard({ title, subtitle, onClick }) {
   );
 }
 
-// CARTE STATS SIMPLES
 function StatCard({ label, value }) {
   return (
     <div className="bg-gray-100 p-4 rounded shadow text-center">
@@ -127,8 +111,8 @@ function StatCard({ label, value }) {
   );
 }
 
-// PRÉPARATION DES DONNÉES MENSUELLES
-function prepareMonthlyData(factures) {
+// 📊 Fonction pour fusionner les données mensuelles revenus + dépenses
+function prepareMonthlyData(factures, depenses) {
   const moisMap = [
     "Jan", "Fév", "Mar", "Avr", "Mai", "Juin",
     "Juil", "Août", "Sep", "Oct", "Nov", "Déc"
@@ -137,13 +121,23 @@ function prepareMonthlyData(factures) {
   const data = Array(12).fill(0).map((_, i) => ({
     mois: moisMap[i],
     revenu: 0,
+    depense: 0,
   }));
 
+  // Revenus
   for (const f of factures) {
     const date = f.date?.toDate?.();
     if (!date || f.status === 'impayée') continue;
     const m = date.getMonth();
     data[m].revenu += parseFloat(f.amount || 0);
+  }
+
+  // Dépenses
+  for (const d of depenses) {
+    const date = d.date?.toDate?.();
+    if (!date) continue;
+    const m = date.getMonth();
+    data[m].depense += parseFloat(d.amount || 0);
   }
 
   return data;

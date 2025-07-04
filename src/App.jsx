@@ -11,6 +11,9 @@ import Clients from './pages/Clients';
 import AddClient from './pages/AddClient';
 import EditClient from './pages/EditClient';
 import ClientDetails from './pages/ClientDetails';
+import DepenseList from './pages/DepenseList';
+import DepenseForm from './pages/DepenseForm';
+import ImportDepenses from './pages/ImportDepenses';
 import Settings from './pages/Settings';
 import PrivateRoute from './components/PrivateRoute';
 
@@ -29,6 +32,9 @@ export default function App() {
       <Route path="/clients/ajouter" element={<PrivateRoute><AddClient /></PrivateRoute>} />
       <Route path="/clients/modifier/:id" element={<PrivateRoute><EditClient /></PrivateRoute>} />
       <Route path="/client/:id" element={<PrivateRoute><ClientDetails /></PrivateRoute>} />
+      <Route path="/depenses" element={<PrivateRoute><DepenseList /></PrivateRoute>} />
+      <Route path="/depenses/nouvelle" element={<PrivateRoute><DepenseForm /></PrivateRoute>} />
+      <Route path="/depenses/import" element={<PrivateRoute><ImportDepenses /></PrivateRoute>} />
       <Route path="/parametres" element={<PrivateRoute><Settings /></PrivateRoute>} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
