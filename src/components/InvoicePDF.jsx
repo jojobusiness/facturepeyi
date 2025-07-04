@@ -5,15 +5,18 @@ export default function InvoicePDF({ invoice }) {
     <div
       id="invoice-pdf"
       style={{
-        backgroundColor: "white",
+        backgroundColor: "#fff",
         width: "600px",
-        padding: "24px",
+        padding: "20px",
         fontSize: "14px",
         color: "#000",
-        fontFamily: "sans-serif",
+        fontFamily: "Arial, sans-serif",
+        lineHeight: "1.6",
+        border: "1px solid #ccc",
+        borderRadius: "6px",
       }}
     >
-      <h2 style={{ fontSize: "22px", fontWeight: "bold", marginBottom: "16px" }}>
+      <h2 style={{ fontSize: "22px", fontWeight: "bold", marginBottom: "20px" }}>
         Facture #{invoice.id}
       </h2>
 
@@ -23,8 +26,15 @@ export default function InvoicePDF({ invoice }) {
       <p><strong>Statut :</strong> {invoice.status}</p>
       <p><strong>Date :</strong> {invoice.date?.toDate().toLocaleDateString()}</p>
 
-      <div style={{ marginTop: "32px", borderTop: "1px solid #ccc", paddingTop: "16px", textAlign: "right" }}>
-        <p style={{ fontSize: "18px", fontWeight: "bold" }}>Total : {invoice.amount} €</p>
+      <div style={{
+        marginTop: "30px",
+        borderTop: "1px solid #eee",
+        paddingTop: "15px",
+        textAlign: "right"
+      }}>
+        <p style={{ fontSize: "18px", fontWeight: "bold" }}>
+          Total : {invoice.amount} €
+        </p>
       </div>
     </div>
   );
