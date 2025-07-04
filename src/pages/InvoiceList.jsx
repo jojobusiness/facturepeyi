@@ -30,22 +30,30 @@ export default function InvoiceList() {
   };
 
   const generatePDF = async (invoice) => {
-    setSelectedInvoice(invoice); // Rend le composant visible
+  setSelectedInvoice(invoice);
 
-    setTimeout(async () => {
-      const element = document.getElementById("invoice-pdf");
-      const canvas = await html2canvas(element);
-      const imgData = canvas.toDataURL("image/png");
+  // Laisse le DOM se mettre à jour
+  setTimeout(async () => {
+    const element = document.getElementById("invoice-pdf");
 
-      const pdf = new jsPDF("p", "mm", "a4");
-      const width = pdf.internal.pageSize.getWidth();
-      const height = pdf.internal.pageSize.getHeight();
-      pdf.addImage(imgData, "PNG", 0, 0, width, height);
-      pdf.save(`facture-${invoice.id}.pdf`);
+    if (!element) {
+      alert("Erreur : élément PDF introuvable.");
+      return;
+    }
 
-      setSelectedInvoice(null); // Cache à nouveau
-    }, 500);
-  };
+    const canvas = await html2canvas(element);
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdf = new jsPDF("p", "mm", "a4");
+    const width = pdf.internal.pageSize.getWidth();
+    const height = pdf.internal.pageSize.getHeight();
+    pdf.addImage(imgData, "PNG", 0, 0, width, height);
+    pdf.save(`facture-${invoice.id}.pdf`);
+
+    setSelectedInvoice(null);
+  }, 500); // ⏱ suffisant pour permettre au DOM de se mettre à jour
+};
+
 
   useEffect(() => {
     const fetchInvoices = async () => {
