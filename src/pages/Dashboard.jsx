@@ -35,7 +35,7 @@ export default function Dashboard() {
       const paiements = revenusData.filter(f => f.status === 'payée').length;
 
       const totalDepenses = depensesData.reduce((sum, d) =>
-        sum + parseFloat(d.amount || 0), 0);
+        sum + parseFloat(d.montant || 0), 0);
 
       setInvoices(revenusData);
       setDepenses(depensesData);
@@ -62,8 +62,8 @@ export default function Dashboard() {
         <DashboardCard title="➕ Créer une facture" subtitle="Nouvelle facture à générer" onClick={() => navigate('/facture/nouvelle')} />
         <DashboardCard title="📁 Mes factures" subtitle="Voir toutes les factures" onClick={() => navigate('/factures')} />
         <DashboardCard title="👥 Mes clients" subtitle="Liste et gestion des clients" onClick={() => navigate('/clients')} />
-        <DashboardCard title="⚙️ Paramètres" subtitle="Personnalisation du compte" onClick={() => navigate('/parametres')} />
         <DashboardCard title="📦 Dépenses" subtitle="Ajouter ou consulter les achats" onClick={() => navigate('/depenses')} />
+        <DashboardCard title="⚙️ Paramètres" subtitle="Personnalisation du compte" onClick={() => navigate('/parametres')} />
         <DashboardCard title="📄 Rapports PDF" subtitle="Exporter vos documents" onClick={() => navigate('/rapports')} />
       </section>
 
@@ -142,7 +142,7 @@ function prepareMonthlyData(factures, depenses) {
     const rawDate = d.date?.toDate?.() || new Date(d.date);
     if (!rawDate) continue;
     const m = rawDate.getMonth();
-    data[m].depense += parseFloat(d.amount || 0);
+    data[m].depense += parseFloat(d.montant || 0);
   }
 
   return data;
