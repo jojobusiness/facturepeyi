@@ -10,6 +10,7 @@ import { downloadInvoicePDF } from "../utils/downloadPDF";
 export default function InvoiceList() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedInvoice, setSelectedInvoice] = useState(null); // ← nécessaire pour le PDF
   const navigate = useNavigate();
 
   const handleDelete = async (id) => {
@@ -129,6 +130,13 @@ export default function InvoiceList() {
       >
         ← Retour au tableau de bord
       </button>
+
+      {/* 👇 élément caché à capturer en PDF */}
+      {selectedInvoice && (
+        <div style={{ position: "absolute", top: "-9999px", left: "-9999px" }}>
+          <InvoicePDF invoice={selectedInvoice} />
+        </div>
+      )}
     </main>
   );
 }
