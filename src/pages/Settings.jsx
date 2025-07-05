@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { auth, db, storage } from "../lib/firebase";
-import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import {
-  updatePassword,
   sendPasswordResetEmail,
   deleteUser,
 } from "firebase/auth";
@@ -28,7 +27,6 @@ export default function Settings() {
   });
 
   const [logoFile, setLogoFile] = useState(null);
-  const [newPassword, setNewPassword] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -63,37 +61,18 @@ export default function Settings() {
 
     try {
       let logoURL = form.logo;
+
       if (logoFile) {
         logoURL = await handleLogoUpload();
       }
 
       const docRef = doc(db, "entreprises", user.uid);
-      const docSnap = await getDoc(docRef);
-
-      const updatedData = {
-        ...form,
-        logo: logoURL,
-      };
-
-      if (docSnap.exists()) {
-        await updateDoc(docRef, updatedData);
-      } else {
-        await setDoc(docRef, updatedData);
-      }
+      await updateDoc(docRef, { ...form, logo: logoURL });
 
       alert("✅ Paramètres enregistrés.");
     } catch (err) {
       console.error(err);
       alert("❌ Erreur lors de l'enregistrement.");
-    }
-  };
-
-  const handleChangePassword = async () => {
-    try {
-      await updatePassword(user, newPassword);
-      alert("✅ Mot de passe modifié.");
-    } catch (error) {
-      alert("❌ Erreur : " + error.message);
     }
   };
 
@@ -202,25 +181,12 @@ export default function Settings() {
       {/* Mot de passe */}
       <div className="mt-8 bg-white p-4 rounded shadow max-w-xl space-y-4">
         <h3 className="text-xl font-semibold">🔐 Sécurité</h3>
-
-        <input
-          type="password"
-          placeholder="Nouveau mot de passe"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          className="w-full p-2 border rounded"
-        />
-        <button
-          onClick={handleChangePassword}
-          className="bg-blue-600 text-white w-full p-2 rounded hover:bg-blue-700"
-        >
-          🔁 Changer le mot de passe
-        </button>
+        <p>Pour changer votre mot de passe, cliquez ci-dessous pour recevoir un lien sécurisé par email.</p>
         <button
           onClick={handleResetPassword}
           className="bg-yellow-500 text-white w-full p-2 rounded hover:bg-yellow-600"
         >
-          📧 Réinitialisation par email
+          📧 Réinitialiser le mot de passe par email
         </button>
       </div>
 
