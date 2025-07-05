@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { auth, db, storage } from "../lib/firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
 import {
   updatePassword,
   sendPasswordResetEmail,
@@ -63,13 +63,23 @@ export default function Settings() {
 
     try {
       let logoURL = form.logo;
-
       if (logoFile) {
         logoURL = await handleLogoUpload();
       }
 
       const docRef = doc(db, "entreprises", user.uid);
-      await updateDoc(docRef, { ...form, logo: logoURL });
+      const docSnap = await getDoc(docRef);
+
+      const updatedData = {
+        ...form,
+        logo: logoURL,
+      };
+
+      if (docSnap.exists()) {
+        await updateDoc(docRef, updatedData);
+      } else {
+        await setDoc(docRef, updatedData);
+      }
 
       alert("✅ Paramètres enregistrés.");
     } catch (err) {
