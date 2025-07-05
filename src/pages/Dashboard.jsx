@@ -2,15 +2,17 @@ import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth, db } from '../lib/firebase';
 import { useEffect, useState } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
+  PieChart, Pie, Cell,
 } from 'recharts';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [invoices, setInvoices] = useState([]);
   const [depenses, setDepenses] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [totals, setTotals] = useState({ revenus: 0, paiements: 0, depenses: 0 });
 
   const handleLogout = async () => {
@@ -20,20 +22,28 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // 📥 Récupération des factures
+      const uid = auth.currentUser?.uid;
+
+      // 📥 Factures
       const revenusSnap = await getDocs(collection(db, 'factures'));
       const revenusData = revenusSnap.docs.map(doc => doc.data());
 
-      // 📥 Récupération des dépenses
+      // 📥 Dépenses
       const depensesSnap = await getDocs(collection(db, 'depenses'));
       const depensesData = depensesSnap.docs.map(doc => doc.data());
 
-      // 💰 Calcul des totaux
+      // 📥 Catégories
+      let categoriesData = [];
+      if (uid) {
+        const catSnap = await getDocs(query(collection(db, 'categories'), where('uid', '==', uid)));
+        categoriesData = catSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setCategories(categoriesData);
+      }
+
+      // 💰 Totaux
       const revenus = revenusData.reduce((sum, f) =>
         f.status !== 'impayée' ? sum + parseFloat(f.amount || 0) : sum, 0);
-
       const paiements = revenusData.filter(f => f.status === 'payée').length;
-
       const totalDepenses = depensesData.reduce((sum, d) =>
         sum + parseFloat(d.montant || 0), 0);
 
@@ -63,6 +73,7 @@ export default function Dashboard() {
         <DashboardCard title="📁 Mes factures" subtitle="Voir toutes les factures" onClick={() => navigate('/factures')} />
         <DashboardCard title="👥 Mes clients" subtitle="Liste et gestion des clients" onClick={() => navigate('/clients')} />
         <DashboardCard title="📦 Dépenses" subtitle="Ajouter ou consulter les achats" onClick={() => navigate('/depenses')} />
+        <DashboardCard title="📂 Gérer mes catégories" subtitle="Ajouter ou modifier les catégories" onClick={() => navigate('/categories')} />
         <DashboardCard title="⚙️ Paramètres" subtitle="Personnalisation du compte" onClick={() => navigate('/parametres')} />
         <DashboardCard title="📄 Rapports PDF" subtitle="Exporter vos documents" onClick={() => navigate('/rapports')} />
       </section>
@@ -88,6 +99,34 @@ export default function Dashboard() {
               <Bar dataKey="depense" fill="#C62828" name="Dépenses (€)" />
             </BarChart>
           </ResponsiveContainer>
+        </div>
+
+        {/* 📊 Dépenses par catégorie */}
+        <div className="mt-12">
+          <h2 className="text-lg font-semibold text-[#1B5E20] mb-2">🧾 Répartition des dépenses par catégorie</h2>
+          {categories.length > 0 && depenses.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={preparePieData(depenses, categories)}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={100}
+                  label
+                >
+                  {preparePieData(depenses, categories).map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-sm text-gray-500">Aucune dépense catégorisée à afficher.</p>
+          )}
         </div>
       </section>
     </main>
@@ -116,20 +155,11 @@ function StatCard({ label, value }) {
   );
 }
 
-// 📊 Préparer les données pour le graphique
+// 📊 Données mensuelles
 function prepareMonthlyData(factures, depenses) {
-  const moisMap = [
-    "Jan", "Fév", "Mar", "Avr", "Mai", "Juin",
-    "Juil", "Août", "Sep", "Oct", "Nov", "Déc"
-  ];
+  const moisMap = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
+  const data = Array(12).fill(0).map((_, i) => ({ mois: moisMap[i], revenu: 0, depense: 0 }));
 
-  const data = Array(12).fill(0).map((_, i) => ({
-    mois: moisMap[i],
-    revenu: 0,
-    depense: 0,
-  }));
-
-  // Revenus
   for (const f of factures) {
     const rawDate = f.date?.toDate?.() || new Date(f.date);
     if (!rawDate || f.status === 'impayée') continue;
@@ -137,7 +167,6 @@ function prepareMonthlyData(factures, depenses) {
     data[m].revenu += parseFloat(f.amount || 0);
   }
 
-  // Dépenses
   for (const d of depenses) {
     const rawDate = d.date?.toDate?.() || new Date(d.date);
     if (!rawDate) continue;
@@ -146,4 +175,32 @@ function prepareMonthlyData(factures, depenses) {
   }
 
   return data;
+}
+
+// 🥧 Données pour PieChart
+function preparePieData(depenses, categories) {
+  const result = [];
+
+  for (const cat of categories) {
+    const total = depenses
+      .filter(d => d.categorieId === cat.id)
+      .reduce((sum, d) => sum + parseFloat(d.montant || 0), 0);
+
+    if (total > 0) {
+      result.push({
+        name: cat.nom,
+        value: total,
+        color: cat.couleur || getRandomColor(cat.nom),
+      });
+    }
+  }
+
+  return result;
+}
+
+// 🌈 Couleurs par défaut si aucune n’est définie
+function getRandomColor(key) {
+  const hash = Array.from(key).reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  const colors = ['#FF5722', '#2196F3', '#4CAF50', '#FFC107', '#9C27B0', '#00BCD4'];
+  return colors[hash % colors.length];
 }
