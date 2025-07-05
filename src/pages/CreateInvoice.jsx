@@ -9,9 +9,11 @@ export default function CreateInvoice() {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState("");
-  const [tvaRate] = useState(8.5); // Taux fixe en %
+
+  const [tvaRate, setTvaRate] = useState(0); // 👈 taux modifiable
   const [tvaAmount, setTvaAmount] = useState(0);
   const [totalTTC, setTotalTTC] = useState(0);
+
   const navigate = useNavigate();
 
   // Charger les clients
@@ -28,11 +30,12 @@ export default function CreateInvoice() {
     fetchClients();
   }, []);
 
-  // Calcul TVA automatique à chaque changement du montant HT
+  // Calcul TVA automatique
   useEffect(() => {
     const base = parseFloat(amount);
+    const taux = parseFloat(tvaRate);
     if (!isNaN(base)) {
-      const tva = base * (tvaRate / 100);
+      const tva = base * (taux / 100);
       setTvaAmount(tva);
       setTotalTTC(base + tva);
     } else {
@@ -59,7 +62,7 @@ export default function CreateInvoice() {
         amountHT: parseFloat(amount),
         tva: parseFloat(tvaAmount.toFixed(2)),
         totalTTC: parseFloat(totalTTC.toFixed(2)),
-        tvaRate,
+        tvaRate: parseFloat(tvaRate),
         date: Timestamp.fromDate(new Date(date)),
         status: "en attente",
         createdAt: Timestamp.now(),
@@ -112,6 +115,23 @@ export default function CreateInvoice() {
           className="w-full border p-2 rounded"
         />
 
+        {/* Choix du taux de TVA */}
+        <div>
+          <label className="block text-sm font-medium">TVA (%)</label>
+          <select
+            value={tvaRate}
+            onChange={(e) => setTvaRate(e.target.value)}
+            className="w-full border p-2 rounded"
+          >
+            <option value={0}>0%</option>
+            <option value={2.1}>2.1%</option>
+            <option value={5.5}>5.5%</option>
+            <option value={8.5}>8.5%</option>
+            <option value={10}>10%</option>
+            <option value={20}>20%</option>
+          </select>
+        </div>
+
         <div className="text-sm text-gray-600">
           <p>TVA ({tvaRate}%) : <strong>{tvaAmount.toFixed(2)} €</strong></p>
           <p>Total TTC : <strong>{totalTTC.toFixed(2)} €</strong></p>
@@ -129,7 +149,7 @@ export default function CreateInvoice() {
           type="submit"
           className="bg-[#1B5E20] text-white px-4 py-2 rounded hover:bg-[#2e7d32]"
         >
-          Enregistrer la facture
+          💾 Enregistrer la facture
         </button>
 
         <button

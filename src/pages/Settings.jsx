@@ -15,26 +15,6 @@ import { useNavigate } from "react-router-dom";
 export default function Settings() {
   const navigate = useNavigate();
   const user = auth.currentUser;
-  const [file, setFile] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  const handleUpload = async () => {
-    if (!file) return alert("Veuillez choisir un fichier.");
-    setLoading(true);
-
-    const userId = auth.currentUser.uid;
-    const storageRef = ref(storage, `logos/${userId}.png`);
-    await uploadBytes(storageRef, file);
-    const url = await getDownloadURL(storageRef);
-
-    await updateDoc(doc(db, "entreprises", userId), {
-      logoUrl: url
-    });
-
-    setLoading(false);
-    alert("Logo mis à jour !");
-
-  const [tvaActive, setTvaActive] = useState(true);
 
   const [form, setForm] = useState({
     nom: "",
@@ -44,9 +24,11 @@ export default function Settings() {
     notifications: true,
     theme: "clair",
     role: "",
+    tvaActive: true,
   });
 
   const [logoFile, setLogoFile] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -67,32 +49,31 @@ export default function Settings() {
     }));
   };
 
-  const handleLogoUpload = async () => {
-    if (!logoFile) return null;
-
-    const storageRef = ref(storage, `logos/${user.uid}`);
-    await uploadBytes(storageRef, logoFile);
-    const url = await getDownloadURL(storageRef);
-    return url;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
+      setLoading(true);
       let logoURL = form.logo;
 
       if (logoFile) {
-        logoURL = await handleLogoUpload();
+        const storageRef = ref(storage, `logos/${user.uid}.png`);
+        await uploadBytes(storageRef, logoFile);
+        logoURL = await getDownloadURL(storageRef);
       }
 
       const docRef = doc(db, "entreprises", user.uid);
-      await updateDoc(docRef, { ...form, logo: logoURL });
+      await updateDoc(docRef, {
+        ...form,
+        logo: logoURL,
+        logoUrl: logoURL,
+      });
 
       alert("✅ Paramètres enregistrés.");
     } catch (err) {
       console.error(err);
       alert("❌ Erreur lors de l'enregistrement.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -108,7 +89,6 @@ export default function Settings() {
       navigate("/");
     }
   };
-}
 
   return (
     <main className="min-h-screen bg-gray-100 p-4">
@@ -145,16 +125,16 @@ export default function Settings() {
         />
 
         {/* Upload de logo */}
-        <div className="p-4 max-w-md mx-auto">
-        <h2 className="text-xl font-bold mb-4">Logo de votre entreprise</h2>
-        <input type="file" onChange={e => setFile(e.target.files[0])} />
-        <button
-          onClick={handleUpload}
-          disabled={loading}
-          className="mt-2 bg-green-700 text-white px-4 py-2 rounded"
-        >
-          {loading ? "Téléchargement..." : "Enregistrer"}
-        </button>
+        <div>
+          <label className="block font-medium mb-1">Logo entreprise</label>
+          {form.logo && (
+            <img
+              src={form.logo}
+              alt="Logo actuel"
+              className="h-20 object-contain border mb-2"
+            />
+          )}
+          <input type="file" accept="image/*" onChange={(e) => setLogoFile(e.target.files[0])} />
         </div>
 
         <div className="flex items-center space-x-2">
@@ -185,22 +165,32 @@ export default function Settings() {
           className="w-full p-2 border rounded bg-gray-100 text-gray-700"
           placeholder="Rôle (admin / comptable)"
         />
+
         <label className="flex items-center gap-2">
-          <input type="checkbox" checked={tvaActive} onChange={() => setTvaActive(!tvaActive)} />
-           Activer la gestion de la TVA
+          <input
+            type="checkbox"
+            name="tvaActive"
+            checked={form.tvaActive}
+            onChange={handleChange}
+          />
+          Activer la gestion de la TVA
         </label>
+
         <button
           type="submit"
           className="bg-[#1B5E20] text-white w-full p-2 rounded"
         >
-          💾 Enregistrer
+          {loading ? "Enregistrement..." : "💾 Enregistrer"}
         </button>
       </form>
 
       {/* Mot de passe */}
       <div className="mt-8 bg-white p-4 rounded shadow max-w-xl space-y-4">
         <h3 className="text-xl font-semibold">🔐 Sécurité</h3>
-        <p>Pour changer votre mot de passe, cliquez ci-dessous pour recevoir un lien sécurisé par email.</p>
+        <p>
+          Pour changer votre mot de passe, cliquez ci-dessous pour recevoir un
+          lien sécurisé par email.
+        </p>
         <button
           onClick={handleResetPassword}
           className="bg-yellow-500 text-white w-full p-2 rounded hover:bg-yellow-600"
