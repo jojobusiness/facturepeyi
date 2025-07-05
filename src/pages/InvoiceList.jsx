@@ -5,11 +5,11 @@ import { db } from "../lib/firebase";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import InvoicePDF from "../components/InvoicePDF"; // ton composant d'affichage
+import { downloadInvoicePDF } from "../utils/downloadPDF";
 
 export default function InvoiceList() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedInvoice, setSelectedInvoice] = useState(null); // ← nécessaire pour le PDF
   const navigate = useNavigate();
 
   const handleDelete = async (id) => {
@@ -30,7 +30,7 @@ export default function InvoiceList() {
   };
 
   const handleGeneratePDF = (invoice) => {
-    setSelectedInvoice(invoice);
+    downloadInvoicePDF(invoice);
   };
 
   // 📄 Une fois que selectedInvoice est défini, on attend que le DOM le rende
@@ -129,13 +129,6 @@ export default function InvoiceList() {
       >
         ← Retour au tableau de bord
       </button>
-
-      {/* 👇 élément caché à capturer en PDF */}
-      {selectedInvoice && (
-        <div style={{ position: "absolute", top: "-9999px", left: "-9999px" }}>
-          <InvoicePDF invoice={selectedInvoice} />
-        </div>
-      )}
     </main>
   );
 }
