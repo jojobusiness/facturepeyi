@@ -15,6 +15,8 @@ import { useNavigate } from "react-router-dom";
 export default function Settings() {
   const navigate = useNavigate();
   const user = auth.currentUser;
+  
+  const [tvaActive, setTvaActive] = useState(true);
 
   const [form, setForm] = useState({
     nom: "",
@@ -169,7 +171,10 @@ export default function Settings() {
           className="w-full p-2 border rounded bg-gray-100 text-gray-700"
           placeholder="Rôle (admin / comptable)"
         />
-
+        <label className="flex items-center gap-2">
+          <input type="checkbox" checked={tvaActive} onChange={() => setTvaActive(!tvaActive)} />
+           Activer la gestion de la TVA
+        </label>
         <button
           type="submit"
           className="bg-[#1B5E20] text-white w-full p-2 rounded"

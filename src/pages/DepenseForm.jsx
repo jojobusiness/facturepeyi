@@ -23,7 +23,16 @@ export default function DepenseForm() {
 
   const uid = auth.currentUser?.uid;
 
+  const [montantHT, setMontantHT] = useState(0);
+  const [tauxTVA, setTauxTVA] = useState(0); // en %
+  const [montantTVA, setMontantTVA] = useState(0);
+  const [montantTTC, setMontantTTC] = useState(0);
+
   useEffect(() => {
+  const tvaValue = (parseFloat(montantHT) * parseFloat(tauxTVA)) / 100;
+  setMontantTVA(tvaValue);
+  setMontantTTC(parseFloat(montantHT) + tvaValue);
+
     if (!uid) return;
     const fetchCategories = async () => {
       const q = query(collection(db, "categories"), where("uid", "==", uid));
@@ -31,7 +40,7 @@ export default function DepenseForm() {
       setCategories(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
     };
     fetchCategories();
-  }, [uid]);
+  }, [montantHT, tauxTVA, uid]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -46,6 +55,10 @@ export default function DepenseForm() {
         montant: parseFloat(formData.montant),
         date: Timestamp.fromDate(new Date(formData.date)),
         createdAt: Timestamp.now(),
+        montantHT: parseFloat(montantHT),
+        tva: parseFloat(tauxTVA),
+        montantTVA: parseFloat(montantTVA),
+        montantTTC: parseFloat(montantTTC),
       });
       navigate("/depenses");
     } catch (err) {
@@ -106,7 +119,25 @@ export default function DepenseForm() {
             </option>
           ))}
         </select>
+        <div className="mb-4">
+        <label>Montant HT</label>
+        <input type="number" value={montantHT} onChange={e => setMontantHT(e.target.value)} />
+        </div>
 
+        <div className="mb-4">
+          <label>TVA (%)</label>
+          <select value={tauxTVA} onChange={e => setTauxTVA(e.target.value)}>
+            <option value={0}>0%</option>
+            <option value={2.1}>2.1%</option>
+            <option value={5.5}>5.5%</option>
+            <option value={8.5}>8.5%</option>
+            <option value={10}>10%</option>
+            <option value={20}>20%</option>
+          </select>
+        </div>
+
+        <p>TVA à payer : <strong>{montantTVA.toFixed(2)} €</strong></p>
+        <p>Montant TTC : <strong>{montantTTC.toFixed(2)} €</strong></p>
         <button
           type="submit"
           className="bg-[#1B5E20] text-white px-4 py-2 rounded"

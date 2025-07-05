@@ -20,7 +20,17 @@ export default function EditInvoice() {
 
   const [clients, setClients] = useState([]);
 
-  useEffect(() => {
+  const [montantHT, setMontantHT] = useState(0);
+  const [tauxTVA, setTauxTVA] = useState(0); // en %
+  const [montantTVA, setMontantTVA] = useState(0);
+  const [montantTTC, setMontantTTC] = useState(0);
+
+    useEffect(() => {
+
+    const tvaValue = (parseFloat(montantHT) * parseFloat(tauxTVA)) / 100;
+    setMontantTVA(tvaValue);
+    setMontantTTC(parseFloat(montantHT) + tvaValue);
+
     const fetchData = async () => {
       // Récupérer les clients
       const clientSnap = await getDocs(collection(db, "clients"));
@@ -49,7 +59,7 @@ export default function EditInvoice() {
     };
 
     fetchData();
-  }, [id, navigate]);
+  }, [id ,montantHT, tauxTVA, navigate ]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -70,6 +80,11 @@ export default function EditInvoice() {
         description: form.description,
         amount: form.amount,
         status: form.status,
+        amountHT: parseFloat(montantHT),
+        tva: parseFloat(tauxTVA),
+        amountTVA: parseFloat(montantTVA),
+        amountTTC: parseFloat(montantTTC),
+        date: Timestamp.fromDate(new Date())
       });
 
       alert("Facture modifiée !");
@@ -91,7 +106,6 @@ export default function EditInvoice() {
             <option key={c.id} value={c.id}>{c.nom}</option>
           ))}
         </select>
-
         <input type="text" name="description" value={form.description} onChange={handleChange} placeholder="Description" className="w-full p-2 border rounded" required />
         <input type="number" name="amount" value={form.amount} onChange={handleChange} placeholder="Montant (€)" className="w-full p-2 border rounded" required />
         <select name="status" value={form.status} onChange={handleChange} className="w-full p-2 border rounded">
@@ -99,6 +113,25 @@ export default function EditInvoice() {
           <option value="payée">Payée</option>
           <option value="annulée">Annulée</option>
         </select>
+        <div className="mb-4">
+        <label>Montant HT</label>
+        <input type="number" value={montantHT} onChange={e => setMontantHT(e.target.value)} />
+        </div>
+
+        <div className="mb-4">
+          <label>TVA (%)</label>
+          <select value={tauxTVA} onChange={e => setTauxTVA(e.target.value)}>
+            <option value={0}>0%</option>
+            <option value={2.1}>2.1%</option>
+            <option value={5.5}>5.5%</option>
+            <option value={8.5}>8.5%</option>
+            <option value={10}>10%</option>
+            <option value={20}>20%</option>
+          </select>
+        </div>
+
+        <p>TVA à payer : <strong>{montantTVA.toFixed(2)} €</strong></p>
+        <p>Montant TTC : <strong>{montantTTC.toFixed(2)} €</strong></p>
         <button type="submit" className="bg-[#1B5E20] text-white w-full p-2 rounded">Enregistrer</button>
       </form>
     </main>

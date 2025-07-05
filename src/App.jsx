@@ -15,6 +15,7 @@ import DepenseList from './pages/DepenseList';
 import DepenseForm from './pages/DepenseForm';
 import ImportDepenses from './pages/ImportDepenses';
 import Categories from './pages/Categories';
+import DeclarationFiscale from './pages/DeclarationFiscale';
 import Settings from './pages/Settings';
 import PrivateRoute from './components/PrivateRoute';
 
@@ -37,6 +38,7 @@ export default function App() {
       <Route path="/depenses/nouvelle" element={<PrivateRoute><DepenseForm /></PrivateRoute>} />
       <Route path="/depenses/import" element={<PrivateRoute><ImportDepenses /></PrivateRoute>} />
       <Route path="/categories" element={<PrivateRoute><Categories /></PrivateRoute>} />
+      <Route path="/declarationfiscale" element={<PrivateRoute><DeclarationFiscale /></PrivateRoute>} />
       <Route path="/parametres" element={<PrivateRoute><Settings /></PrivateRoute>} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
