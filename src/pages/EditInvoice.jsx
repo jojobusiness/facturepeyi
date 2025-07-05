@@ -9,6 +9,7 @@ export default function EditInvoice() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const prefilledClientId = searchParams.get("clientId");
+  const [logoUrl, setLogoUrl] = useState("");
 
   const [form, setForm] = useState({
     clientId: prefilledClientId || "",
@@ -59,6 +60,16 @@ export default function EditInvoice() {
     };
 
     fetchData();
+    const fetchLogo = async () => {
+    const userId = auth.currentUser.uid;
+    const entrepriseRef = doc(db, "entreprises", userId);
+    const snap = await getDoc(entrepriseRef);
+    if (snap.exists()) {
+      setLogoUrl(snap.data().logoUrl || "");
+    }
+    };
+
+    fetchLogo();
   }, [id ,montantHT, tauxTVA, navigate ]);
 
   const handleChange = (e) => {
@@ -98,7 +109,13 @@ export default function EditInvoice() {
   return (
     <main className="min-h-screen bg-gray-100 p-4">
       <h2 className="text-2xl font-bold mb-4">Modifier la facture</h2>
-      <InvoicePDF invoice={form} />
+      <InvoicePDF invoice={{...form,
+        logoUrl,
+        amountHT: montantHT,
+        tva: tauxTVA,
+        amountTVA: montantTVA,
+        amountTTC: montantTTC,
+      }} />
       <form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow space-y-4 max-w-md">
         <select value={form.clientId} onChange={handleClientChange} className="w-full p-2 border rounded" required>
           <option value="">-- Sélectionner un client --</option>

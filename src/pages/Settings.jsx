@@ -15,7 +15,25 @@ import { useNavigate } from "react-router-dom";
 export default function Settings() {
   const navigate = useNavigate();
   const user = auth.currentUser;
-  
+  const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleUpload = async () => {
+    if (!file) return alert("Veuillez choisir un fichier.");
+    setLoading(true);
+
+    const userId = auth.currentUser.uid;
+    const storageRef = ref(storage, `logos/${userId}.png`);
+    await uploadBytes(storageRef, file);
+    const url = await getDownloadURL(storageRef);
+
+    await updateDoc(doc(db, "entreprises", userId), {
+      logoUrl: url
+    });
+
+    setLoading(false);
+    alert("Logo mis à jour !");
+
   const [tvaActive, setTvaActive] = useState(true);
 
   const [form, setForm] = useState({
@@ -90,6 +108,7 @@ export default function Settings() {
       navigate("/");
     }
   };
+}
 
   return (
     <main className="min-h-screen bg-gray-100 p-4">
@@ -126,21 +145,16 @@ export default function Settings() {
         />
 
         {/* Upload de logo */}
-        <div className="space-y-2">
-          <label className="block font-medium">Logo de l’entreprise :</label>
-          {form.logo && (
-            <img
-              src={form.logo}
-              alt="Logo actuel"
-              className="h-20 object-contain rounded border"
-            />
-          )}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setLogoFile(e.target.files[0])}
-            className="w-full p-2 border rounded"
-          />
+        <div className="p-4 max-w-md mx-auto">
+        <h2 className="text-xl font-bold mb-4">Logo de votre entreprise</h2>
+        <input type="file" onChange={e => setFile(e.target.files[0])} />
+        <button
+          onClick={handleUpload}
+          disabled={loading}
+          className="mt-2 bg-green-700 text-white px-4 py-2 rounded"
+        >
+          {loading ? "Téléchargement..." : "Enregistrer"}
+        </button>
         </div>
 
         <div className="flex items-center space-x-2">

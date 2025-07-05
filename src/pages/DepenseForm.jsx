@@ -13,26 +13,22 @@ import {
 export default function DepenseForm() {
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
+  const uid = auth.currentUser?.uid;
+
   const [formData, setFormData] = useState({
     fournisseur: "",
     description: "",
-    montant: "",
     date: "",
     categorieId: "",
   });
 
-  const uid = auth.currentUser?.uid;
-
-  const [montantHT, setMontantHT] = useState(0);
+  const [montantHT, setMontantHT] = useState("");
   const [tauxTVA, setTauxTVA] = useState(0); // en %
   const [montantTVA, setMontantTVA] = useState(0);
   const [montantTTC, setMontantTTC] = useState(0);
 
+  // Récupération des catégories personnalisées
   useEffect(() => {
-  const tvaValue = (parseFloat(montantHT) * parseFloat(tauxTVA)) / 100;
-  setMontantTVA(tvaValue);
-  setMontantTTC(parseFloat(montantHT) + tvaValue);
-
     if (!uid) return;
     const fetchCategories = async () => {
       const q = query(collection(db, "categories"), where("uid", "==", uid));
@@ -40,7 +36,21 @@ export default function DepenseForm() {
       setCategories(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
     };
     fetchCategories();
-  }, [montantHT, tauxTVA, uid]);
+  }, [uid]);
+
+  // Calcul TVA et TTC automatiquement
+  useEffect(() => {
+    const ht = parseFloat(montantHT);
+    const taux = parseFloat(tauxTVA);
+    if (!isNaN(ht)) {
+      const tva = (ht * taux) / 100;
+      setMontantTVA(tva);
+      setMontantTTC(ht + tva);
+    } else {
+      setMontantTVA(0);
+      setMontantTTC(0);
+    }
+  }, [montantHT, tauxTVA]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -52,13 +62,12 @@ export default function DepenseForm() {
       await addDoc(collection(db, "depenses"), {
         ...formData,
         uid,
-        montant: parseFloat(formData.montant),
+        montantHT: parseFloat(montantHT),
+        tauxTVA: parseFloat(tauxTVA),
+        montantTVA: parseFloat(montantTVA.toFixed(2)),
+        montantTTC: parseFloat(montantTTC.toFixed(2)),
         date: Timestamp.fromDate(new Date(formData.date)),
         createdAt: Timestamp.now(),
-        montantHT: parseFloat(montantHT),
-        tva: parseFloat(tauxTVA),
-        montantTVA: parseFloat(montantTVA),
-        montantTTC: parseFloat(montantTTC),
       });
       navigate("/depenses");
     } catch (err) {
@@ -77,39 +86,36 @@ export default function DepenseForm() {
         <input
           name="fournisseur"
           onChange={handleChange}
+          value={formData.fournisseur}
           required
           placeholder="Fournisseur"
           className="w-full p-2 border rounded"
         />
+
         <input
           name="description"
           onChange={handleChange}
+          value={formData.description}
           required
           placeholder="Description"
           className="w-full p-2 border rounded"
         />
-        <input
-          type="number"
-          name="montant"
-          onChange={handleChange}
-          required
-          placeholder="Montant (€)"
-          className="w-full p-2 border rounded"
-        />
+
         <input
           type="date"
           name="date"
           onChange={handleChange}
+          value={formData.date}
           required
           className="w-full p-2 border rounded"
         />
 
-        {/* Select catégorie */}
+        {/* Sélection catégorie */}
         <select
           name="categorieId"
           onChange={handleChange}
-          required
           value={formData.categorieId}
+          required
           className="w-full p-2 border rounded"
         >
           <option value="">-- Choisir une catégorie --</option>
@@ -119,14 +125,27 @@ export default function DepenseForm() {
             </option>
           ))}
         </select>
-        <div className="mb-4">
-        <label>Montant HT</label>
-        <input type="number" value={montantHT} onChange={e => setMontantHT(e.target.value)} />
+
+        {/* Montant HT */}
+        <div>
+          <label className="block font-medium mb-1">Montant HT (€)</label>
+          <input
+            type="number"
+            value={montantHT}
+            onChange={(e) => setMontantHT(e.target.value)}
+            required
+            className="w-full p-2 border rounded"
+          />
         </div>
 
-        <div className="mb-4">
-          <label>TVA (%)</label>
-          <select value={tauxTVA} onChange={e => setTauxTVA(e.target.value)}>
+        {/* Taux TVA */}
+        <div>
+          <label className="block font-medium mb-1">TVA (%)</label>
+          <select
+            value={tauxTVA}
+            onChange={(e) => setTauxTVA(e.target.value)}
+            className="w-full p-2 border rounded"
+          >
             <option value={0}>0%</option>
             <option value={2.1}>2.1%</option>
             <option value={5.5}>5.5%</option>
@@ -136,13 +155,17 @@ export default function DepenseForm() {
           </select>
         </div>
 
-        <p>TVA à payer : <strong>{montantTVA.toFixed(2)} €</strong></p>
-        <p>Montant TTC : <strong>{montantTTC.toFixed(2)} €</strong></p>
+        {/* Résumé calculé */}
+        <div className="text-sm text-gray-700">
+          <p>TVA à payer : <strong>{montantTVA.toFixed(2)} €</strong></p>
+          <p>Montant TTC : <strong>{montantTTC.toFixed(2)} €</strong></p>
+        </div>
+
         <button
           type="submit"
-          className="bg-[#1B5E20] text-white px-4 py-2 rounded"
+          className="bg-[#1B5E20] text-white px-4 py-2 rounded hover:bg-green-700"
         >
-          💾 Enregistrer
+          💾 Enregistrer la dépense
         </button>
       </form>
 

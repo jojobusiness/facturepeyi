@@ -9,9 +9,12 @@ export default function CreateInvoice() {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState("");
+  const [tvaRate] = useState(8.5); // Taux fixe en %
+  const [tvaAmount, setTvaAmount] = useState(0);
+  const [totalTTC, setTotalTTC] = useState(0);
   const navigate = useNavigate();
 
-  // 🔁 Charger la liste des clients
+  // Charger les clients
   useEffect(() => {
     const fetchClients = async () => {
       try {
@@ -22,9 +25,21 @@ export default function CreateInvoice() {
         console.error("Erreur chargement clients :", err);
       }
     };
-
     fetchClients();
   }, []);
+
+  // Calcul TVA automatique à chaque changement du montant HT
+  useEffect(() => {
+    const base = parseFloat(amount);
+    if (!isNaN(base)) {
+      const tva = base * (tvaRate / 100);
+      setTvaAmount(tva);
+      setTotalTTC(base + tva);
+    } else {
+      setTvaAmount(0);
+      setTotalTTC(0);
+    }
+  }, [amount, tvaRate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,7 +56,10 @@ export default function CreateInvoice() {
         clientId,
         clientNom: selectedClient?.nom || "",
         description,
-        amount: parseFloat(amount),
+        amountHT: parseFloat(amount),
+        tva: parseFloat(tvaAmount.toFixed(2)),
+        totalTTC: parseFloat(totalTTC.toFixed(2)),
+        tvaRate,
         date: Timestamp.fromDate(new Date(date)),
         status: "en attente",
         createdAt: Timestamp.now(),
@@ -84,14 +102,21 @@ export default function CreateInvoice() {
           required
           className="w-full border p-2 rounded"
         />
+
         <input
           type="number"
-          placeholder="Montant (€)"
+          placeholder="Montant HT (€)"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           required
           className="w-full border p-2 rounded"
         />
+
+        <div className="text-sm text-gray-600">
+          <p>TVA ({tvaRate}%) : <strong>{tvaAmount.toFixed(2)} €</strong></p>
+          <p>Total TTC : <strong>{totalTTC.toFixed(2)} €</strong></p>
+        </div>
+
         <input
           type="date"
           value={date}
@@ -99,12 +124,14 @@ export default function CreateInvoice() {
           required
           className="w-full border p-2 rounded"
         />
+
         <button
           type="submit"
           className="bg-[#1B5E20] text-white px-4 py-2 rounded hover:bg-[#2e7d32]"
         >
           Enregistrer la facture
         </button>
+
         <button
           onClick={() => navigate("/dashboard")}
           type="button"
