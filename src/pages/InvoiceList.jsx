@@ -21,11 +21,25 @@ export default function InvoiceList() {
   };
 
   const handleGeneratePDF = async (invoice) => {
-    if (!entrepriseInfo) {
-      alert("Informations entreprise manquantes");
-      return;
+    const userId = auth.currentUser?.uid;
+    if (!userId) return alert("Utilisateur non connecté");
+
+    try {
+      const entrepriseRef = doc(db, "entreprises", userId);
+      const snap = await getDoc(entrepriseRef);
+      const entreprise = snap.exists() ? snap.data() : {};
+
+      setSelectedInvoice({
+        ...invoice,
+        entrepriseNom: entreprise.nom || "Nom Entreprise",
+        entrepriseEmail: entreprise.email || "email@entreprise.com",
+        entrepriseSiret: entreprise.siret || "SIRET inconnu",
+        logoUrl: entreprise.logoUrl || "", // 🖼️ pour le logo
+      });
+    } catch (err) {
+      console.error("Erreur récupération entreprise :", err);
+      alert("Erreur chargement entreprise.");
     }
-    await downloadInvoicePDF(invoice, entrepriseInfo);
   };
 
   useEffect(() => {
