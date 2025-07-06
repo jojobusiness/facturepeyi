@@ -8,12 +8,11 @@ import {
   Font,
 } from "@react-pdf/renderer";
 
-// Tu peux enregistrer une font personnalisée si tu veux ici
 Font.register({
   family: "Helvetica",
   fonts: [
-    { src: "https://fonts.gstatic.com/s/helvetica/v6/KFOmCnqEu92Fr1Mu4mxP.ttf" }
-  ]
+    { src: "https://fonts.gstatic.com/s/helvetica/v6/KFOmCnqEu92Fr1Mu4mxP.ttf" },
+  ],
 });
 
 const styles = StyleSheet.create({
@@ -26,7 +25,7 @@ const styles = StyleSheet.create({
   },
   logo: {
     width: 100,
-    height: "auto",
+    height: 50,
     marginBottom: 10,
   },
   header: {
@@ -35,8 +34,8 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   companyInfo: {
-    fontSize: 14,
-    fontWeight: "bold",
+    fontSize: 12,
+    marginTop: 10,
   },
   clientInfo: {
     textAlign: "right",
@@ -68,20 +67,24 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function InvoicePDF({ invoice, logoUrl }) {
+export default function InvoicePDF({ invoice }) {
+  const date = invoice.date?.toDate?.().toLocaleDateString?.() || "";
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         {/* En-tête avec logo et entreprise */}
         <View style={styles.header}>
           <View>
-            {logoUrl && <Image src={logoUrl} style={styles.logo} />}
-            <Text style={styles.companyInfo}>FacturPeyi</Text>
-            <Text>Système de facturation en ligne</Text>
+            {invoice.logoUrl && <Image src={invoice.logoUrl} style={styles.logo} />}
+            <Text style={styles.companyInfo}>{invoice.entrepriseNom || "FacturPeyi"}</Text>
+            {invoice.entrepriseEmail && <Text>{invoice.entrepriseEmail}</Text>}
+            {invoice.entrepriseSiret && <Text>SIRET : {invoice.entrepriseSiret}</Text>}
           </View>
           <View style={styles.clientInfo}>
             <Text>Facturé à :</Text>
             <Text>{invoice.clientNom}</Text>
+            {date && <Text>Date : {date}</Text>}
           </View>
         </View>
 
