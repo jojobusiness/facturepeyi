@@ -20,8 +20,10 @@ import Settings from './pages/Settings';
 import PlanComptable from './pages/PlanComptable';
 import BilanComptable from './pages/BilanComptable';
 import JournalComptable from './pages/JournalComptable';
+import Unauthorized from './pages/Unauthorized';
+import AdminUserManagement from './pages/AdminUserManagement';
 import PrivateRoute from './components/PrivateRoute';
-
+import RoleRoute from './components/RoleRoute';
 
 export default function App() {
   return (
@@ -42,10 +44,12 @@ export default function App() {
       <Route path="/depenses/import" element={<PrivateRoute><ImportDepenses /></PrivateRoute>} />
       <Route path="/categories" element={<PrivateRoute><Categories /></PrivateRoute>} />
       <Route path="/plancomptable" element={<PrivateRoute><PlanComptable /></PrivateRoute>} />
-      <Route path="/bilancomptable" element={<PrivateRoute><BilanComptable /></PrivateRoute>} />
-      <Route path="/journalcomptable" element={<PrivateRoute><JournalComptable /></PrivateRoute>} />
-      <Route path="/declarationfiscale" element={<PrivateRoute><DeclarationFiscale /></PrivateRoute>} />
+      <Route path="/bilancomptable" element={<RoleRoute allowedRoles={["comptable", "admin"]}><BilanComptable /></RoleRoute>} />
+      <Route path="/journalcomptable" element={<RoleRoute allowedRoles={["comptable", "admin"]}><JournalComptable /></RoleRoute>} />
+      <Route path="/declarationfiscale" element={<RoleRoute allowedRoles={["comptable", "admin"]}><DeclarationFiscale /></RoleRoute>} />
+      <Route path="/admin" element={<RoleRoute allowedRoles={["admin"]}><AdminUserManagement /></RoleRoute>} />
       <Route path="/parametres" element={<PrivateRoute><Settings /></PrivateRoute>} />
+      <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

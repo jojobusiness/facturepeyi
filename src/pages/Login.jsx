@@ -1,14 +1,20 @@
-import { auth } from "../lib/firebase";
+import { auth, db } from "../lib/firebase";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import './Login.css';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
-
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+} from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isNew, setIsNew] = useState(false); // toggle inscription / connexion
+  const [nom, setNom] = useState("");
+  const [role, setRole] = useState("employe"); // role à choisir : employe / comptable
+  const [isNew, setIsNew] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,7 +28,14 @@ export default function Login() {
     e.preventDefault();
     try {
       if (isNew) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        const user = cred.user;
+        await setDoc(doc(db, "entreprises", user.uid), {
+          email,
+          nom,
+          role,
+          createdAt: new Date(),
+        });
         alert("Compte créé !");
       } else {
         await signInWithEmailAndPassword(auth, email, password);
@@ -34,7 +47,7 @@ export default function Login() {
     }
   };
 
-return (
+  return (
     <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <form
         onSubmit={handleSubmit}
@@ -43,6 +56,28 @@ return (
         <h2 className="text-xl font-semibold text-center text-[#1B5E20]">
           {isNew ? "Créer un compte" : "Connexion"}
         </h2>
+
+        {isNew && (
+          <>
+            <input
+              type="text"
+              placeholder="Nom complet"
+              value={nom}
+              onChange={(e) => setNom(e.target.value)}
+              className="w-full p-2 border rounded"
+              required
+            />
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="w-full p-2 border rounded"
+              required
+            >
+              <option value="employe">Employé</option>
+              <option value="comptable">Comptable</option>
+            </select>
+          </>
+        )}
 
         <input
           type="email"
@@ -74,12 +109,13 @@ return (
         >
           {isNew ? "Déjà inscrit ? Se connecter" : "Pas encore de compte ? S’inscrire"}
         </p>
+
         <button
           type="button"
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/')} 
           className="text-sm text-gray-600 underline w-full text-center mt-2"
         >
-            ← Revenir à l’accueil
+          ← Revenir à l’accueil
         </button>
       </form>
     </main>

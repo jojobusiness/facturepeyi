@@ -64,6 +64,7 @@ export default function Settings() {
       const docRef = doc(db, "entreprises", user.uid);
       await updateDoc(docRef, {
         ...form,
+        role: form.role || "employe",
         logo: logoURL,
         logoUrl: logoURL,
       });
@@ -157,14 +158,18 @@ export default function Settings() {
           <option value="sombre">Thème sombre</option>
         </select>
 
-        <input
-          type="text"
+        {/* Sélection du rôle */}
+        <select
           name="role"
           value={form.role}
-          disabled
-          className="w-full p-2 border rounded bg-gray-100 text-gray-700"
-          placeholder="Rôle (admin / comptable)"
-        />
+          onChange={handleChange}
+          className="w-full p-2 border rounded"
+        >
+          <option value="">-- Choisir un rôle --</option>
+          <option value="admin">Administrateur</option>
+          <option value="comptable">Comptable</option>
+          <option value="employe">Employé</option>
+        </select>
 
         <label className="flex items-center gap-2">
           <input
