@@ -7,8 +7,6 @@ import { downloadInvoicePDF } from "../utils/downloadPDF";
 export default function InvoiceList() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedInvoice, setSelectedInvoice] = useState(null);
-  const [entrepriseInfo, setEntrepriseInfo] = useState(null);
   const navigate = useNavigate();
 
   const handleDelete = async (id) => {
@@ -30,13 +28,15 @@ export default function InvoiceList() {
       const snap = await getDoc(entrepriseRef);
       const entreprise = snap.exists() ? snap.data() : {};
 
-      setSelectedInvoice({
+      const fullInvoice = {
         ...invoice,
         entrepriseNom: entreprise.nom || "Nom Entreprise",
         entrepriseEmail: entreprise.email || "email@entreprise.com",
         entrepriseSiret: entreprise.siret || "SIRET inconnu",
-        logoUrl: entreprise.logoUrl || "", // 🖼️ pour le logo
-      });
+        logoUrl: entreprise.logoUrl || "",
+      };
+
+      await downloadInvoicePDF(fullInvoice);
     } catch (err) {
       console.error("Erreur récupération entreprise :", err);
       alert("Erreur chargement entreprise.");
@@ -44,14 +44,6 @@ export default function InvoiceList() {
   };
 
   useEffect(() => {
-    const fetchEntreprise = async () => {
-      const uid = auth.currentUser?.uid;
-      if (!uid) return;
-      const docRef = doc(db, "entreprises", uid);
-      const snap = await getDoc(docRef);
-      if (snap.exists()) setEntrepriseInfo(snap.data());
-    };
-
     const fetchInvoices = async () => {
       const q = query(collection(db, "factures"), orderBy("createdAt", "desc"));
       const snapshot = await getDocs(q);
@@ -60,7 +52,6 @@ export default function InvoiceList() {
       setLoading(false);
     };
 
-    fetchEntreprise();
     fetchInvoices();
   }, []);
 
