@@ -5,9 +5,9 @@ import {
   getDocs,
   query,
   where,
-  orderBy,
 } from "firebase/firestore";
 import { saveAs } from "file-saver";
+import jsPDF from "jspdf";
 
 export default function BilanComptable() {
   const [lignes, setLignes] = useState([]);
@@ -27,9 +27,9 @@ export default function BilanComptable() {
 
       const factures = facturesSnap.docs.map((doc) => ({
         id: doc.id,
-        type: "facture",
+        type: "revenu",
         libelle: doc.data().description,
-        montant: doc.data().amountHT,
+        montant: doc.data().amountHT || doc.data().amount,
         compte: doc.data().compteComptable || "706",
         date: doc.data().date?.toDate(),
       }));
@@ -62,12 +62,42 @@ export default function BilanComptable() {
     saveAs(blob, "bilan_comptable.csv");
   };
 
+  const exportPDF = () => {
+    const pdf = new jsPDF();
+    pdf.setFontSize(12);
+    pdf.text("Bilan Comptable", 15, 15);
+
+    let y = 25;
+    pdf.text("Date", 15, y);
+    pdf.text("Type", 45, y);
+    pdf.text("Libellé", 75, y);
+    pdf.text("Montant", 135, y);
+    pdf.text("Compte", 165, y);
+    y += 7;
+
+    lignes.forEach((ligne) => {
+      pdf.text(ligne.date?.toLocaleDateString() || "", 15, y);
+      pdf.text(ligne.type, 45, y);
+      pdf.text(ligne.libelle, 75, y);
+      pdf.text(String(ligne.montant), 135, y);
+      pdf.text(ligne.compte, 165, y);
+      y += 7;
+      if (y > 280) {
+        pdf.addPage();
+        y = 25;
+      }
+    });
+
+    pdf.save("bilan_comptable.pdf");
+  };
+
   if (loading) return <p className="p-4">Chargement du bilan...</p>;
 
   return (
     <main className="min-h-screen bg-gray-100 p-4">
       <h2 className="text-2xl font-bold mb-4">📊 Bilan Comptable</h2>
-      <table className="w-full bg-white shadow rounded">
+
+      <table className="w-full bg-white shadow rounded text-sm">
         <thead className="bg-[#1B5E20] text-white">
           <tr>
             <th className="text-left p-2">Date</th>
@@ -90,12 +120,21 @@ export default function BilanComptable() {
         </tbody>
       </table>
 
-      <button
-        onClick={exportCSV}
-        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-      >
-        ⬇️ Exporter en CSV
-      </button>
+      <div className="mt-4 flex space-x-4">
+        <button
+          onClick={exportCSV}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          ⬇️ Exporter en CSV
+        </button>
+
+        <button
+          onClick={exportPDF}
+          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+        >
+          📄 Exporter en PDF
+        </button>
+      </div>
     </main>
   );
 }
