@@ -7,6 +7,7 @@ import { downloadInvoicePDF } from "../utils/downloadPDF";
 export default function InvoiceList() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [entrepriseInfo, setEntrepriseInfo] = useState(null);
   const navigate = useNavigate();
 
