@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { doc, getDoc, updateDoc, collection, getDocs, Timestamp } from "firebase/firestore";
 import { auth, db } from "../lib/firebase";
-import InvoicePDF from "../components/InvoicePDF";
 
 export default function EditInvoice() {
   const { id } = useParams();
@@ -14,7 +13,6 @@ export default function EditInvoice() {
     clientId: prefilledClientId || "",
     clientNom: "",
     description: "",
-    amount: "",
     status: "en attente",
   });
 
@@ -26,7 +24,7 @@ export default function EditInvoice() {
   const [montantTVA, setMontantTVA] = useState(0);
   const [montantTTC, setMontantTTC] = useState(0);
 
-  // 🧮 Calculs TVA
+  // 🔁 Calcul automatique TVA & TTC
   useEffect(() => {
     const ht = parseFloat(montantHT);
     const taux = parseFloat(tauxTVA);
@@ -35,16 +33,14 @@ export default function EditInvoice() {
     setMontantTTC(ht + tva);
   }, [montantHT, tauxTVA]);
 
-  // 🔁 Chargement des données
+  // 📦 Chargement données facture + logo + clients
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Clients
         const clientSnap = await getDocs(collection(db, "clients"));
         const clientList = clientSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setClients(clientList);
 
-        // Facture
         if (!id) return alert("ID facture manquant");
         const docRef = doc(db, "factures", id);
         const snap = await getDoc(docRef);
@@ -55,7 +51,6 @@ export default function EditInvoice() {
             clientId: data.clientId || "",
             clientNom: data.clientNom || "",
             description: data.description || "",
-            amount: data.amount || "",
             status: data.status || "en attente",
           });
           setMontantHT(data.amountHT || 0);
@@ -104,13 +99,12 @@ export default function EditInvoice() {
         clientId: form.clientId,
         clientNom: form.clientNom,
         description: form.description,
-        amount: form.amount,
         status: form.status,
         amountHT: parseFloat(montantHT),
         tva: parseFloat(tauxTVA),
         amountTVA: parseFloat(montantTVA),
         amountTTC: parseFloat(montantTTC),
-        date: Timestamp.fromDate(new Date())
+        date: Timestamp.fromDate(new Date()),
       });
 
       alert("✅ Facture modifiée !");
@@ -125,17 +119,6 @@ export default function EditInvoice() {
     <main className="min-h-screen bg-gray-100 p-4">
       <h2 className="text-2xl font-bold mb-4">Modifier la facture</h2>
 
-      {/* 📄 Aperçu PDF 
-      <InvoicePDF invoice={{
-        ...form,
-        logoUrl,
-        amountHT: montantHT,
-        tva: tauxTVA,
-        amountTVA: montantTVA,
-        amountTTC: montantTTC,
-      }} />*/}
-
-      {/* 📝 Formulaire */}
       <form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow space-y-4 max-w-md">
         <select
           value={form.clientId}
@@ -159,16 +142,6 @@ export default function EditInvoice() {
           required
         />
 
-        <input
-          type="number"
-          name="amount"
-          value={form.amount}
-          onChange={handleChange}
-          placeholder="Montant (€)"
-          className="w-full p-2 border rounded"
-          required
-        />
-
         <select
           name="status"
           value={form.status}
@@ -181,12 +154,13 @@ export default function EditInvoice() {
         </select>
 
         <div>
-          <label className="block font-medium mb-1">Montant HT</label>
+          <label className="block font-medium mb-1">Montant HT (€)</label>
           <input
             type="number"
             value={montantHT}
             onChange={(e) => setMontantHT(e.target.value)}
             className="w-full p-2 border rounded"
+            required
           />
         </div>
 

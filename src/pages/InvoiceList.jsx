@@ -1,71 +1,34 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, orderBy, deleteDoc, doc } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, deleteDoc, doc, getDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
-import { db } from "../lib/firebase";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
-import InvoicePDF from "../components/InvoicePDF"; // ton composant d'affichage
+import { db, auth } from "../lib/firebase";
 import { downloadInvoicePDF } from "../utils/downloadPDF";
 
 export default function InvoiceList() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedInvoice, setSelectedInvoice] = useState(null); // ← nécessaire pour le PDF
   const [entrepriseInfo, setEntrepriseInfo] = useState(null);
   const navigate = useNavigate();
 
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm("Supprimer cette facture ?");
-    if (!confirmDelete) return;
-
-    try {
-      await deleteDoc(doc(db, "factures", id));
-      setInvoices(invoices.filter(inv => inv.id !== id));
-    } catch (err) {
-      console.error("Erreur suppression :", err);
-      alert("Erreur lors de la suppression.");
-    }
+    if (!window.confirm("Supprimer cette facture ?")) return;
+    await deleteDoc(doc(db, "factures", id));
+    setInvoices(invoices.filter(inv => inv.id !== id));
   };
 
   const handleEdit = (id) => {
     navigate(`/facture/modifier/${id}`);
   };
 
-  const handleGeneratePDF = (invoice) => {
-    downloadInvoicePDF(invoice);
+  const handleGeneratePDF = async (invoice) => {
+    if (!entrepriseInfo) {
+      alert("Informations entreprise manquantes");
+      return;
+    }
+    await downloadInvoicePDF(invoice, entrepriseInfo);
   };
 
-  // 📄 Une fois que selectedInvoice est défini, on attend que le DOM le rende
   useEffect(() => {
-    if (!selectedInvoice) return;
-
-    const generate = async () => {
-      // ⏳ attend que l'élément apparaisse dans le DOM
-      await new Promise((resolve) => setTimeout(resolve, 300));
-
-      const element = document.getElementById("invoice-pdf");
-
-      if (!element) {
-        alert("Erreur : élément PDF introuvable.");
-        setSelectedInvoice(null);
-        return;
-      }
-
-      try {
-        const canvas = await html2canvas(element);
-        const imgData = canvas.toDataURL("image/png");
-        const pdf = new jsPDF("p", "mm", "a4");
-        const width = pdf.internal.pageSize.getWidth();
-        const height = pdf.internal.pageSize.getHeight();
-        pdf.addImage(imgData, "PNG", 0, 0, width, height);
-        pdf.save(`facture-${selectedInvoice.id}.pdf`);
-      } catch (err) {
-        console.error("Erreur génération PDF :", err);
-      } finally {
-        setSelectedInvoice(null);
-      }
-    };
-    
     const fetchEntreprise = async () => {
       const uid = auth.currentUser?.uid;
       if (!uid) return;
@@ -74,28 +37,19 @@ export default function InvoiceList() {
       if (snap.exists()) setEntrepriseInfo(snap.data());
     };
 
-    fetchEntreprise();
-    generate();
-  }, [selectedInvoice]);
-
-  useEffect(() => {
     const fetchInvoices = async () => {
-      try {
-        const q = query(collection(db, "factures"), orderBy("createdAt", "desc"));
-        const snapshot = await getDocs(q);
-        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setInvoices(data);
-      } catch (err) {
-        console.error("Erreur lors de la récupération :", err);
-      } finally {
-        setLoading(false);
-      }
+      const q = query(collection(db, "factures"), orderBy("createdAt", "desc"));
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setInvoices(data);
+      setLoading(false);
     };
 
+    fetchEntreprise();
     fetchInvoices();
   }, []);
 
-  if (loading) return <p className="p-4">Chargement des factures...</p>;
+  if (loading) return <p className="p-4">Chargement...</p>;
 
   return (
     <main className="min-h-screen bg-gray-100 p-4">
@@ -140,13 +94,6 @@ export default function InvoiceList() {
       >
         ← Retour au tableau de bord
       </button>
-
-      {/* 👇 élément caché à capturer en PDF */}
-      {selectedInvoice && (
-        <div style={{ position: "absolute", top: "-9999px", left: "-9999px" }}>
-          <InvoicePDF invoice={selectedInvoice} entreprise={entrepriseInfo} />
-        </div>
-      )}
     </main>
   );
 }
