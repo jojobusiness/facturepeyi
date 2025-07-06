@@ -15,6 +15,7 @@
     "@tailwindcss/vite": "^4.1.10",
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
+    "file-server": "^2.2.1",
     "firebase": "^11.9.1",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.1",
