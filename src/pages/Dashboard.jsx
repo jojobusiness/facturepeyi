@@ -74,6 +74,7 @@ export default function Dashboard() {
         <DashboardCard title="👥 Mes clients" subtitle="Liste et gestion des clients" onClick={() => navigate('/clients')} />
         <DashboardCard title="📦 Dépenses" subtitle="Ajouter ou consulter les achats" onClick={() => navigate('/depenses')} />
         <DashboardCard title="📄 Déclaration fiscale" subtitle="Fiscalité et TVA" onClick={() => navigate('/declarationfiscale')} />
+        <DashboardCard title="📚 Plan Comptable" subtitle="Définiser votre plan comptable" onClick={() => navigate('/plancomptable')} />
         <DashboardCard title="📂 Gérer mes catégories" subtitle="Ajouter ou modifier les catégories" onClick={() => navigate('/categories')} />
         <DashboardCard title="⚙️ Paramètres" subtitle="Personnalisation du compte" onClick={() => navigate('/parametres')} />
         <DashboardCard title="📄 Rapports PDF" subtitle="Exporter vos documents" onClick={() => navigate('/rapports')} />
