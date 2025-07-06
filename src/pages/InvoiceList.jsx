@@ -11,6 +11,7 @@ export default function InvoiceList() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedInvoice, setSelectedInvoice] = useState(null); // ← nécessaire pour le PDF
+  const [entrepriseInfo, setEntrepriseInfo] = useState(null);
   const navigate = useNavigate();
 
   const handleDelete = async (id) => {
@@ -64,7 +65,16 @@ export default function InvoiceList() {
         setSelectedInvoice(null);
       }
     };
+    
+    const fetchEntreprise = async () => {
+      const uid = auth.currentUser?.uid;
+      if (!uid) return;
+      const docRef = doc(db, "entreprises", uid);
+      const snap = await getDoc(docRef);
+      if (snap.exists()) setEntrepriseInfo(snap.data());
+    };
 
+    fetchEntreprise();
     generate();
   }, [selectedInvoice]);
 
@@ -134,7 +144,7 @@ export default function InvoiceList() {
       {/* 👇 élément caché à capturer en PDF */}
       {selectedInvoice && (
         <div style={{ position: "absolute", top: "-9999px", left: "-9999px" }}>
-          <InvoicePDF invoice={selectedInvoice} />
+          <InvoicePDF invoice={selectedInvoice} entreprise={entrepriseInfo} />
         </div>
       )}
     </main>

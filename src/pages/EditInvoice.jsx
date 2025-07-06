@@ -125,7 +125,7 @@ export default function EditInvoice() {
     <main className="min-h-screen bg-gray-100 p-4">
       <h2 className="text-2xl font-bold mb-4">Modifier la facture</h2>
 
-      {/* 📄 Aperçu PDF */}
+      {/* 📄 Aperçu PDF 
       <InvoicePDF invoice={{
         ...form,
         logoUrl,
@@ -133,7 +133,7 @@ export default function EditInvoice() {
         tva: tauxTVA,
         amountTVA: montantTVA,
         amountTTC: montantTTC,
-      }} />
+      }} />*/}
 
       {/* 📝 Formulaire */}
       <form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow space-y-4 max-w-md">
