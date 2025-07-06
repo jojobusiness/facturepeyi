@@ -23,7 +23,7 @@ import JournalComptable from './pages/JournalComptable';
 import Unauthorized from './pages/Unauthorized';
 import AdminUserManagement from './pages/AdminUserManagement';
 import PrivateRoute from './components/PrivateRoute';
-import RoleRoute from './components/RoleRoute';
+//import RoleRoute from './components/RoleRoute';
 
 export default function App() {
   return (

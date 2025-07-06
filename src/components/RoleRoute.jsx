@@ -1,21 +1,26 @@
 import { Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { fetchUserRole } from "../utils/auth";
+import { fetchUserRole } from "../utils/auth"; // doit renvoyer une string ("admin", "comptable", etc.)
 
 export default function RoleRoute({ children, allowedRoles }) {
   const [role, setRole] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    fetchUserRole().then((r) => {
-      setRole(r);
-      setLoading(false);
-    });
+    fetchUserRole()
+      .then((r) => {
+        setRole(r);
+        setChecking(false);
+      })
+      .catch(() => {
+        setRole(null);
+        setChecking(false);
+      });
   }, []);
 
-  if (loading) return <p className="p-4">Chargement des autorisations...</p>;
+  if (checking) return <p>Chargement...</p>;
 
-  // ✅ Protection si allowedRoles est manquant
+  // 🔐 Sécurité renforcée ici
   if (!Array.isArray(allowedRoles) || !allowedRoles.includes(role)) {
     return <Navigate to="/unauthorized" />;
   }
