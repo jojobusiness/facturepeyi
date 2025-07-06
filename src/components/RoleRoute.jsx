@@ -15,7 +15,8 @@ export default function RoleRoute({ children, allowedRoles }) {
 
   if (loading) return <p className="p-4">Chargement des autorisations...</p>;
 
-  if (!allowedRoles.includes(role)) {
+  // ✅ Protection si allowedRoles est manquant
+  if (!Array.isArray(allowedRoles) || !allowedRoles.includes(role)) {
     return <Navigate to="/unauthorized" />;
   }
 
