@@ -18,6 +18,8 @@ import Categories from './pages/Categories';
 import DeclarationFiscale from './pages/DeclarationFiscale';
 import Settings from './pages/Settings';
 import PlanComptable from './pages/PlanComptable';
+import BilanComptable from './pages/BilanComptable';
+import JournalComptable from './pages/JournalComptable';
 import PrivateRoute from './components/PrivateRoute';
 
 
@@ -40,6 +42,8 @@ export default function App() {
       <Route path="/depenses/import" element={<PrivateRoute><ImportDepenses /></PrivateRoute>} />
       <Route path="/categories" element={<PrivateRoute><Categories /></PrivateRoute>} />
       <Route path="/plancomptable" element={<PrivateRoute><PlanComptable /></PrivateRoute>} />
+      <Route path="/bilancomptable" element={<PrivateRoute><BilanComptable /></PrivateRoute>} />
+      <Route path="/journalcomptable" element={<PrivateRoute><JournalComptable /></PrivateRoute>} />
       <Route path="/declarationfiscale" element={<PrivateRoute><DeclarationFiscale /></PrivateRoute>} />
       <Route path="/parametres" element={<PrivateRoute><Settings /></PrivateRoute>} />
       <Route path="*" element={<Navigate to="/" />} />

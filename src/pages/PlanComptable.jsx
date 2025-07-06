@@ -1,142 +1,129 @@
 import { useEffect, useState } from "react";
-import { db, auth } from "../lib/firebase";
+import { auth, db } from "../lib/firebase";
 import {
   collection,
+  getDocs,
   addDoc,
   updateDoc,
-  deleteDoc,
   doc,
-  getDocs,
   query,
   where,
 } from "firebase/firestore";
 
 export default function PlanComptable() {
   const [comptes, setComptes] = useState([]);
-  const [form, setForm] = useState({ numero: "", intitule: "", type: "revenu" });
-  const [editingId, setEditingId] = useState(null);
+  const [factures, setFactures] = useState([]);
+  const [depenses, setDepenses] = useState([]);
+  const [nouveauCompte, setNouveauCompte] = useState("");
+  const [type, setType] = useState("revenu");
   const uid = auth.currentUser?.uid;
 
+  // Charger comptes, factures, dépenses
   useEffect(() => {
-    const fetchComptes = async () => {
-      const q = query(collection(db, "comptes_comptables"), where("uid", "==", uid));
-      const snapshot = await getDocs(q);
-      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setComptes(data);
+    if (!uid) return;
+    const fetchAll = async () => {
+      const compteSnap = await getDocs(
+        query(collection(db, "comptes"), where("uid", "==", uid))
+      );
+      setComptes(compteSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+
+      const factureSnap = await getDocs(
+        query(collection(db, "factures"), where("uid", "==", uid))
+      );
+      setFactures(factureSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+
+      const depenseSnap = await getDocs(
+        query(collection(db, "depenses"), where("uid", "==", uid))
+      );
+      setDepenses(depenseSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
     };
-    if (uid) fetchComptes();
+    fetchAll();
   }, [uid]);
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  // Ajouter un compte
+  const ajouterCompte = async () => {
+    if (!nouveauCompte) return;
+    const docRef = await addDoc(collection(db, "comptes"), {
+      uid,
+      nom: nouveauCompte,
+      type,
+      elements: [],
+    });
+    setComptes([...comptes, { id: docRef.id, nom: nouveauCompte, type, elements: [] }]);
+    setNouveauCompte("");
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!uid) return;
-
-    if (editingId) {
-      await updateDoc(doc(db, "comptes_comptables", editingId), form);
-    } else {
-      await addDoc(collection(db, "comptes_comptables"), {
-        ...form,
-        uid,
-      });
+  // Associer un élément (facture/dépense) à un compte
+  const associerElement = async (compteId, elementId) => {
+    const compte = comptes.find((c) => c.id === compteId);
+    if (!compte.elements.includes(elementId)) {
+      const updatedElements = [...compte.elements, elementId];
+      await updateDoc(doc(db, "comptes", compteId), { elements: updatedElements });
+      setComptes(
+        comptes.map((c) =>
+          c.id === compteId ? { ...c, elements: updatedElements } : c
+        )
+      );
     }
-    setForm({ numero: "", intitule: "", type: "revenu" });
-    setEditingId(null);
-    const q = query(collection(db, "comptes_comptables"), where("uid", "==", uid));
-    const snapshot = await getDocs(q);
-    const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    setComptes(data);
-  };
-
-  const handleEdit = (compte) => {
-    setForm({ numero: compte.numero, intitule: compte.intitule, type: compte.type });
-    setEditingId(compte.id);
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm("Supprimer ce compte ?")) return;
-    await deleteDoc(doc(db, "comptes_comptables", id));
-    setComptes(comptes.filter((c) => c.id !== id));
   };
 
   return (
-    <main className="p-4 max-w-3xl mx-auto">
-      <h2 className="text-2xl font-bold mb-4">📚 Plan Comptable</h2>
+    <main className="p-4">
+      <h2 className="text-2xl font-bold mb-4">Plan Comptable</h2>
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-4 rounded shadow space-y-4 mb-6"
-      >
-        <div className="grid grid-cols-2 gap-4">
-          <input
-            name="numero"
-            value={form.numero}
-            onChange={handleChange}
-            required
-            placeholder="Numéro de compte (ex: 701)"
-            className="p-2 border rounded"
-          />
-          <input
-            name="intitule"
-            value={form.intitule}
-            onChange={handleChange}
-            required
-            placeholder="Intitulé"
-            className="p-2 border rounded"
-          />
-        </div>
-        <select
-          name="type"
-          value={form.type}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-        >
+      {/* Ajout d'un compte */}
+      <div className="flex gap-2 mb-6">
+        <input
+          placeholder="Nom du compte"
+          value={nouveauCompte}
+          onChange={(e) => setNouveauCompte(e.target.value)}
+          className="border p-2 rounded"
+        />
+        <select value={type} onChange={(e) => setType(e.target.value)} className="border p-2 rounded">
           <option value="revenu">Revenu</option>
-          <option value="dépense">Dépense</option>
-          <option value="TVA">TVA</option>
+          <option value="depense">Dépense</option>
         </select>
-
-        <button type="submit" className="bg-[#1B5E20] text-white p-2 rounded">
-          💾 {editingId ? "Modifier" : "Ajouter"} le compte
+        <button
+          onClick={ajouterCompte}
+          className="bg-green-600 text-white px-4 py-2 rounded"
+        >
+          Ajouter
         </button>
-      </form>
+      </div>
 
-      <table className="w-full bg-white shadow rounded">
-        <thead className="bg-gray-200">
-          <tr>
-            <th className="p-2 text-left">Numéro</th>
-            <th className="p-2 text-left">Intitulé</th>
-            <th className="p-2 text-left">Type</th>
-            <th className="p-2 text-left">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {comptes.map((compte) => (
-            <tr key={compte.id} className="border-t">
-              <td className="p-2">{compte.numero}</td>
-              <td className="p-2">{compte.intitule}</td>
-              <td className="p-2 capitalize">{compte.type}</td>
-              <td className="p-2 space-x-2">
-                <button
-                  onClick={() => handleEdit(compte)}
-                  className="text-blue-600 hover:underline"
-                >
-                  Modifier
-                </button>
-                <button
-                  onClick={() => handleDelete(compte.id)}
-                  className="text-red-600 hover:underline"
-                >
-                  Supprimer
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* Liste des comptes */}
+      {comptes.map((compte) => (
+        <div key={compte.id} className="bg-white shadow p-4 rounded mb-4">
+          <h3 className="font-semibold text-lg">{compte.nom} ({compte.type})</h3>
+          <ul className="mt-2 ml-4 list-disc">
+            {compte.elements.map((eid) => {
+              const source = compte.type === "revenu" ? factures : depenses;
+              const elt = source.find((e) => e.id === eid);
+              return (
+                <li key={eid} className="text-sm">
+                  {elt?.description || elt?.fournisseur || "Element inconnu"} - {elt?.montantTTC || elt?.amount || 0} €
+                </li>
+              );
+            })}
+          </ul>
+
+          <div className="mt-4">
+            <label className="block font-medium mb-1">Associer un élément :</label>
+            <select
+              onChange={(e) => associerElement(compte.id, e.target.value)}
+              className="border p-2 rounded"
+              defaultValue=""
+            >
+              <option value="">-- Choisir une facture/dépense --</option>
+              {(compte.type === "revenu" ? factures : depenses).map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.description || e.fournisseur} - {e.montantTTC || e.amount || 0} €
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      ))}
     </main>
   );
 }
