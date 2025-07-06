@@ -5,6 +5,10 @@ export const fetchUserRole = async () => {
   const user = auth.currentUser;
   if (!user) return null;
 
-  const snap = await getDoc(doc(db, "entreprises", user.uid));
-  return snap.exists() ? snap.data().role : null;
+  const ref = doc(db, "entreprises", user.uid);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return null;
+
+  const data = snap.data();
+  return data.role || null;
 };

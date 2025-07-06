@@ -49,7 +49,7 @@ export default function App() {
       <Route path="/declarationfiscale" element={<RoleRoute allowedRoles={["comptable", "admin"]}><DeclarationFiscale /></RoleRoute>} />
       <Route path="/admin" element={<RoleRoute allowedRoles={["admin"]}><AdminUserManagement /></RoleRoute>} />
       <Route path="/parametres" element={<PrivateRoute><Settings /></PrivateRoute>} />
-      <Route path="/unauthorized" element={<Unauthorized />} />
+      <Route path="/unauthorized" element={<RoleRoute allowedRoles={["comptable", "admin", "employe"]}><Unauthorized /></RoleRoute>} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
