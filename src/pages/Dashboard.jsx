@@ -31,6 +31,8 @@ export default function Dashboard() {
       );
       const revenusData = revenusSnap.docs.map(doc => doc.data());
 
+      console.log("Factures récupérées pour le dashboard :", revenusData);
+      
       const depensesSnap = await getDocs(
         query(collection(db, 'depenses'), where('uid', '==', uid))
       );
@@ -218,4 +220,3 @@ function getRandomColor(key) {
   const colors = ['#FF5722', '#2196F3', '#4CAF50', '#FFC107', '#9C27B0', '#00BCD4'];
   return colors[hash % colors.length];
 }
-console.log("Factures récupérées pour le dashboard :", revenusData);
