@@ -1,14 +1,10 @@
-import { auth, db } from "../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
+import { db } from "../lib/firebase";
 
-export const fetchUserRole = async () => {
-  const user = auth.currentUser;
-  if (!user) return null;
-
-  const ref = doc(db, "entreprises", user.uid);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return null;
-
-  const data = snap.data();
-  return data.role || null;
-};
+export async function fetchUserRole(uid) {
+  const snap = await getDoc(doc(db, "entreprises", uid));
+  if (snap.exists()) {
+    return snap.data().role || "employe";
+  }
+  return "employe";
+}
