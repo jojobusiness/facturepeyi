@@ -7,20 +7,25 @@ export default function PrivateRoute({ children, allowedRoles }) {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    fetchUserRole().then((r) => {
-      setRole(r || "employe");
-      setChecking(false);
-    }).catch(() => {
-      setChecking(false);
-    });
+    const loadRole = async () => {
+      try {
+        const r = await fetchUserRole();
+        console.log("🎯 Rôle récupéré:", r); // <- Debug ici
+        setRole(r || "employe");
+      } catch (err) {
+        console.error("❌ Erreur fetchUserRole:", err);
+      } finally {
+        setChecking(false);
+      }
+    };
+
+    loadRole();
   }, []);
 
-  if (checking) return <p className="p-4">Chargement...</p>;
+  if (checking) return <p className="p-4">Chargement du dashboard...</p>;
 
-  // Si aucun filtre de rôle → accès autorisé
   if (!allowedRoles || !Array.isArray(allowedRoles)) return children;
 
-  // Si filtre de rôles → on vérifie
   if (!allowedRoles.includes(role)) {
     return <Navigate to="/unauthorized" replace />;
   }
