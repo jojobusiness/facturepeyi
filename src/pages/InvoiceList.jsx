@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, orderBy, deleteDoc, doc, getDoc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  query,
+  orderBy,
+  deleteDoc,
+  doc,
+  getDoc,
+  where,
+} from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { db, auth } from "../lib/firebase";
 import { downloadInvoicePDF } from "../utils/downloadPDF";
@@ -12,7 +21,7 @@ export default function InvoiceList() {
   const handleDelete = async (id) => {
     if (!window.confirm("Supprimer cette facture ?")) return;
     await deleteDoc(doc(db, "factures", id));
-    setInvoices(invoices.filter(inv => inv.id !== id));
+    setInvoices(invoices.filter((inv) => inv.id !== id));
   };
 
   const handleEdit = (id) => {
@@ -45,9 +54,24 @@ export default function InvoiceList() {
 
   useEffect(() => {
     const fetchInvoices = async () => {
-      const q = query(collection(db, "factures"), orderBy("createdAt", "desc"));
+      const userId = auth.currentUser?.uid;
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
+
+      const q = query(
+        collection(db, "factures"),
+        where("uid", "==", userId),
+        orderBy("createdAt", "desc")
+      );
+
       const snapshot = await getDocs(q);
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
       setInvoices(data);
       setLoading(false);
     };
@@ -76,17 +100,34 @@ export default function InvoiceList() {
             </tr>
           </thead>
           <tbody>
-            {invoices.map(invoice => (
+            {invoices.map((invoice) => (
               <tr key={invoice.id} className="border-t">
                 <td className="p-2">{invoice.clientNom || "—"}</td>
                 <td className="p-2">{invoice.description}</td>
-                <td className="p-2">{invoice.amountTTC} €</td>
-                <td className="p-2">{invoice.date?.toDate().toLocaleDateString()}</td>
+                <td className="p-2">{invoice.totalTTC} €</td>
+                <td className="p-2">
+                  {invoice.date?.toDate().toLocaleDateString()}
+                </td>
                 <td className="p-2 capitalize">{invoice.status}</td>
                 <td className="p-2 space-x-2">
-                  <button onClick={() => handleEdit(invoice.id)} className="text-blue-600 hover:underline">Modifier</button>
-                  <button onClick={() => handleDelete(invoice.id)} className="text-red-600 hover:underline">Supprimer</button>
-                  <button onClick={() => handleGeneratePDF(invoice)} className="text-green-700 hover:underline">PDF</button>
+                  <button
+                    onClick={() => handleEdit(invoice.id)}
+                    className="text-blue-600 hover:underline"
+                  >
+                    Modifier
+                  </button>
+                  <button
+                    onClick={() => handleDelete(invoice.id)}
+                    className="text-red-600 hover:underline"
+                  >
+                    Supprimer
+                  </button>
+                  <button
+                    onClick={() => handleGeneratePDF(invoice)}
+                    className="text-green-700 hover:underline"
+                  >
+                    PDF
+                  </button>
                 </td>
               </tr>
             ))}

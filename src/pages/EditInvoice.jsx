@@ -24,7 +24,6 @@ export default function EditInvoice() {
   const [montantTVA, setMontantTVA] = useState(0);
   const [montantTTC, setMontantTTC] = useState(0);
 
-  // 🔁 Calcul automatique TVA & TTC
   useEffect(() => {
     const ht = parseFloat(montantHT);
     const taux = parseFloat(tauxTVA);
@@ -33,12 +32,11 @@ export default function EditInvoice() {
     setMontantTTC(ht + tva);
   }, [montantHT, tauxTVA]);
 
-  // 📦 Chargement données facture + logo + clients
   useEffect(() => {
     const fetchData = async () => {
       try {
         const clientSnap = await getDocs(collection(db, "clients"));
-        const clientList = clientSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const clientList = clientSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         setClients(clientList);
 
         if (!id) return alert("ID facture manquant");
@@ -54,7 +52,7 @@ export default function EditInvoice() {
             status: data.status || "en attente",
           });
           setMontantHT(data.amountHT || 0);
-          setTauxTVA(data.tva || 0);
+          setTauxTVA(data.tvaRate || data.tva || 0); // compatibilité ancienne version
         } else {
           alert("Facture introuvable");
           navigate("/factures");
@@ -68,6 +66,7 @@ export default function EditInvoice() {
     const fetchLogo = async () => {
       try {
         const userId = auth.currentUser?.uid;
+        if (!userId) return;
         const entrepriseRef = doc(db, "entreprises", userId);
         const snap = await getDoc(entrepriseRef);
         if (snap.exists()) {
@@ -87,12 +86,15 @@ export default function EditInvoice() {
   };
 
   const handleClientChange = (e) => {
-    const client = clients.find(c => c.id === e.target.value);
+    const client = clients.find((c) => c.id === e.target.value);
     setForm({ ...form, clientId: client.id, clientNom: client.nom });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const userId = auth.currentUser?.uid;
+    if (!userId) return alert("Utilisateur non connecté");
 
     try {
       await updateDoc(doc(db, "factures", id), {
@@ -101,9 +103,11 @@ export default function EditInvoice() {
         description: form.description,
         status: form.status,
         amountHT: parseFloat(montantHT),
-        tva: parseFloat(tauxTVA),
+        tvaRate: parseFloat(tauxTVA),
+        tva: parseFloat(montantTVA),
         totalTTC: parseFloat(montantTTC),
         date: Timestamp.fromDate(new Date()),
+        uid: userId, // très important pour filtrer dans les dashboards
       });
 
       alert("✅ Facture modifiée !");
@@ -118,7 +122,10 @@ export default function EditInvoice() {
     <main className="min-h-screen bg-gray-100 p-4">
       <h2 className="text-2xl font-bold mb-4">Modifier la facture</h2>
 
-      <form onSubmit={handleSubmit} className="bg-white p-4 rounded shadow space-y-4 max-w-md">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-4 rounded shadow space-y-4 max-w-md"
+      >
         <select
           value={form.clientId}
           onChange={handleClientChange}
@@ -126,8 +133,10 @@ export default function EditInvoice() {
           required
         >
           <option value="">-- Sélectionner un client --</option>
-          {clients.map(c => (
-            <option key={c.id} value={c.id}>{c.nom}</option>
+          {clients.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.nom}
+            </option>
           ))}
         </select>
 
@@ -179,10 +188,17 @@ export default function EditInvoice() {
           </select>
         </div>
 
-        <p className="text-sm">TVA à payer : <strong>{montantTVA.toFixed(2)} €</strong></p>
-        <p className="text-sm">Montant TTC : <strong>{montantTTC.toFixed(2)} €</strong></p>
+        <p className="text-sm">
+          TVA : <strong>{montantTVA.toFixed(2)} €</strong>
+        </p>
+        <p className="text-sm">
+          Total TTC : <strong>{montantTTC.toFixed(2)} €</strong>
+        </p>
 
-        <button type="submit" className="bg-[#1B5E20] text-white w-full p-2 rounded">
+        <button
+          type="submit"
+          className="bg-[#1B5E20] text-white w-full p-2 rounded"
+        >
           💾 Enregistrer
         </button>
       </form>

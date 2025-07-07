@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { db } from "../lib/firebase";
+import { db, auth } from "../lib/firebase"; // 🔧 tu avais oublié "auth"
 import { addDoc, collection, getDocs, Timestamp } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
@@ -10,13 +10,12 @@ export default function CreateInvoice() {
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState("");
 
-  const [tvaRate, setTvaRate] = useState(0); // 👈 taux modifiable
+  const [tvaRate, setTvaRate] = useState(0);
   const [tvaAmount, setTvaAmount] = useState(0);
   const [totalTTC, setTotalTTC] = useState(0);
 
   const navigate = useNavigate();
 
-  // Charger les clients
   useEffect(() => {
     const fetchClients = async () => {
       try {
@@ -30,7 +29,6 @@ export default function CreateInvoice() {
     fetchClients();
   }, []);
 
-  // Calcul TVA automatique
   useEffect(() => {
     const base = parseFloat(amount);
     const taux = parseFloat(tvaRate);
@@ -52,6 +50,12 @@ export default function CreateInvoice() {
       return;
     }
 
+    const userId = auth.currentUser?.uid;
+    if (!userId) {
+      alert("Utilisateur non connecté.");
+      return;
+    }
+
     try {
       const selectedClient = clients.find((c) => c.id === clientId);
 
@@ -66,7 +70,7 @@ export default function CreateInvoice() {
         date: Timestamp.fromDate(new Date(date)),
         status: "en attente",
         createdAt: Timestamp.now(),
-        uid: userId,
+        uid: userId, // ✅ Maintenant bien défini
       };
 
       await addDoc(collection(db, "factures"), newInvoice);
@@ -82,7 +86,6 @@ export default function CreateInvoice() {
     <main className="min-h-screen bg-gray-100 p-4">
       <h2 className="text-2xl font-bold mb-6">Créer une facture</h2>
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md space-y-4 max-w-lg">
-        {/* Sélecteur de client */}
         <label className="block text-sm font-medium">Client</label>
         <select
           value={clientId}
@@ -116,7 +119,6 @@ export default function CreateInvoice() {
           className="w-full border p-2 rounded"
         />
 
-        {/* Choix du taux de TVA */}
         <div>
           <label className="block text-sm font-medium">TVA (%)</label>
           <select
