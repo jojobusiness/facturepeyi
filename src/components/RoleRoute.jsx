@@ -1,30 +1,38 @@
 import { Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { fetchUserRole } from "../utils/auth";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../lib/firebase";
 
 export default function RoleRoute({ children, allowedRoles = [] }) {
   const [role, setRole] = useState(null);
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    const check = async () => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        setRole(null);
+        setChecking(false);
+        return;
+      }
+
       try {
-        const userRole = await fetchUserRole();
-        setRole(userRole);
+        const r = await fetchUserRole(user.uid);
+        setRole(r || "employe"); // Valeur par défaut si rien trouvé
       } catch (err) {
-        console.error("Erreur rôle utilisateur :", err);
+        console.error("Erreur lors de la récupération du rôle :", err);
       } finally {
         setChecking(false);
       }
-    };
-    check();
+    });
+
+    return () => unsubscribe();
   }, []);
 
   if (checking) return <p className="p-4">Chargement des autorisations...</p>;
 
-  // Si allowedRoles est vide ou non défini, bloquer par sécurité
-  if (!Array.isArray(allowedRoles) || !allowedRoles.includes(role)) {
-    return <Navigate to="/unauthorized" />;
+  if (!allowedRoles.includes(role)) {
+    return <Navigate to="/unauthorized" replace />;
   }
 
   return children;
