@@ -31,8 +31,6 @@ export default function Dashboard() {
       );
       const revenusData = revenusSnap.docs.map(doc => doc.data());
 
-      console.log("Factures récupérées pour le dashboard :", revenusData);
-      
       const depensesSnap = await getDocs(
         query(collection(db, 'depenses'), where('uid', '==', uid))
       );

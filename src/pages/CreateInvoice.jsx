@@ -66,6 +66,7 @@ export default function CreateInvoice() {
         date: Timestamp.fromDate(new Date(date)),
         status: "en attente",
         createdAt: Timestamp.now(),
+        uid: userId,
       };
 
       await addDoc(collection(db, "factures"), newInvoice);
