@@ -102,8 +102,7 @@ export default function EditInvoice() {
         status: form.status,
         amountHT: parseFloat(montantHT),
         tva: parseFloat(tauxTVA),
-        amountTVA: parseFloat(montantTVA),
-        amountTTC: parseFloat(montantTTC),
+        totalTTC: parseFloat(montantTTC),
         date: Timestamp.fromDate(new Date()),
       });
 
