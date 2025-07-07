@@ -29,7 +29,7 @@ export default function BilanComptable() {
         id: doc.id,
         type: "revenu",
         libelle: doc.data().description,
-        montant: doc.data().amountHT || doc.data().amount,
+        montant: doc.data().totalTTC || doc.data().amount,
         compte: doc.data().compteComptable || "706",
         date: doc.data().date?.toDate(),
       }));
@@ -38,7 +38,7 @@ export default function BilanComptable() {
         id: doc.id,
         type: "depense",
         libelle: doc.data().description,
-        montant: doc.data().montantHT,
+        montant: doc.data().montantTTC,
         compte: doc.data().compteComptable || "60",
         date: doc.data().date?.toDate(),
       }));
@@ -113,7 +113,7 @@ export default function BilanComptable() {
               <td className="p-2">{ligne.date?.toLocaleDateString()}</td>
               <td className="p-2 capitalize">{ligne.type}</td>
               <td className="p-2">{ligne.libelle}</td>
-              <td className="p-2">{ligne.montant} €</td>
+              <td className="p-2">{ligne.montant.toFixed(2)} €</td>
               <td className="p-2">{ligne.compte}</td>
             </tr>
           ))}

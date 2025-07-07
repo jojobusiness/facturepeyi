@@ -42,7 +42,7 @@ export default function DepenseList() {
             <tr key={dep.id} className="border-t">
               <td className="p-2">{dep.fournisseur}</td>
               <td className="p-2">{dep.description}</td>
-              <td className="p-2">{dep.montant} €</td>
+              <td className="p-2">{dep.montantTTC} €</td>
               <td className="p-2">{dep.date?.toDate().toLocaleDateString()}</td>
               <td className="p-2 space-x-2">
                 <button className="text-red-600 hover:underline" onClick={() => handleDelete(dep.id)}>Supprimer</button>

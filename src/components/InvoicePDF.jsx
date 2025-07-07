@@ -102,11 +102,11 @@ export default function InvoicePDF({ invoice }) {
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>TVA ({invoice.tva}%) :</Text>
-          <Text>{Number(invoice.amountTVA).toFixed(2)} €</Text>
+          <Text>{Number(invoice.tva).toFixed(2)} €</Text>
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>Total TTC :</Text>
-          <Text>{Number(invoice.amountTTC).toFixed(2)} €</Text>
+          <Text>{Number(invoice.totalTTC).toFixed(2)} €</Text>
         </View>
         <View style={styles.separator} />
         <View style={styles.row}>

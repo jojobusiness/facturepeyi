@@ -38,12 +38,14 @@ export default function Dashboard() {
 
       const catSnap = await getDocs(query(collection(db, 'categories'), where('uid', '==', uid)));
       const categoriesData = catSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-      const revenus = revenusData.reduce((sum, f) =>
-        f.status !== 'impayée' ? sum + parseFloat(f.amountHT || 0) : sum, 0);
       const paiements = revenusData.filter(f => f.status === 'payée').length;
+      
+      const revenus = revenusData.reduce((sum, f) =>
+      f.status !== 'impayée' ? sum + parseFloat(f.totalTTC || 0) : sum, 0);
+
       const totalDepenses = depensesData.reduce((sum, d) =>
-        sum + parseFloat(d.montantHT || 0), 0);
+      sum + parseFloat(d.montantTTC || 0), 0);
+
 
       setInvoices(revenusData);
       setDepenses(depensesData);
@@ -168,21 +170,26 @@ function prepareMonthlyData(factures, depenses) {
   const data = Array(12).fill(0).map((_, i) => ({ mois: moisMap[i], revenu: 0, depense: 0 }));
 
   for (const f of factures) {
-    const rawDate = f.date?.toDate ? f.date.toDate() : (f.date ? new Date(f.date) : null);
-    if (!rawDate || f.status === 'impayée') continue;
+    const rawDate = f.date?.toDate?.() || new Date(f.date);
+    if (!rawDate || isNaN(rawDate) || f.status === 'impayée') continue;
+
     const m = rawDate.getMonth();
-    data[m].revenu += parseFloat(f.amountHT || 0);
+    const montant = parseFloat(f.totalTTC || 0); // ✅ totalTTC uniquement
+    data[m].revenu += montant;
   }
 
   for (const d of depenses) {
-    const rawDate = d.date?.toDate ? d.date.toDate() : (d.date ? new Date(d.date) : null);
-    if (!rawDate) continue;
+    const rawDate = d.date?.toDate?.() || new Date(d.date);
+    if (!rawDate || isNaN(rawDate)) continue;
+
     const m = rawDate.getMonth();
-    data[m].depense += parseFloat(d.montantHT || 0);
+    const montant = parseFloat(d.montantTTC || 0); // ✅ montantTTC uniquement
+    data[m].depense += montant;
   }
 
   return data;
 }
+
 
 // 🥧 Données pour PieChart
 function preparePieData(depenses, categories) {

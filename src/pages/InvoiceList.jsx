@@ -80,7 +80,7 @@ export default function InvoiceList() {
               <tr key={invoice.id} className="border-t">
                 <td className="p-2">{invoice.clientNom || "—"}</td>
                 <td className="p-2">{invoice.description}</td>
-                <td className="p-2">{invoice.amount} €</td>
+                <td className="p-2">{invoice.amountTTC} €</td>
                 <td className="p-2">{invoice.date?.toDate().toLocaleDateString()}</td>
                 <td className="p-2 capitalize">{invoice.status}</td>
                 <td className="p-2 space-x-2">

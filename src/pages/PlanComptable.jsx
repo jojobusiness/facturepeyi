@@ -101,7 +101,7 @@ export default function PlanComptable() {
               const elt = source.find((e) => e.id === eid);
               return (
                 <li key={eid} className="text-sm">
-                  {elt?.description || elt?.fournisseur || "Element inconnu"} - {elt?.montantTTC || elt?.amount || 0} €
+                  {elt?.description || elt?.fournisseur || "Element inconnu"} - {elt?.montantTTC || elt?.totalTTC || 0} €
                 </li>
               );
             })}
@@ -117,7 +117,7 @@ export default function PlanComptable() {
               <option value="">-- Choisir une facture/dépense --</option>
               {(compte.type === "revenu" ? factures : depenses).map((e) => (
                 <option key={e.id} value={e.id}>
-                  {e.description || e.fournisseur} - {e.montantTTC || e.amount || 0} €
+                  {e.description || e.fournisseur} - {e.montantTTC || e.totalTTC || 0} €
                 </option>
               ))}
             </select>
