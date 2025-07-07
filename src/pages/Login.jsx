@@ -75,6 +75,7 @@ export default function Login() {
             >
               <option value="employe">Employé</option>
               <option value="comptable">Comptable</option>
+              <option value="admin">Adminstrateur</option>
             </select>
           </>
         )}

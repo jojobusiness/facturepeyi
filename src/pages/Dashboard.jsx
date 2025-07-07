@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [depenses, setDepenses] = useState([]);
   const [categories, setCategories] = useState([]);
   const [totals, setTotals] = useState({ revenus: 0, paiements: 0, depenses: 0 });
+  const [loading, setLoading] = useState(true);
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -23,37 +24,38 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       const uid = auth.currentUser?.uid;
+      if (!uid) return;
 
-      // 📥 Factures
-      const revenusSnap = await getDocs(collection(db, 'factures'));
+      const revenusSnap = await getDocs(
+        query(collection(db, 'factures'), where('uid', '==', uid))
+      );
       const revenusData = revenusSnap.docs.map(doc => doc.data());
 
-      // 📥 Dépenses
-      const depensesSnap = await getDocs(collection(db, 'depenses'));
+      const depensesSnap = await getDocs(
+        query(collection(db, 'depenses'), where('uid', '==', uid))
+      );
       const depensesData = depensesSnap.docs.map(doc => doc.data());
 
-      // 📥 Catégories
-      let categoriesData = [];
-      if (uid) {
-        const catSnap = await getDocs(query(collection(db, 'categories'), where('uid', '==', uid)));
-        categoriesData = catSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setCategories(categoriesData);
-      }
+      const catSnap = await getDocs(query(collection(db, 'categories'), where('uid', '==', uid)));
+      const categoriesData = catSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-      // 💰 Totaux
       const revenus = revenusData.reduce((sum, f) =>
-        f.status !== 'impayée' ? sum + parseFloat(f.amount || 0) : sum, 0);
+        f.status !== 'impayée' ? sum + parseFloat(f.amountHT || 0) : sum, 0);
       const paiements = revenusData.filter(f => f.status === 'payée').length;
       const totalDepenses = depensesData.reduce((sum, d) =>
-        sum + parseFloat(d.montant || 0), 0);
+        sum + parseFloat(d.montantHT || 0), 0);
 
       setInvoices(revenusData);
       setDepenses(depensesData);
+      setCategories(categoriesData);
       setTotals({ revenus, paiements, depenses: totalDepenses });
+      setLoading(false);
     };
 
     fetchData();
   }, []);
+
+  if (loading) return <p className="p-4">Chargement du tableau de bord...</p>;
 
   return (
     <main className="min-h-screen bg-gray-100 p-6">
@@ -166,17 +168,17 @@ function prepareMonthlyData(factures, depenses) {
   const data = Array(12).fill(0).map((_, i) => ({ mois: moisMap[i], revenu: 0, depense: 0 }));
 
   for (const f of factures) {
-    const rawDate = f.date?.toDate?.() || new Date(f.date);
+    const rawDate = f.date?.toDate ? f.date.toDate() : (f.date ? new Date(f.date) : null);
     if (!rawDate || f.status === 'impayée') continue;
     const m = rawDate.getMonth();
-    data[m].revenu += parseFloat(f.amount || 0);
+    data[m].revenu += parseFloat(f.amountHT || 0);
   }
 
   for (const d of depenses) {
-    const rawDate = d.date?.toDate?.() || new Date(d.date);
+    const rawDate = d.date?.toDate ? d.date.toDate() : (d.date ? new Date(d.date) : null);
     if (!rawDate) continue;
     const m = rawDate.getMonth();
-    data[m].depense += parseFloat(d.montant || 0);
+    data[m].depense += parseFloat(d.montantHT || 0);
   }
 
   return data;
@@ -189,7 +191,7 @@ function preparePieData(depenses, categories) {
   for (const cat of categories) {
     const total = depenses
       .filter(d => d.categorieId === cat.id)
-      .reduce((sum, d) => sum + parseFloat(d.montant || 0), 0);
+      .reduce((sum, d) => sum + parseFloat(d.montantHT || 0), 0);
 
     if (total > 0) {
       result.push({
