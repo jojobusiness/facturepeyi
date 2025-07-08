@@ -8,10 +8,9 @@ export const fetchUserRole = async (uid) => {
   if (!snap.exists()) throw new Error("Utilisateur non trouvé");
 
   const data = snap.data();
-  return data.role || "employe"; // Rôle par défaut si manquant
-};
 
-return {
-  role: data.role || "employe",
-  entrepriseId: data.entrepriseId,
+  return {
+    role: data.role || "employe",           // par défaut
+    entrepriseId: data.entrepriseId || null // peut être utile pour filtrer
+  };
 };
