@@ -4,12 +4,9 @@ import { fetchUserRole } from "../utils/auth";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "../lib/firebase";
 
-export default function RoleRoute({ children, allowedRoles }) {
+export default function RoleRoute({ children, allowedRoles = [] }) {
   const [role, setRole] = useState(null);
   const [checking, setChecking] = useState(true);
-
-  // ✅ Force allowedRoles à un tableau vide si undefined
-  const roles = Array.isArray(allowedRoles) ? allowedRoles : [];
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -20,8 +17,8 @@ export default function RoleRoute({ children, allowedRoles }) {
       }
 
       try {
-        const r = await fetchUserRole(user.uid);
-        setRole(r || "employe");
+        const r = await fetchUserRole(user.uid); // Va chercher dans "utilisateurs"
+        setRole(r);
       } catch (err) {
         console.error("Erreur lors de la récupération du rôle :", err);
         setRole(null);
@@ -35,9 +32,8 @@ export default function RoleRoute({ children, allowedRoles }) {
 
   if (checking) return <p className="p-4">Chargement des autorisations...</p>;
 
-  // ✅ Vérification robuste
-  if (!roles.includes(role)) {
-    console.warn("Accès refusé :", { role, roles });
+  if (!allowedRoles.includes(role)) {
+    console.warn("Accès refusé :", { role, allowedRoles });
     return <Navigate to="/unauthorized" replace />;
   }
 
