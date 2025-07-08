@@ -84,7 +84,7 @@ export default function Dashboard() {
         <DashboardCard title="📂 Gérer mes catégories" subtitle="Ajouter ou modifier les catégories" onClick={() => navigate('/categories')} />
         <DashboardCard title="⚙️ Admin" subtitle="Gestion des comptes " onClick={() => navigate('/admin')} />
         <DashboardCard title="⚙️ Paramètres" subtitle="Personnalisation du compte" onClick={() => navigate('/parametres')} />
-        <DashboardCard title="📄 Rapports PDF" subtitle="Exporter vos documents" onClick={() => navigate('/rapports')} />
+        {/*<DashboardCard title="📄 Rapports PDF" subtitle="Exporter vos documents" onClick={() => navigate('/rapports')} />*/}
       </section>
 
       {/* 📈 Statistiques et Graphique */}
