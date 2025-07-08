@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { auth, db } from "../lib/firebase";
 import {
   collection,
   getDocs,
@@ -9,7 +10,6 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import { auth, db } from "../lib/firebase";
 
 export default function PlanComptable() {
   const [comptes, setComptes] = useState([]);
@@ -19,6 +19,7 @@ export default function PlanComptable() {
   const [type, setType] = useState("revenu");
   const uid = auth.currentUser?.uid;
 
+  // Charger comptes, factures, dépenses
   useEffect(() => {
     if (!uid) return;
     const fetchAll = async () => {
@@ -40,6 +41,7 @@ export default function PlanComptable() {
     fetchAll();
   }, [uid]);
 
+  // Ajouter un compte
   const ajouterCompte = async () => {
     if (!nouveauCompte) return;
     const docRef = await addDoc(collection(db, "comptes"), {
@@ -52,6 +54,7 @@ export default function PlanComptable() {
     setNouveauCompte("");
   };
 
+  // Associer un élément (facture/dépense) à un compte
   const associerElement = async (compteId, elementId) => {
     const compte = comptes.find((c) => c.id === compteId);
     if (!compte.elements.includes(elementId)) {
@@ -65,34 +68,45 @@ export default function PlanComptable() {
     }
   };
 
-  const supprimerCompte = async (compteId) => {
+  // ➖ Retirer un élément d'un compte
+  const retirerElement = async (compteId, elementId) => {
     const compte = comptes.find((c) => c.id === compteId);
     if (!compte) return;
 
-    if (compte.elements.length > 0) {
-      alert("Ce compte contient des éléments associés. Veuillez les détacher avant suppression.");
-      return;
-    }
+    const updatedElements = compte.elements.filter((eid) => eid !== elementId);
+    await updateDoc(doc(db, "comptes", compteId), { elements: updatedElements });
 
-    const confirm = window.confirm("Supprimer définitivement ce compte ?");
-    if (!confirm) return;
+    setComptes(
+      comptes.map((c) =>
+        c.id === compteId ? { ...c, elements: updatedElements } : c
+      )
+    );
+  };
 
+  // 🗑 Supprimer un compte
+  const supprimerCompte = async (compteId) => {
+    if (!window.confirm("Supprimer ce compte comptable ?")) return;
     await deleteDoc(doc(db, "comptes", compteId));
     setComptes(comptes.filter((c) => c.id !== compteId));
   };
 
   return (
-    <main className="p-4">
-      <h2 className="text-2xl font-bold mb-4">📚 Plan Comptable</h2>
+    <main className="p-4 max-w-4xl mx-auto">
+      <h2 className="text-2xl font-bold mb-4">📒 Plan Comptable</h2>
 
+      {/* Ajout d'un compte */}
       <div className="flex gap-2 mb-6">
         <input
           placeholder="Nom du compte"
           value={nouveauCompte}
           onChange={(e) => setNouveauCompte(e.target.value)}
-          className="border p-2 rounded"
+          className="border p-2 rounded w-full"
         />
-        <select value={type} onChange={(e) => setType(e.target.value)} className="border p-2 rounded">
+        <select
+          value={type}
+          onChange={(e) => setType(e.target.value)}
+          className="border p-2 rounded"
+        >
           <option value="revenu">Revenu</option>
           <option value="depense">Dépense</option>
         </select>
@@ -104,6 +118,7 @@ export default function PlanComptable() {
         </button>
       </div>
 
+      {/* Liste des comptes */}
       {comptes.map((compte) => (
         <div key={compte.id} className="bg-white shadow p-4 rounded mb-4">
           <div className="flex justify-between items-center">
@@ -114,17 +129,26 @@ export default function PlanComptable() {
               onClick={() => supprimerCompte(compte.id)}
               className="text-red-600 text-sm hover:underline"
             >
-              🗑 Supprimer
+              Supprimer
             </button>
           </div>
 
-          <ul className="mt-2 ml-4 list-disc text-sm">
+          <ul className="mt-2 ml-4 list-disc space-y-1">
             {compte.elements.map((eid) => {
               const source = compte.type === "revenu" ? factures : depenses;
               const elt = source.find((e) => e.id === eid);
               return (
-                <li key={eid}>
-                  {elt?.description || elt?.fournisseur || "Élément inconnu"} - {elt?.montantTTC || elt?.totalTTC || 0} €
+                <li key={eid} className="flex justify-between items-center text-sm">
+                  <span>
+                    {elt?.description || elt?.fournisseur || "Élément inconnu"} —{" "}
+                    {elt?.montantTTC || elt?.totalTTC || 0} €
+                  </span>
+                  <button
+                    onClick={() => retirerElement(compte.id, eid)}
+                    className="text-red-600 hover:underline ml-4 text-xs"
+                  >
+                    ❌ Retirer
+                  </button>
                 </li>
               );
             })}
@@ -134,13 +158,13 @@ export default function PlanComptable() {
             <label className="block font-medium mb-1">Associer un élément :</label>
             <select
               onChange={(e) => associerElement(compte.id, e.target.value)}
-              className="border p-2 rounded"
+              className="border p-2 rounded w-full"
               defaultValue=""
             >
-              <option value="">-- Choisir une facture/dépense --</option>
+              <option value="">-- Choisir une facture ou une dépense --</option>
               {(compte.type === "revenu" ? factures : depenses).map((e) => (
                 <option key={e.id} value={e.id}>
-                  {e.description || e.fournisseur} - {e.montantTTC || e.totalTTC || 0} €
+                  {e.description || e.fournisseur} — {e.montantTTC || e.totalTTC || 0} €
                 </option>
               ))}
             </select>
