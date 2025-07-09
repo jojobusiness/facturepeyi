@@ -22,6 +22,7 @@ import BilanComptable from './pages/BilanComptable';
 import JournalComptable from './pages/JournalComptable';
 import Unauthorized from './pages/Unauthorized';
 import AdminUserManagement from './pages/AdminUserManagement';
+import InviteComplete from './pages/InviteComplete';
 import PrivateRoute from './components/PrivateRoute';
 import RoleRoute from './components/RoleRoute';
 
@@ -50,6 +51,7 @@ export default function App() {
       <Route path="/admin" element={<RoleRoute allowedRoles={["admin"]}><AdminUserManagement /></RoleRoute>} />
       <Route path="/parametres" element={<PrivateRoute><Settings /></PrivateRoute>} />
       <Route path="/unauthorized" element={<Unauthorized />} />
+      <Route path="/invite-complete" element={<InviteComplete />} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
