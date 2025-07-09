@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { db, auth } from "../lib/firebase"; // 🔧 tu avais oublié "auth"
-import { addDoc, collection, getDocs, Timestamp } from "firebase/firestore";
+import { addDoc, collection, getDocs, Timestamp, query, where } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
 export default function CreateInvoice() {
@@ -17,17 +17,25 @@ export default function CreateInvoice() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        const snapshot = await getDocs(collection(db, "clients"));
-        const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        setClients(data);
-      } catch (err) {
-        console.error("Erreur chargement clients :", err);
-      }
-    };
-    fetchClients();
-  }, []);
+  const fetchClients = async () => {
+    try {
+      const userId = auth.currentUser?.uid;
+      if (!userId) return;
+
+      const q = query(
+        collection(db, "clients"),
+        where("uid", "==", userId) // 🔥 filtre par entreprise
+      );
+
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setClients(data);
+    } catch (err) {
+      console.error("Erreur chargement clients :", err);
+    }
+  };
+  fetchClients();
+}, []);
 
   useEffect(() => {
     const base = parseFloat(amount);
@@ -44,13 +52,13 @@ export default function CreateInvoice() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const userId = auth.currentUser?.uid;
 
     if (!clientId) {
       alert("Veuillez sélectionner un client.");
       return;
     }
-
-    const userId = auth.currentUser?.uid;
+    
     if (!userId) {
       alert("Utilisateur non connecté.");
       return;

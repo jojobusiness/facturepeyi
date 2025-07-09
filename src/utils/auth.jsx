@@ -2,15 +2,20 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 
 export const fetchUserRole = async (uid) => {
-  const docRef = doc(db, "utilisateurs", uid);
-  const snap = await getDoc(docRef);
+  // 1. Chercher dans "utilisateurs"
+  let snap = await getDoc(doc(db, "utilisateurs", uid));
+  if (snap.exists()) {
+    const data = snap.data();
+    return data.role || "employe";
+  }
 
-  if (!snap.exists()) throw new Error("Utilisateur non trouvé");
+  // 2. Sinon, chercher dans "entreprises"
+  snap = await getDoc(doc(db, "entreprises", uid));
+  if (snap.exists()) {
+    const data = snap.data();
+    return data.role || "admin";
+  }
 
-  const data = snap.data();
-
-  return {
-    role: data.role || "employe",           // par défaut
-    entrepriseId: data.entrepriseId || null // peut être utile pour filtrer
-  };
+  // 3. Sinon, pas trouvé
+  throw new Error("Utilisateur introuvable dans Firestore");
 };
