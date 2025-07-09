@@ -44,7 +44,7 @@ export default function App() {
       <Route path="/depenses/nouvelle" element={<PrivateRoute><DepenseForm /></PrivateRoute>} />
       <Route path="/depenses/import" element={<PrivateRoute><ImportDepenses /></PrivateRoute>} />
       <Route path="/categories" element={<PrivateRoute><Categories /></PrivateRoute>} />
-      <Route path="/plancomptable" element={<PrivateRoute><PlanComptable /></PrivateRoute>} />
+      <Route path="/plancomptable" element={<RoleRoute allowedRoles={["comptable", "admin"]}><PlanComptable /></RoleRoute>} />
       <Route path="/bilancomptable" element={<RoleRoute allowedRoles={["comptable", "admin"]}><BilanComptable /></RoleRoute>} />
       <Route path="/journalcomptable" element={<RoleRoute allowedRoles={["comptable", "admin"]}><JournalComptable /></RoleRoute>} />
       <Route path="/declarationfiscale" element={<RoleRoute allowedRoles={["comptable", "admin"]}><DeclarationFiscale /></RoleRoute>} />
