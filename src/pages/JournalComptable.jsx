@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs, doc, getDoc, query, where } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db, auth } from "../lib/firebase";
 import jsPDF from "jspdf";
 
@@ -16,50 +16,76 @@ export default function JournalComptable() {
       if (!uid) return;
 
       const comptesSnap = await getDocs(query(collection(db, "comptes"), where("uid", "==", uid)));
-      const comptes = {};
-      comptesSnap.forEach((doc) => {
-        comptes[doc.id] = doc.data().nom;
-      });
+      const comptes = comptesSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
       const factSnap = await getDocs(query(collection(db, "factures"), where("uid", "==", uid)));
       const depSnap = await getDocs(query(collection(db, "depenses"), where("uid", "==", uid)));
 
       const lignes = [];
-
       let debit = 0;
       let credit = 0;
 
-      const moisStr = String(mois).padStart(2, "0");
-
-      depSnap.forEach((d) => {
-        const data = d.data();
+      depSnap.forEach((doc) => {
+        const data = doc.data();
         const date = data.date?.toDate();
         if (date && date.getMonth() + 1 === mois && date.getFullYear() === annee) {
-          const compteNom = comptes[data.compteComptable] || "606 - Achats";
           const montant = data.montantTTC || 0;
-          lignes.push({ date: date.toLocaleDateString(), compte: compteNom, libelle: data.description, debit: montant, credit: "" });
-          lignes.push({ date: date.toLocaleDateString(), compte: "401 - Fournisseurs", libelle: data.description, debit: "", credit: montant });
+          const compteAssocie = comptes.find(c => c.elements?.includes(doc.id));
+          const compteNom = compteAssocie ? compteAssocie.nom : "606 - Achats";
+
+          lignes.push({
+            date: date.toLocaleDateString(),
+            compte: compteNom,
+            libelle: data.description || data.fournisseur,
+            debit: montant,
+            credit: "",
+          });
+
+          lignes.push({
+            date: date.toLocaleDateString(),
+            compte: "401 - Fournisseurs",
+            libelle: data.description || data.fournisseur,
+            debit: "",
+            credit: montant,
+          });
+
           debit += montant;
           credit += montant;
         }
       });
 
-      factSnap.forEach((f) => {
-        const data = f.data();
+      factSnap.forEach((doc) => {
+        const data = doc.data();
         const date = data.date?.toDate();
         if (date && date.getMonth() + 1 === mois && date.getFullYear() === annee) {
-          const compteNom = comptes[data.compteComptable] || "706 - Ventes";
           const montant = data.totalTTC || 0;
-          lignes.push({ date: date.toLocaleDateString(), compte: "411 - Clients", libelle: data.description, debit: montant, credit: "" });
-          lignes.push({ date: date.toLocaleDateString(), compte: compteNom, libelle: data.description, debit: "", credit: montant });
+          const compteAssocie = comptes.find(c => c.elements?.includes(doc.id));
+          const compteNom = compteAssocie ? compteAssocie.nom : "706 - Ventes";
+
+          lignes.push({
+            date: date.toLocaleDateString(),
+            compte: "411 - Clients",
+            libelle: data.description,
+            debit: montant,
+            credit: "",
+          });
+
+          lignes.push({
+            date: date.toLocaleDateString(),
+            compte: compteNom,
+            libelle: data.description,
+            debit: "",
+            credit: montant,
+          });
+
           debit += montant;
           credit += montant;
         }
       });
 
+      setJournal(lignes);
       setTotalDebit(debit);
       setTotalCredit(credit);
-      setJournal(lignes);
     };
 
     fetchData();
