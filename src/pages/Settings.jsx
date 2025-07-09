@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { auth, db, storage } from "../lib/firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import {
   sendPasswordResetEmail,
   deleteUser,
@@ -62,12 +62,16 @@ export default function Settings() {
       }
 
       const docRef = doc(db, "entreprises", user.uid);
-      await updateDoc(docRef, {
-        ...form,
-        role: form.role || "employe",
-        logo: logoURL,
-        logoUrl: logoURL,
-      });
+      await setDoc(
+        docRef,
+        {
+          ...form,
+          role: form.role || "employe",
+          logo: logoURL,
+          logoUrl: logoURL,
+        },
+        { merge: true }
+      );
 
       alert("✅ Paramètres enregistrés.");
     } catch (err) {
@@ -125,7 +129,6 @@ export default function Settings() {
           className="w-full p-2 border rounded"
         />
 
-        {/* Upload de logo */}
         <div>
           <label className="block font-medium mb-1">Logo entreprise</label>
           {form.logo && (
@@ -158,7 +161,6 @@ export default function Settings() {
           <option value="sombre">Thème sombre</option>
         </select>
 
-        {/* Sélection du rôle */}
         <select
           name="role"
           value={form.role}
@@ -189,7 +191,6 @@ export default function Settings() {
         </button>
       </form>
 
-      {/* Mot de passe */}
       <div className="mt-8 bg-white p-4 rounded shadow max-w-xl space-y-4">
         <h3 className="text-xl font-semibold">🔐 Sécurité</h3>
         <p>
@@ -204,7 +205,6 @@ export default function Settings() {
         </button>
       </div>
 
-      {/* Suppression */}
       <div className="mt-8 bg-white p-4 rounded shadow max-w-xl space-y-4">
         <h3 className="text-xl font-semibold text-red-600">🗑️ Supprimer le compte</h3>
         <button

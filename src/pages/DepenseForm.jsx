@@ -61,7 +61,7 @@ export default function DepenseForm() {
     try {
       await addDoc(collection(db, "depenses"), {
         ...formData,
-        uid,
+        uid: auth.currentUser?.uid,
         montantHT: parseFloat(montantHT),
         tauxTVA: parseFloat(tauxTVA),
         montantTVA: parseFloat(montantTVA.toFixed(2)),

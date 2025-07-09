@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { db } from "../lib/firebase";
+import { db , auth } from "../lib/firebase";
 import { useNavigate } from "react-router-dom";
 
 export default function AddClient() {
@@ -15,7 +15,8 @@ export default function AddClient() {
     e.preventDefault();
     await addDoc(collection(db, "clients"), {
       ...form,
-      createdAt: serverTimestamp()
+      createdAt: serverTimestamp(),
+      uid: auth.currentUser?.uid,
     });
     alert("Client ajouté !");
     navigate("/clients");

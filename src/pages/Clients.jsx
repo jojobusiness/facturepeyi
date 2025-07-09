@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, orderBy, deleteDoc, doc } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, deleteDoc, doc, where } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
-import { db } from "../lib/firebase";
+import { db, auth } from "../lib/firebase";
 
 export default function ClientList() {
   const [clients, setClients] = useState([]);
@@ -18,11 +18,20 @@ export default function ClientList() {
 
   useEffect(() => {
     const fetchClients = async () => {
-      const q = query(collection(db, "clients"), orderBy("createdAt", "desc"));
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const q = query(
+        collection(db, "clients"),
+        where("uid", "==", user.uid),
+        orderBy("createdAt", "desc")
+      );
+
       const snap = await getDocs(q);
       setClients(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       setLoading(false);
     };
+
     fetchClients();
   }, []);
 
@@ -31,8 +40,16 @@ export default function ClientList() {
   return (
     <main className="p-4 bg-gray-100 min-h-screen">
       <h2 className="text-2xl font-bold mb-6">Mes Clients</h2>
-      <button onClick={() => navigate("/clients/ajouter")} className="bg-[#1B5E20] text-white px-4 py-2 rounded mb-4">Ajouter un client</button>
-      {clients.length === 0 ? <p>Aucun client.</p> : (
+      <button
+        onClick={() => navigate("/clients/ajouter")}
+        className="bg-[#1B5E20] text-white px-4 py-2 rounded mb-4"
+      >
+        Ajouter un client
+      </button>
+
+      {clients.length === 0 ? (
+        <p>Aucun client.</p>
+      ) : (
         <table className="w-full bg-white rounded shadow">
           <thead className="bg-[#1B5E20] text-white">
             <tr>
@@ -53,15 +70,19 @@ export default function ClientList() {
                 <td className="p-2 space-x-2">
                   <button onClick={() => handleEdit(client.id)} className="text-blue-600 hover:underline">Modifier</button>
                   <button onClick={() => handleDelete(client.id)} className="text-red-600 hover:underline">Supprimer</button>
-                  <button onClick={() => navigate(`/factures/client/${client.id}`)}className="text-blue-600 hover:underline">Voir factures</button>
+                  <button onClick={() => navigate(`/factures/client/${client.id}`)} className="text-blue-600 hover:underline">Voir factures</button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       )}
-      <button onClick={() => navigate("/dashboard")}className="mb-4 px-4 py-2 bg-[#1B5E20] text-white rounded hover:bg-green-800">
-      ← Retour au tableau de bord
+
+      <button
+        onClick={() => navigate("/dashboard")}
+        className="mt-6 px-4 py-2 bg-[#1B5E20] text-white rounded hover:bg-green-800"
+      >
+        ← Retour au tableau de bord
       </button>
     </main>
   );
