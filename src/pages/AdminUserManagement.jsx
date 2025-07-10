@@ -37,38 +37,54 @@ export default function AdminUserManagement() {
   };
 
   const handleCreate = async () => {
-    if (!email) return alert("Veuillez entrer un email.");
-    if (email === currentUser.email)
-      return alert("Vous ne pouvez pas vous inviter vous-même.");
-    if (!currentUser) return alert("Utilisateur non connecté");
+  if (!email) return alert("Veuillez entrer un email.");
+  if (email === currentUser.email)
+    return alert("Vous ne pouvez pas vous inviter vous-même.");
+  if (!currentUser) return alert("Utilisateur non connecté");
 
-    try {
-      const inviteUrl = `${window.location.origin}/invite-complete?email=${encodeURIComponent(email)}&entrepriseId=${currentUser.uid}`;
+  const existing = await getDocs(query(
+  collection(db, "utilisateurs"),
+  where("email", "==", email)
+  ));
+  if (!existing.empty) return alert("Cet utilisateur est déjà invité.");
 
-      const actionCodeSettings = {
-        url: inviteUrl,
-        handleCodeInApp: true,
-      };
+  try {
+    // 🔍 Récupérer l'entrepriseId depuis Firestore (pas currentUser.uid !)
+    const currentUserDoc = await getDocs(query(
+      collection(db, "utilisateurs"),
+      where("email", "==", currentUser.email)
+    ));
+    const currentUserData = currentUserDoc.docs[0]?.data();
+    const entrepriseId = currentUserData?.entrepriseId;
+    if (!entrepriseId) return alert("Impossible de récupérer l'entreprise liée.");
 
-      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+    const inviteUrl = `${window.location.origin}/invite-complete?email=${encodeURIComponent(email)}&entrepriseId=${entrepriseId}`;
 
-      await addDoc(collection(db, "utilisateurs"), {
-        email,
-        role,
-        entrepriseId: currentUser.uid,
-        createdAt: new Date(),
-        accepted: false,
-      });
+    const actionCodeSettings = {
+      url: inviteUrl,
+      handleCodeInApp: true,
+    };
 
-      alert(`Invitation envoyée à ${email} !`);
-      setEmail("");
-      setRole("employe");
-      fetchUsers();
-    } catch (err) {
-      console.error("Erreur d'invitation :", err);
-      alert("Erreur lors de l'envoi de l'invitation.");
-    }
+    await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+
+    await addDoc(collection(db, "utilisateurs"), {
+      email,
+      role,
+      entrepriseId, // ✅ le bon ID ici
+      createdAt: new Date(),
+      accepted: false,
+    });
+
+    alert(`Invitation envoyée à ${email} !`);
+    setEmail("");
+    setRole("employe");
+    fetchUsers();
+  } catch (err) {
+    console.error("Erreur d'invitation :", err);
+    alert("Erreur lors de l'envoi de l'invitation.");
+  }
   };
+
 
   const handleRoleChange = async (userId, newRole) => {
     try {

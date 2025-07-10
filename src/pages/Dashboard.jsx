@@ -22,40 +22,42 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
+  const fetchData = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
 
-      const userDoc = await getDoc(doc(db, "utilisateurs", user.uid));
-      const userData = userDoc.data();
-      const entrepriseId = userData?.entrepriseId;
-      if (!entrepriseId) return;
+    const userDoc = await getDoc(doc(db, "utilisateurs", user.uid));
+    const userData = userDoc.data();
+    const entrepriseId = userData?.entrepriseId;
+    if (!entrepriseId) return;
 
-      const revenusSnap = await getDocs(
-        query(collection(db, 'factures'), where('entrepriseId', '==', entrepriseId))
-      );
-      const revenusData = revenusSnap.docs.map(doc => doc.data());
+    const revenusSnap = await getDocs(
+      query(collection(db, 'factures'), where('entrepriseId', '==', entrepriseId))
+    );
+    const revenusData = revenusSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })); // ✅ avec id
 
-      const depensesSnap = await getDocs(
-        query(collection(db, 'depenses'), where('entrepriseId', '==', entrepriseId))
-      );
-      const depensesData = depensesSnap.docs.map(doc => doc.data());
+    const depensesSnap = await getDocs(
+      query(collection(db, 'depenses'), where('entrepriseId', '==', entrepriseId))
+    );
+    const depensesData = depensesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })); // ✅ avec id
 
-      const catSnap = await getDocs(query(collection(db, 'categories'), where('entrepriseId', '==', entrepriseId)));
-      const categoriesData = catSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const catSnap = await getDocs(
+      query(collection(db, 'categories'), where('entrepriseId', '==', entrepriseId))
+    );
+    const categoriesData = catSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-      const paiements = revenusData.filter(f => f.status === 'payée').length;
-      const revenus = revenusData.reduce((sum, f) => f.status !== 'impayée' ? sum + parseFloat(f.totalTTC || 0) : sum, 0);
-      const totalDepenses = depensesData.reduce((sum, d) => sum + parseFloat(d.montantTTC || 0), 0);
+    const paiements = revenusData.filter(f => f.status === 'payée').length;
+    const revenus = revenusData.reduce((sum, f) => f.status !== 'impayée' ? sum + parseFloat(f.totalTTC || 0) : sum, 0);
+    const totalDepenses = depensesData.reduce((sum, d) => sum + parseFloat(d.montantTTC || 0), 0);
 
-      setInvoices(revenusData);
-      setDepenses(depensesData);
-      setCategories(categoriesData);
-      setTotals({ revenus, paiements, depenses: totalDepenses });
-      setLoading(false);
-    };
+    setInvoices(revenusData);
+    setDepenses(depensesData);
+    setCategories(categoriesData);
+    setTotals({ revenus, paiements, depenses: totalDepenses });
+    setLoading(false);
+  };
 
-    fetchData();
+  fetchData();
   }, []);
 
   if (loading) return <p className="p-4">Chargement du tableau de bord...</p>;

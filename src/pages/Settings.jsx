@@ -74,7 +74,7 @@ export default function Settings() {
   const handleSave = async () => {
     try {
       setLoading(true);
-      const userSnap = await getDocs(query(collection(db, "users"), where("uid", "==", user.uid)));
+      const userSnap = await getDocs(query(collection(db, "utilisateurs"), where("uid", "==", user.uid)));
       const userData = userSnap.docs[0]?.data();
       const entrepriseId = userData?.entrepriseId;
 
@@ -89,7 +89,7 @@ export default function Settings() {
         await setDoc(doc(db, "entreprises", entrepriseId), entrepriseForm, { merge: true });
       }
 
-      await setDoc(doc(db, "users", userSnap.docs[0].id), userForm, { merge: true });
+      await setDoc(doc(db, "utilisateurs", userSnap.docs[0].id), userForm, { merge: true });
       alert("✅ Paramètres enregistrés.");
     } catch (err) {
       console.error(err);
