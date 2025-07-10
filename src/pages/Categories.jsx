@@ -47,11 +47,15 @@ export default function Categories() {
   // ➕ Ajouter une catégorie dans l'entreprise
   const addCategory = async (e) => {
     e.preventDefault();
+    const userDoc = await getDoc(doc(db, "utilisateurs", currentUser.uid));
+    const entrepriseId = userDoc.data()?.entrepriseId;
+    
     if (!newCategory.nom.trim()) return alert("⚠️ Nom requis !");
     if (!entrepriseId) return alert("Entreprise introuvable");
 
     await addDoc(collection(db, "entreprises", entrepriseId, "categories"), {
       ...newCategory,
+      entrepriseId,
     });
 
     setNewCategory({ nom: "", couleur: "#1B5E20" });

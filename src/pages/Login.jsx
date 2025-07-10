@@ -57,6 +57,7 @@ export default function Login() {
           email,
           role: "admin",
           dateAjout: new Date(),
+          entrepriseId,
         });
 
         // Créer le document utilisateur

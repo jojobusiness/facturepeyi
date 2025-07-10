@@ -73,6 +73,8 @@ export default function CreateInvoice() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const uid = auth.currentUser?.uid;
+    const userDoc = await getDoc(doc(db, "utilisateurs", currentUser.uid));
+    const entrepriseId = userDoc.data()?.entrepriseId;
 
     if (!clientId) return alert("Veuillez sélectionner un client.");
     if (!uid || !entrepriseId) return alert("Utilisateur non connecté.");
@@ -91,6 +93,7 @@ export default function CreateInvoice() {
         date: Timestamp.fromDate(new Date(date)),
         status: "en attente",
         createdAt: Timestamp.now(),
+        entrepriseId,
       };
 
       await addDoc(

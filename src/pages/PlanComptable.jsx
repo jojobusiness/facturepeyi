@@ -63,6 +63,7 @@ export default function PlanComptable() {
       nom: nouveauCompte,
       type,
       elements: [],
+      entrepriseId,
     });
     setComptes([...comptes, { id: ref.id, nom: nouveauCompte, type, elements: [] }]);
     setNouveauCompte("");

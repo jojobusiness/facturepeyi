@@ -36,6 +36,7 @@ export default function AddClient() {
       await addDoc(collection(db, "entreprises", entrepriseId, "clients"), {
         ...form,
         createdAt: serverTimestamp(),
+        entrepriseId,
       });
       alert("Client ajouté !");
       navigate("/clients");

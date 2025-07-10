@@ -89,6 +89,7 @@ export default function DepenseForm() {
           montantTTC: parseFloat(montantTTC.toFixed(2)),
           date: Timestamp.fromDate(new Date(formData.date)),
           createdAt: Timestamp.now(),
+          entrepriseId,
         }
       );
 
