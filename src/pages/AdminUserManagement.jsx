@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import {
   collection,
-  addDoc,
   getDocs,
+  getDoc,
+  doc,
+  addDoc,
   updateDoc,
   deleteDoc,
-  doc,
   query,
   where,
 } from "firebase/firestore";
-import { auth, db } from "../lib/firebase";
+import { auth, db, } from "../lib/firebase";
 import { sendSignInLinkToEmail } from "firebase/auth";
 
 export default function AdminUserManagement() {
@@ -25,16 +26,33 @@ export default function AdminUserManagement() {
   }, [currentUser]);
 
   const fetchUsers = async () => {
-    setLoading(true);
+  setLoading(true);
+  
+  try {
+    // 🔍 Récupérer l'entreprise réelle de l'utilisateur connecté
+    const userDoc = await getDoc(doc(db, "utilisateurs", currentUser.uid));
+    const entrepriseId = userDoc.data()?.entrepriseId;
+
+    if (!entrepriseId) {
+      alert("Entreprise non trouvée.");
+      return;
+    }
+
+    // ✅ Récupérer tous les utilisateurs liés à cette entreprise
     const q = query(
       collection(db, "utilisateurs"),
-      where("entrepriseId", "==", currentUser.uid)
+      where("entrepriseId", "==", entrepriseId)
     );
     const snapshot = await getDocs(q);
     const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     setUsers(data);
+  } catch (err) {
+    console.error("Erreur fetchUsers:", err);
+  } finally {
     setLoading(false);
-  };
+  }
+};
+
 
   const handleCreate = async () => {
   if (!email) return alert("Veuillez entrer un email.");
