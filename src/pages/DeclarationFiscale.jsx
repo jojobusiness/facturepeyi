@@ -1,43 +1,78 @@
 import { useEffect, useState } from 'react';
 import { db, auth } from '../lib/firebase';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  doc,
+  getDoc,
+} from 'firebase/firestore';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
 export default function DeclarationFiscale() {
-  const [periode, setPeriode] = useState('2025'); // ou "2025-T1", etc.
+  const [periode, setPeriode] = useState('2025');
   const [revenus, setRevenus] = useState(0);
   const [depenses, setDepenses] = useState(0);
   const [tvaCollectee, setTvaCollectee] = useState(0);
   const [tvaDeductible, setTvaDeductible] = useState(0);
   const [net, setNet] = useState(0);
+  const [entrepriseId, setEntrepriseId] = useState(null);
 
+  // 🔍 Récupère entrepriseId lié à l'utilisateur
+  useEffect(() => {
+    const fetchEntrepriseId = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const userDoc = await getDoc(doc(db, 'utilisateurs', user.uid));
+      if (userDoc.exists()) {
+        setEntrepriseId(userDoc.data().entrepriseId);
+      }
+    };
+
+    fetchEntrepriseId();
+  }, []);
+
+  // 📦 Récupère factures + dépenses de l’entreprise
   useEffect(() => {
     const fetchData = async () => {
-      const uid = auth.currentUser?.uid;
-      if (!uid) return;
+      if (!entrepriseId) return;
 
-      const facturesSnap = await getDocs(query(collection(db, 'factures'), where('uid', '==', uid)));
-      const depensesSnap = await getDocs(query(collection(db, 'depenses'), where('uid', '==', uid)));
+      const facturesSnap = await getDocs(
+        collection(db, 'entreprises', entrepriseId, 'factures')
+      );
+      const depensesSnap = await getDocs(
+        collection(db, 'entreprises', entrepriseId, 'depenses')
+      );
 
-      const factures = facturesSnap.docs.map(doc => doc.data());
-      const depenses = depensesSnap.docs.map(doc => doc.data());
+      const factures = facturesSnap.docs.map((doc) => doc.data());
+      const depenses = depensesSnap.docs.map((doc) => doc.data());
 
       const facturesFiltres = filterByPeriode(factures, periode);
       const depensesFiltres = filterByPeriode(depenses, periode);
 
-      const revenusTotal = facturesFiltres.reduce((sum, f) =>
-        f.status !== 'impayée' ? sum + parseFloat(f.amount || 0) : sum, 0);
+      const revenusTotal = facturesFiltres.reduce(
+        (sum, f) => (f.status !== 'impayée' ? sum + parseFloat(f.totalTTC || 0) : sum),
+        0
+      );
 
-      const tvaCol = facturesFiltres.reduce((sum, f) =>
-        f.tva ? sum + parseFloat(f.tva || 0) : sum, 0);
+      const tvaCol = facturesFiltres.reduce(
+        (sum, f) => sum + parseFloat(f.tva || 0),
+        0
+      );
 
-      const depensesTotal = depensesFiltres.reduce((sum, d) =>
-        sum + parseFloat(d.montant || 0), 0);
+      const depensesTotal = depensesFiltres.reduce(
+        (sum, d) => sum + parseFloat(d.montantTTC || 0),
+        0
+      );
 
-      const tvaDeduct = depensesFiltres.reduce((sum, d) =>
-        d.tva ? sum + parseFloat(d.tva || 0) : sum, 0);
+      const tvaDeduct = depensesFiltres.reduce(
+        (sum, d) => sum + parseFloat(d.montantTVA || 0),
+        0
+      );
 
       setRevenus(revenusTotal);
       setDepenses(depensesTotal);
@@ -47,19 +82,14 @@ export default function DeclarationFiscale() {
     };
 
     fetchData();
-  }, [periode]);
+  }, [periode, entrepriseId]);
 
   const filterByPeriode = (data, periode) => {
-    const now = new Date();
-    return data.filter(item => {
+    return data.filter((item) => {
       const d = item.date?.toDate?.() || new Date(item.date);
-      if (periode === '2025-T1') {
-        return d >= new Date('2025-01-01') && d <= new Date('2025-03-31');
-      }
-      if (periode === '2025') {
-        return d.getFullYear() === 2025;
-      }
-      // Ajouter d'autres cas
+      if (periode === '2025-T1') return d >= new Date('2025-01-01') && d <= new Date('2025-03-31');
+      if (periode === '2025-T2') return d >= new Date('2025-04-01') && d <= new Date('2025-06-30');
+      if (periode === '2025') return d.getFullYear() === 2025;
       return true;
     });
   };
@@ -102,7 +132,7 @@ export default function DeclarationFiscale() {
 
       <label className="block mb-4">
         Choisir la période :
-        <select className="ml-2 border rounded p-1" value={periode} onChange={e => setPeriode(e.target.value)}>
+        <select className="ml-2 border rounded p-1" value={periode} onChange={(e) => setPeriode(e.target.value)}>
           <option value="2025">Année 2025</option>
           <option value="2025-T1">1er trimestre 2025</option>
           <option value="2025-T2">2e trimestre 2025</option>

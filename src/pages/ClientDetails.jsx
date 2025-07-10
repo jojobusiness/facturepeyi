@@ -1,62 +1,73 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "../lib/firebase";
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs
+} from "firebase/firestore";
+import { db, auth } from "../lib/firebase";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
 export default function ClientDetails() {
-  const { id } = useParams();
+  const { id } = useParams(); // id du client
   const [client, setClient] = useState(null);
   const [factures, setFactures] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Charger les infos du client
+  // Récupérer l'entreprise de l'utilisateur
+  const getEntrepriseId = async () => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return null;
+    const snap = await getDoc(doc(db, "utilisateurs", uid));
+    return snap.exists() ? snap.data().entrepriseId : null;
+  };
+
   useEffect(() => {
-    const fetchClient = async () => {
+    const fetchClientAndFactures = async () => {
       try {
-        const clientRef = doc(db, "clients", id);
+        const entrepriseId = await getEntrepriseId();
+        if (!entrepriseId) return alert("Entreprise non trouvée");
+
+        // 🔹 1. Charger les infos du client
+        const clientRef = doc(db, "entreprises", entrepriseId, "clients", id);
         const snap = await getDoc(clientRef);
-        if (snap.exists()) {
-          setClient({ id: snap.id, ...snap.data() });
-        } else {
-          alert("Client introuvable");
-        }
-      } catch (err) {
-        console.error("Erreur client :", err);
-        alert("Erreur chargement client.");
-      }
-    };
+        if (!snap.exists()) return alert("Client introuvable");
+        setClient({ id: snap.id, ...snap.data() });
 
-    fetchClient();
-  }, [id]);
-
-  // Charger les factures de ce client
-  useEffect(() => {
-    const fetchFactures = async () => {
-      try {
-        const q = query(collection(db, "factures"), where("clientId", "==", id));
+        // 🔹 2. Charger les factures du client
+        const q = query(
+          collection(db, "entreprises", entrepriseId, "factures"),
+          where("clientId", "==", id)
+        );
         const snapshot = await getDocs(q);
-        const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const data = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
         setFactures(data);
       } catch (err) {
-        console.error("Erreur factures :", err);
+        console.error("Erreur lors du chargement :", err);
+        alert("Erreur chargement des données.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFactures();
+    fetchClientAndFactures();
   }, [id]);
 
   const handleExportPDF = () => {
     const docPDF = new jsPDF();
     docPDF.text(`Factures de ${client.nom}`, 14, 20);
 
-    const rows = factures.map(fact => [
-      fact.description,
-      `${fact.amount} €`,
-      fact.status,
+    const rows = factures.map((f) => [
+      f.description,
+      `${f.totalTTC || f.amount || 0} €`,
+      f.status,
     ]);
 
     docPDF.autoTable({
@@ -68,10 +79,13 @@ export default function ClientDetails() {
     docPDF.save(`factures_${client.nom}.pdf`);
   };
 
-  const total = factures.reduce((sum, f) => sum + Number(f.amount || 0), 0);
+  const total = factures.reduce(
+    (sum, f) => sum + Number(f.totalTTC || f.amount || 0),
+    0
+  );
   const totalPayé = factures
-    .filter(f => f.status === "payée")
-    .reduce((sum, f) => sum + Number(f.amount || 0), 0);
+    .filter((f) => f.status === "payée")
+    .reduce((sum, f) => sum + Number(f.totalTTC || f.amount || 0), 0);
 
   if (loading || !client) return <p className="p-4">Chargement...</p>;
 
@@ -116,11 +130,11 @@ export default function ClientDetails() {
             </tr>
           </thead>
           <tbody>
-            {factures.map(fact => (
-              <tr key={fact.id} className="border-t">
-                <td className="p-2">{fact.description}</td>
-                <td className="p-2">{fact.amount} €</td>
-                <td className="p-2 capitalize">{fact.status}</td>
+            {factures.map((f) => (
+              <tr key={f.id} className="border-t">
+                <td className="p-2">{f.description}</td>
+                <td className="p-2">{f.totalTTC || f.amount || 0} €</td>
+                <td className="p-2 capitalize">{f.status}</td>
               </tr>
             ))}
           </tbody>

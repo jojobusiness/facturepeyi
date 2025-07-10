@@ -5,6 +5,8 @@ import {
   collection,
   addDoc,
   getDocs,
+  getDoc,
+  doc,
   query,
   where,
   Timestamp,
@@ -13,8 +15,6 @@ import {
 export default function DepenseForm() {
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
-  const uid = auth.currentUser?.uid;
-
   const [formData, setFormData] = useState({
     fournisseur: "",
     description: "",
@@ -27,18 +27,36 @@ export default function DepenseForm() {
   const [montantTVA, setMontantTVA] = useState(0);
   const [montantTTC, setMontantTTC] = useState(0);
 
-  // Récupération des catégories personnalisées
+  const [entrepriseId, setEntrepriseId] = useState(null);
+
+  // 🔍 Récupération de l'ID de l'entreprise
   useEffect(() => {
-    if (!uid) return;
+    const fetchEntrepriseId = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const userDoc = await getDoc(doc(db, "utilisateurs", user.uid));
+      if (userDoc.exists()) {
+        setEntrepriseId(userDoc.data().entrepriseId);
+      }
+    };
+    fetchEntrepriseId();
+  }, []);
+
+  // 📂 Récupération des catégories personnalisées de l’entreprise
+  useEffect(() => {
+    if (!entrepriseId) return;
     const fetchCategories = async () => {
-      const q = query(collection(db, "categories"), where("uid", "==", uid));
+      const q = query(
+        collection(db, "entreprises", entrepriseId, "categories")
+      );
       const snap = await getDocs(q);
       setCategories(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
     };
     fetchCategories();
-  }, [uid]);
+  }, [entrepriseId]);
 
-  // Calcul TVA et TTC automatiquement
+  // 💸 Calcul TVA & TTC
   useEffect(() => {
     const ht = parseFloat(montantHT);
     const taux = parseFloat(tauxTVA);
@@ -52,26 +70,32 @@ export default function DepenseForm() {
     }
   }, [montantHT, tauxTVA]);
 
-  const handleChange = (e) => {
+  const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const user = auth.currentUser;
+    if (!user || !entrepriseId) return alert("Utilisateur non connecté");
+
     try {
-      await addDoc(collection(db, "depenses"), {
-        ...formData,
-        uid: auth.currentUser?.uid,
-        montantHT: parseFloat(montantHT),
-        tauxTVA: parseFloat(tauxTVA),
-        montantTVA: parseFloat(montantTVA.toFixed(2)),
-        montantTTC: parseFloat(montantTTC.toFixed(2)),
-        date: Timestamp.fromDate(new Date(formData.date)),
-        createdAt: Timestamp.now(),
-      });
+      await addDoc(
+        collection(db, "entreprises", entrepriseId, "depenses"),
+        {
+          ...formData,
+          montantHT: parseFloat(montantHT),
+          tauxTVA: parseFloat(tauxTVA),
+          montantTVA: parseFloat(montantTVA.toFixed(2)),
+          montantTTC: parseFloat(montantTTC.toFixed(2)),
+          date: Timestamp.fromDate(new Date(formData.date)),
+          createdAt: Timestamp.now(),
+        }
+      );
+
+      alert("✅ Dépense enregistrée !");
       navigate("/depenses");
     } catch (err) {
-      alert("Erreur lors de l'enregistrement de la dépense.");
+      alert("❌ Erreur lors de l'enregistrement.");
       console.error(err);
     }
   };
@@ -110,7 +134,6 @@ export default function DepenseForm() {
           className="w-full p-2 border rounded"
         />
 
-        {/* Sélection catégorie */}
         <select
           name="categorieId"
           onChange={handleChange}
@@ -126,7 +149,6 @@ export default function DepenseForm() {
           ))}
         </select>
 
-        {/* Montant HT */}
         <div>
           <label className="block font-medium mb-1">Montant HT (€)</label>
           <input
@@ -138,7 +160,6 @@ export default function DepenseForm() {
           />
         </div>
 
-        {/* Taux TVA */}
         <div>
           <label className="block font-medium mb-1">TVA (%)</label>
           <select
@@ -155,10 +176,13 @@ export default function DepenseForm() {
           </select>
         </div>
 
-        {/* Résumé calculé */}
         <div className="text-sm text-gray-700">
-          <p>TVA à payer : <strong>{montantTVA.toFixed(2)} €</strong></p>
-          <p>Montant TTC : <strong>{montantTTC.toFixed(2)} €</strong></p>
+          <p>
+            TVA à payer : <strong>{montantTVA.toFixed(2)} €</strong>
+          </p>
+          <p>
+            Montant TTC : <strong>{montantTTC.toFixed(2)} €</strong>
+          </p>
         </div>
 
         <button

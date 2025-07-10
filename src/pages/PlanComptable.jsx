@@ -9,6 +9,7 @@ import {
   doc,
   query,
   where,
+  getDoc,
 } from "firebase/firestore";
 
 export default function PlanComptable() {
@@ -17,71 +18,87 @@ export default function PlanComptable() {
   const [depenses, setDepenses] = useState([]);
   const [nouveauCompte, setNouveauCompte] = useState("");
   const [type, setType] = useState("revenu");
-  const uid = auth.currentUser?.uid;
+  const [entrepriseId, setEntrepriseId] = useState(null);
 
+  // 🔍 Charger entrepriseId lié à l’utilisateur
   useEffect(() => {
-    if (!uid) return;
+    const fetchEntrepriseId = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      const snap = await getDoc(doc(db, "utilisateurs", user.uid));
+      if (snap.exists()) {
+        setEntrepriseId(snap.data().entrepriseId);
+      }
+    };
+    fetchEntrepriseId();
+  }, []);
+
+  // 📦 Charger comptes, factures, dépenses depuis entreprise
+  useEffect(() => {
     const fetchAll = async () => {
-      const compteSnap = await getDocs(
-        query(collection(db, "comptes"), where("uid", "==", uid))
+      if (!entrepriseId) return;
+
+      const comptesSnap = await getDocs(
+        collection(db, "entreprises", entrepriseId, "comptes")
       );
-      setComptes(compteSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      setComptes(comptesSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
 
       const factureSnap = await getDocs(
-        query(collection(db, "factures"), where("uid", "==", uid))
+        collection(db, "entreprises", entrepriseId, "factures")
       );
-      setFactures(factureSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      setFactures(factureSnap.docs.map((doc) => ({ id: doc.id, ...doc.data(), type: "facture" })));
 
       const depenseSnap = await getDocs(
-        query(collection(db, "depenses"), where("uid", "==", uid))
+        collection(db, "entreprises", entrepriseId, "depenses")
       );
-      setDepenses(depenseSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      setDepenses(depenseSnap.docs.map((doc) => ({ id: doc.id, ...doc.data(), type: "depense" })));
     };
+
     fetchAll();
-  }, [uid]);
+  }, [entrepriseId]);
 
   const ajouterCompte = async () => {
-    if (!nouveauCompte) return;
-    const docRef = await addDoc(collection(db, "comptes"), {
-      uid,
+    if (!nouveauCompte || !entrepriseId) return;
+    const ref = await addDoc(collection(db, "entreprises", entrepriseId, "comptes"), {
       nom: nouveauCompte,
       type,
       elements: [],
     });
-    setComptes([...comptes, { id: docRef.id, nom: nouveauCompte, type, elements: [] }]);
+    setComptes([...comptes, { id: ref.id, nom: nouveauCompte, type, elements: [] }]);
     setNouveauCompte("");
   };
 
   const associerElement = async (compteId, elementId) => {
     const compte = comptes.find((c) => c.id === compteId);
-    if (!compte.elements.includes(elementId)) {
-      const updatedElements = [...compte.elements, elementId];
-      await updateDoc(doc(db, "comptes", compteId), { elements: updatedElements });
-      setComptes(
-        comptes.map((c) =>
-          c.id === compteId ? { ...c, elements: updatedElements } : c
-        )
-      );
-    }
+    if (!compte || compte.elements.includes(elementId)) return;
+
+    const updatedElements = [...compte.elements, elementId];
+    await updateDoc(doc(db, "entreprises", entrepriseId, "comptes", compteId), {
+      elements: updatedElements,
+    });
+
+    setComptes(comptes.map((c) =>
+      c.id === compteId ? { ...c, elements: updatedElements } : c
+    ));
   };
 
   const retirerElement = async (compteId, elementId) => {
     const compte = comptes.find((c) => c.id === compteId);
     if (!compte) return;
 
-    const updatedElements = compte.elements.filter((eid) => eid !== elementId);
-    await updateDoc(doc(db, "comptes", compteId), { elements: updatedElements });
+    const updatedElements = compte.elements.filter((id) => id !== elementId);
+    await updateDoc(doc(db, "entreprises", entrepriseId, "comptes", compteId), {
+      elements: updatedElements,
+    });
 
-    setComptes(
-      comptes.map((c) =>
-        c.id === compteId ? { ...c, elements: updatedElements } : c
-      )
-    );
+    setComptes(comptes.map((c) =>
+      c.id === compteId ? { ...c, elements: updatedElements } : c
+    ));
   };
 
   const supprimerCompte = async (compteId) => {
     if (!window.confirm("Supprimer ce compte comptable ?")) return;
-    await deleteDoc(doc(db, "comptes", compteId));
+    await deleteDoc(doc(db, "entreprises", entrepriseId, "comptes", compteId));
     setComptes(comptes.filter((c) => c.id !== compteId));
   };
 
@@ -128,7 +145,7 @@ export default function PlanComptable() {
 
           <ul className="mt-2 ml-4 list-disc space-y-1">
             {compte.elements.map((eid) => {
-              const source = [...factures.map(f => ({ ...f, type: "facture" })), ...depenses.map(d => ({ ...d, type: "depense" }))];
+              const source = [...factures, ...depenses];
               const elt = source.find((e) => e.id === eid);
               return (
                 <li key={eid} className="flex justify-between items-center text-sm">
@@ -136,7 +153,8 @@ export default function PlanComptable() {
                     <span className="font-bold text-sm text-gray-600">
                       {elt?.type === "facture" ? "🧾 Facture" : "💸 Dépense"}
                     </span>{" "}
-                    - {elt?.description || elt?.fournisseur || "Élément inconnu"} - {elt?.totalTTC || elt?.montantTTC || 0} €
+                    - {elt?.description || elt?.fournisseur || "Élément inconnu"} -{" "}
+                    {elt?.totalTTC || elt?.montantTTC || 0} €
                   </span>
                   <button
                     onClick={() => retirerElement(compte.id, eid)}
@@ -161,7 +179,7 @@ export default function PlanComptable() {
                 .filter((e) => !compte.elements.includes(e.id))
                 .map((e) => (
                   <option key={e.id} value={e.id}>
-                    {e.description || e.fournisseur} — {e.montantTTC || e.totalTTC || 0} €
+                    {e.description || e.fournisseur} — {e.totalTTC || e.montantTTC || 0} €
                   </option>
                 ))}
             </select>

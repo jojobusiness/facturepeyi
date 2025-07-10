@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { doc, getDoc, updateDoc, collection, getDocs, Timestamp } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  collection,
+  getDocs,
+  Timestamp,
+} from "firebase/firestore";
 import { auth, db } from "../lib/firebase";
 
 export default function EditInvoice() {
@@ -18,11 +25,11 @@ export default function EditInvoice() {
 
   const [clients, setClients] = useState([]);
   const [logoUrl, setLogoUrl] = useState("");
-
   const [montantHT, setMontantHT] = useState(0);
   const [tauxTVA, setTauxTVA] = useState(0);
   const [montantTVA, setMontantTVA] = useState(0);
   const [montantTTC, setMontantTTC] = useState(0);
+  const [entrepriseId, setEntrepriseId] = useState(null);
 
   useEffect(() => {
     const ht = parseFloat(montantHT);
@@ -33,15 +40,32 @@ export default function EditInvoice() {
   }, [montantHT, tauxTVA]);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchEntrepriseAndData = async () => {
       try {
-        const clientSnap = await getDocs(collection(db, "clients"));
-        const clientList = clientSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        const uid = auth.currentUser?.uid;
+        if (!uid) return;
+
+        // ✅ Récupérer l'entrepriseId de l'utilisateur connecté
+        const userSnap = await getDoc(doc(db, "utilisateurs", uid));
+        const userData = userSnap.data();
+        const entId = userData?.entrepriseId;
+        if (!entId) throw new Error("Entreprise introuvable");
+
+        setEntrepriseId(entId);
+
+        // ✅ Récupérer les clients liés à l'entreprise
+        const clientSnap = await getDocs(
+          collection(db, "entreprises", entId, "clients")
+        );
+        const clientList = clientSnap.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
         setClients(clientList);
 
-        if (!id) return alert("ID facture manquant");
-        const docRef = doc(db, "factures", id);
-        const snap = await getDoc(docRef);
+        // ✅ Charger la facture
+        const factureRef = doc(db, "entreprises", entId, "factures", id);
+        const snap = await getDoc(factureRef);
 
         if (snap.exists()) {
           const data = snap.data();
@@ -52,33 +76,24 @@ export default function EditInvoice() {
             status: data.status || "en attente",
           });
           setMontantHT(data.amountHT || 0);
-          setTauxTVA(data.tvaRate || data.tva || 0); // compatibilité ancienne version
+          setTauxTVA(data.tvaRate || data.tva || 0);
         } else {
           alert("Facture introuvable");
           navigate("/factures");
         }
-      } catch (err) {
-        console.error(err);
-        alert("Erreur chargement facture");
-      }
-    };
 
-    const fetchLogo = async () => {
-      try {
-        const userId = auth.currentUser?.uid;
-        if (!userId) return;
-        const entrepriseRef = doc(db, "entreprises", userId);
-        const snap = await getDoc(entrepriseRef);
-        if (snap.exists()) {
-          setLogoUrl(snap.data().logoUrl || "");
+        // ✅ Récupérer logo entreprise (optionnel)
+        const entSnap = await getDoc(doc(db, "entreprises", entId));
+        if (entSnap.exists()) {
+          setLogoUrl(entSnap.data().logoUrl || "");
         }
       } catch (err) {
-        console.error("Erreur récupération logo :", err);
+        console.error(err);
+        alert("Erreur chargement données");
       }
     };
 
-    fetchData();
-    fetchLogo();
+    fetchEntrepriseAndData();
   }, [id, navigate]);
 
   const handleChange = (e) => {
@@ -92,23 +107,25 @@ export default function EditInvoice() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const userId = auth.currentUser?.uid;
-    if (!userId) return alert("Utilisateur non connecté");
+    const uid = auth.currentUser?.uid;
+    if (!uid || !entrepriseId) return alert("Utilisateur non connecté");
 
     try {
-      await updateDoc(doc(db, "factures", id), {
-        clientId: form.clientId,
-        clientNom: form.clientNom,
-        description: form.description,
-        status: form.status,
-        amountHT: parseFloat(montantHT),
-        tvaRate: parseFloat(tauxTVA),
-        tva: parseFloat(montantTVA),
-        totalTTC: parseFloat(montantTTC),
-        date: Timestamp.fromDate(new Date()),
-        uid: userId, // très important pour filtrer dans les dashboards
-      });
+      await updateDoc(
+        doc(db, "entreprises", entrepriseId, "factures", id),
+        {
+          clientId: form.clientId,
+          clientNom: form.clientNom,
+          description: form.description,
+          status: form.status,
+          amountHT: parseFloat(montantHT),
+          tvaRate: parseFloat(tauxTVA),
+          tva: parseFloat(montantTVA),
+          totalTTC: parseFloat(montantTTC),
+          date: Timestamp.fromDate(new Date()),
+          uid, // toujours garder pour sécurité
+        }
+      );
 
       alert("✅ Facture modifiée !");
       navigate("/factures");

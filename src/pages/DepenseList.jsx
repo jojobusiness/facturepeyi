@@ -8,6 +8,7 @@ import {
   where,
   deleteDoc,
   doc,
+  getDoc,
 } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
@@ -21,9 +22,13 @@ export default function DepenseList() {
       const user = auth.currentUser;
       if (!user) return;
 
+      // 🔍 Récupérer entrepriseId à partir de l'utilisateur connecté
+      const userDoc = await getDoc(doc(db, "utilisateurs", user.uid));
+      const entrepriseId = userDoc.exists() ? userDoc.data().entrepriseId : null;
+      if (!entrepriseId) return alert("Aucune entreprise liée à cet utilisateur.");
+
       const q = query(
-        collection(db, "depenses"),
-        where("uid", "==", user.uid),
+        collection(db, "entreprises", entrepriseId, "depenses"),
         orderBy("date", "desc")
       );
 
@@ -37,8 +42,12 @@ export default function DepenseList() {
   }, []);
 
   const handleDelete = async (id) => {
+    const user = auth.currentUser;
+    const userDoc = await getDoc(doc(db, "utilisateurs", user.uid));
+    const entrepriseId = userDoc.data().entrepriseId;
+
     if (confirm("Supprimer cette dépense ?")) {
-      await deleteDoc(doc(db, "depenses", id));
+      await deleteDoc(doc(db, "entreprises", entrepriseId, "depenses", id));
       setDepenses(depenses.filter((d) => d.id !== id));
     }
   };

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, query, where, getDoc } from "firebase/firestore";
 import { db, auth } from "../lib/firebase";
 import jsPDF from "jspdf";
 
@@ -9,28 +9,51 @@ export default function JournalComptable() {
   const [annee, setAnnee] = useState(new Date().getFullYear());
   const [totalDebit, setTotalDebit] = useState(0);
   const [totalCredit, setTotalCredit] = useState(0);
+  const [entrepriseId, setEntrepriseId] = useState(null);
+
+  // 🔍 Récupération entrepriseId depuis l'utilisateur
+  useEffect(() => {
+    const fetchEntreprise = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      const userDoc = await getDoc(doc(db, "utilisateurs", user.uid));
+      if (userDoc.exists()) {
+        setEntrepriseId(userDoc.data().entrepriseId);
+      }
+    };
+    fetchEntreprise();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
-      const uid = auth.currentUser?.uid;
-      if (!uid) return;
+      if (!entrepriseId) return;
 
-      const comptesSnap = await getDocs(query(collection(db, "comptes"), where("uid", "==", uid)));
-      const comptes = comptesSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const comptesSnap = await getDocs(
+        collection(db, "entreprises", entrepriseId, "comptes")
+      );
+      const comptes = comptesSnap.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
 
-      const factSnap = await getDocs(query(collection(db, "factures"), where("uid", "==", uid)));
-      const depSnap = await getDocs(query(collection(db, "depenses"), where("uid", "==", uid)));
+      const factSnap = await getDocs(
+        collection(db, "entreprises", entrepriseId, "factures")
+      );
+      const depSnap = await getDocs(
+        collection(db, "entreprises", entrepriseId, "depenses")
+      );
 
       const lignes = [];
       let debit = 0;
       let credit = 0;
 
+      // 💸 Traitement des dépenses
       depSnap.forEach((doc) => {
         const data = doc.data();
         const date = data.date?.toDate();
         if (date && date.getMonth() + 1 === mois && date.getFullYear() === annee) {
           const montant = data.montantTTC || 0;
-          const compteAssocie = comptes.find(c => c.elements?.includes(doc.id));
+          const compteAssocie = comptes.find((c) => c.elements?.includes(doc.id));
           const compteNom = compteAssocie ? compteAssocie.nom : "606 - Achats";
 
           lignes.push({
@@ -54,12 +77,13 @@ export default function JournalComptable() {
         }
       });
 
+      // 🧾 Traitement des factures
       factSnap.forEach((doc) => {
         const data = doc.data();
         const date = data.date?.toDate();
         if (date && date.getMonth() + 1 === mois && date.getFullYear() === annee) {
           const montant = data.totalTTC || 0;
-          const compteAssocie = comptes.find(c => c.elements?.includes(doc.id));
+          const compteAssocie = comptes.find((c) => c.elements?.includes(doc.id));
           const compteNom = compteAssocie ? compteAssocie.nom : "706 - Ventes";
 
           lignes.push({
@@ -89,7 +113,7 @@ export default function JournalComptable() {
     };
 
     fetchData();
-  }, [mois, annee]);
+  }, [mois, annee, entrepriseId]);
 
   const generatePDF = () => {
     const pdf = new jsPDF();
@@ -119,7 +143,6 @@ export default function JournalComptable() {
 
     pdf.text(`Total Débit : ${totalDebit.toFixed(2)} €`, 15, y + 10);
     pdf.text(`Total Crédit : ${totalCredit.toFixed(2)} €`, 90, y + 10);
-
     pdf.save(`journal-${mois}-${annee}.pdf`);
   };
 
@@ -128,7 +151,11 @@ export default function JournalComptable() {
       <h2 className="text-2xl font-bold mb-4">📘 Journal Comptable</h2>
 
       <div className="flex items-center gap-4 mb-4">
-        <select value={mois} onChange={(e) => setMois(parseInt(e.target.value))} className="border p-2 rounded">
+        <select
+          value={mois}
+          onChange={(e) => setMois(parseInt(e.target.value))}
+          className="border p-2 rounded"
+        >
           {Array.from({ length: 12 }, (_, i) => (
             <option key={i + 1} value={i + 1}>
               {new Date(0, i).toLocaleString("fr-FR", { month: "long" })}
@@ -136,9 +163,15 @@ export default function JournalComptable() {
           ))}
         </select>
 
-        <select value={annee} onChange={(e) => setAnnee(parseInt(e.target.value))} className="border p-2 rounded">
+        <select
+          value={annee}
+          onChange={(e) => setAnnee(parseInt(e.target.value))}
+          className="border p-2 rounded"
+        >
           {Array.from({ length: 5 }, (_, i) => (
-            <option key={i} value={2023 + i}>{2023 + i}</option>
+            <option key={i} value={2023 + i}>
+              {2023 + i}
+            </option>
           ))}
         </select>
 

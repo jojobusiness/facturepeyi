@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { auth, db, storage } from "../lib/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, query, where, collection, getDocs } from "firebase/firestore";
 import {
   sendPasswordResetEmail,
   deleteUser,
@@ -15,64 +15,81 @@ import { useNavigate } from "react-router-dom";
 export default function Settings() {
   const navigate = useNavigate();
   const user = auth.currentUser;
-
-  const [form, setForm] = useState({
+  const [entrepriseForm, setEntrepriseForm] = useState({
     nom: "",
-    email: user?.email || "",
     siret: "",
     logo: "",
-    notifications: true,
-    theme: "clair",
-    role: "",
     tvaActive: true,
   });
-
+  const [userForm, setUserForm] = useState({
+    email: user?.email || "",
+    notifications: true,
+    theme: "clair",
+  });
   const [logoFile, setLogoFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
-      const docRef = doc(db, "entreprises", user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setForm((prev) => ({ ...prev, ...docSnap.data() }));
+      const userSnap = await getDocs(query(collection(db, "users"), where("uid", "==", user.uid)));
+      const userData = userSnap.docs[0]?.data();
+      const entrepriseId = userData?.entrepriseId;
+      setIsAdmin(userData?.role === "admin");
+
+      if (entrepriseId) {
+        const entRef = doc(db, "entreprises", entrepriseId);
+        const entSnap = await getDoc(entRef);
+        if (entSnap.exists()) {
+          setEntrepriseForm(entSnap.data());
+        }
       }
+
+      setUserForm(prev => ({
+        ...prev,
+        notifications: userData?.notifications ?? true,
+        theme: userData?.theme || "clair",
+      }));
     };
-    if (user) fetchData();
+
+    fetchData();
   }, [user]);
 
-  const handleChange = (e) => {
+  const handleEntrepriseChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
+    setEntrepriseForm((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleUserChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setUserForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleSave = async () => {
     try {
       setLoading(true);
-      let logoURL = form.logo;
+      const userSnap = await getDocs(query(collection(db, "users"), where("uid", "==", user.uid)));
+      const userData = userSnap.docs[0]?.data();
+      const entrepriseId = userData?.entrepriseId;
 
-      if (logoFile) {
-        const storageRef = ref(storage, `logos/${user.uid}.png`);
+      if (logoFile && entrepriseId) {
+        const storageRef = ref(storage, `logos/${entrepriseId}.png`);
         await uploadBytes(storageRef, logoFile);
-        logoURL = await getDownloadURL(storageRef);
+        const logoURL = await getDownloadURL(storageRef);
+        entrepriseForm.logo = logoURL;
       }
 
-      const docRef = doc(db, "entreprises", user.uid);
-      await setDoc(
-        docRef,
-        {
-          ...form,
-          role: form.role || "employe",
-          logo: logoURL,
-          logoUrl: logoURL,
-        },
-        { merge: true }
-      );
+      if (entrepriseId && isAdmin) {
+        await setDoc(doc(db, "entreprises", entrepriseId), entrepriseForm, { merge: true });
+      }
 
+      await setDoc(doc(db, "users", userSnap.docs[0].id), userForm, { merge: true });
       alert("✅ Paramètres enregistrés.");
     } catch (err) {
       console.error(err);
@@ -97,123 +114,98 @@ export default function Settings() {
 
   return (
     <main className="min-h-screen bg-gray-100 p-4">
-      <h2 className="text-2xl font-bold mb-4">⚙️ Paramètres</h2>
+      <h2 className="text-2xl font-bold mb-6">⚙️ Paramètres</h2>
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-4 rounded shadow max-w-xl space-y-4"
-      >
-        <input
-          type="text"
-          name="nom"
-          value={form.nom}
-          onChange={handleChange}
-          placeholder="Nom de l'entreprise"
-          className="w-full p-2 border rounded"
-        />
+      {isAdmin && (
+        <section className="bg-white p-4 rounded shadow max-w-xl mb-8">
+          <h3 className="text-xl font-semibold mb-4">🏢 Paramètres de l'entreprise</h3>
+          <input
+            type="text"
+            name="nom"
+            value={entrepriseForm.nom}
+            onChange={handleEntrepriseChange}
+            placeholder="Nom de l'entreprise"
+            className="w-full p-2 border rounded mb-2"
+          />
+          <input
+            type="text"
+            name="siret"
+            value={entrepriseForm.siret}
+            onChange={handleEntrepriseChange}
+            placeholder="Numéro SIRET"
+            className="w-full p-2 border rounded mb-2"
+          />
+          <label className="block mb-2">Logo :</label>
+          {entrepriseForm.logo && (
+            <img src={entrepriseForm.logo} alt="logo" className="h-20 object-contain border mb-2" />
+          )}
+          <input type="file" onChange={(e) => setLogoFile(e.target.files[0])} className="mb-4" />
+          <label className="flex items-center gap-2 mb-4">
+            <input
+              type="checkbox"
+              name="tvaActive"
+              checked={entrepriseForm.tvaActive}
+              onChange={handleEntrepriseChange}
+            />
+            Activer la gestion de la TVA
+          </label>
+        </section>
+      )}
+
+      <section className="bg-white p-4 rounded shadow max-w-xl mb-8">
+        <h3 className="text-xl font-semibold mb-4">👤 Mon compte</h3>
         <input
           type="email"
           name="email"
-          value={form.email}
-          onChange={handleChange}
-          placeholder="Email"
-          className="w-full p-2 border rounded"
+          value={userForm.email}
           disabled
+          className="w-full p-2 border rounded mb-2"
         />
-        <input
-          type="text"
-          name="siret"
-          value={form.siret}
-          onChange={handleChange}
-          placeholder="Numéro SIRET"
-          className="w-full p-2 border rounded"
-        />
-
-        <div>
-          <label className="block font-medium mb-1">Logo entreprise</label>
-          {form.logo && (
-            <img
-              src={form.logo}
-              alt="Logo actuel"
-              className="h-20 object-contain border mb-2"
-            />
-          )}
-          <input type="file" accept="image/*" onChange={(e) => setLogoFile(e.target.files[0])} />
-        </div>
-
-        <div className="flex items-center space-x-2">
+        <label className="flex items-center gap-2 mb-2">
           <input
             type="checkbox"
             name="notifications"
-            checked={form.notifications}
-            onChange={handleChange}
+            checked={userForm.notifications}
+            onChange={handleUserChange}
           />
-          <label htmlFor="notifications">Recevoir des notifications</label>
-        </div>
-
+          Recevoir des notifications
+        </label>
         <select
           name="theme"
-          value={form.theme}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
+          value={userForm.theme}
+          onChange={handleUserChange}
+          className="w-full p-2 border rounded mb-4"
         >
           <option value="clair">Thème clair</option>
           <option value="sombre">Thème sombre</option>
         </select>
-
-        <select
-          name="role"
-          value={form.role}
-          onChange={handleChange}
-          className="w-full p-2 border rounded"
-        >
-          <option value="">-- Choisir un rôle --</option>
-          <option value="admin">Administrateur</option>
-          <option value="comptable">Comptable</option>
-          <option value="employe">Employé</option>
-        </select>
-
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            name="tvaActive"
-            checked={form.tvaActive}
-            onChange={handleChange}
-          />
-          Activer la gestion de la TVA
-        </label>
-
         <button
-          type="submit"
+          onClick={handleSave}
           className="bg-[#1B5E20] text-white w-full p-2 rounded"
         >
           {loading ? "Enregistrement..." : "💾 Enregistrer"}
         </button>
-      </form>
+      </section>
 
-      <div className="mt-8 bg-white p-4 rounded shadow max-w-xl space-y-4">
+      <section className="bg-white p-4 rounded shadow max-w-xl mb-8">
         <h3 className="text-xl font-semibold">🔐 Sécurité</h3>
-        <p>
-          Pour changer votre mot de passe, cliquez ci-dessous pour recevoir un
-          lien sécurisé par email.
-        </p>
         <button
           onClick={handleResetPassword}
-          className="bg-yellow-500 text-white w-full p-2 rounded hover:bg-yellow-600"
+          className="bg-yellow-500 text-white w-full p-2 rounded hover:bg-yellow-600 mt-2"
         >
           📧 Réinitialiser le mot de passe par email
         </button>
-      </div>
+      </section>
 
-      <div className="mt-8 bg-white p-4 rounded shadow max-w-xl space-y-4">
+      <section className="bg-white p-4 rounded shadow max-w-xl mb-8">
         <h3 className="text-xl font-semibold text-red-600">🗑️ Supprimer le compte</h3>
         <button
           onClick={handleDeleteAccount}
-          className="bg-red-600 text-white w-full p-2 rounded hover:bg-red-700"
+          className="bg-red-600 text-white w-full p-2 rounded hover:bg-red-700 mt-2"
         >
           Supprimer mon compte
         </button>
-      </div>
+      </section>
 
       <button
         onClick={() => navigate("/dashboard")}

@@ -23,29 +23,30 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const uid = auth.currentUser?.uid;
-      if (!uid) return;
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const userSnap = await getDocs(query(collection(db, "users"), where("uid", "==", user.uid)));
+      const userData = userSnap.docs[0]?.data();
+      const entrepriseId = userData?.entrepriseId;
+      if (!entrepriseId) return;
 
       const revenusSnap = await getDocs(
-        query(collection(db, 'factures'), where('uid', '==', uid))
+        query(collection(db, 'factures'), where('entrepriseId', '==', entrepriseId))
       );
       const revenusData = revenusSnap.docs.map(doc => doc.data());
 
       const depensesSnap = await getDocs(
-        query(collection(db, 'depenses'), where('uid', '==', uid))
+        query(collection(db, 'depenses'), where('entrepriseId', '==', entrepriseId))
       );
       const depensesData = depensesSnap.docs.map(doc => doc.data());
 
-      const catSnap = await getDocs(query(collection(db, 'categories'), where('uid', '==', uid)));
+      const catSnap = await getDocs(query(collection(db, 'categories'), where('entrepriseId', '==', entrepriseId)));
       const categoriesData = catSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
       const paiements = revenusData.filter(f => f.status === 'payée').length;
-      
-      const revenus = revenusData.reduce((sum, f) =>
-      f.status !== 'impayée' ? sum + parseFloat(f.totalTTC || 0) : sum, 0);
-
-      const totalDepenses = depensesData.reduce((sum, d) =>
-      sum + parseFloat(d.montantTTC || 0), 0);
-
+      const revenus = revenusData.reduce((sum, f) => f.status !== 'impayée' ? sum + parseFloat(f.totalTTC || 0) : sum, 0);
+      const totalDepenses = depensesData.reduce((sum, d) => sum + parseFloat(d.montantTTC || 0), 0);
 
       setInvoices(revenusData);
       setDepenses(depensesData);

@@ -7,7 +7,6 @@ import {
   deleteDoc,
   doc,
   getDoc,
-  where,
 } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { db, auth } from "../lib/firebase";
@@ -16,11 +15,50 @@ import { downloadInvoicePDF } from "../utils/downloadPDF";
 export default function InvoiceList() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [entrepriseId, setEntrepriseId] = useState(null);
   const navigate = useNavigate();
+
+  // ✅ Récupérer l'entrepriseId de l'utilisateur connecté
+  useEffect(() => {
+    const fetchEntreprise = async () => {
+      const uid = auth.currentUser?.uid;
+      if (!uid) return;
+      const userSnap = await getDoc(doc(db, "utilisateurs", uid));
+      const data = userSnap.data();
+      setEntrepriseId(data?.entrepriseId || null);
+    };
+    fetchEntreprise();
+  }, []);
+
+  // ✅ Charger les factures de cette entreprise
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      if (!entrepriseId) {
+        setLoading(false);
+        return;
+      }
+
+      const q = query(
+        collection(db, "entreprises", entrepriseId, "factures"),
+        orderBy("createdAt", "desc")
+      );
+
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setInvoices(data);
+      setLoading(false);
+    };
+
+    fetchInvoices();
+  }, [entrepriseId]);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Supprimer cette facture ?")) return;
-    await deleteDoc(doc(db, "factures", id));
+    await deleteDoc(doc(db, "entreprises", entrepriseId, "factures", id));
     setInvoices(invoices.filter((inv) => inv.id !== id));
   };
 
@@ -29,12 +67,11 @@ export default function InvoiceList() {
   };
 
   const handleGeneratePDF = async (invoice) => {
-    const userId = auth.currentUser?.uid;
-    if (!userId) return alert("Utilisateur non connecté");
+    const uid = auth.currentUser?.uid;
+    if (!uid || !entrepriseId) return alert("Utilisateur non connecté");
 
     try {
-      const entrepriseRef = doc(db, "entreprises", userId);
-      const snap = await getDoc(entrepriseRef);
+      const snap = await getDoc(doc(db, "entreprises", entrepriseId));
       const entreprise = snap.exists() ? snap.data() : {};
 
       const fullInvoice = {
@@ -51,33 +88,6 @@ export default function InvoiceList() {
       alert("Erreur chargement entreprise.");
     }
   };
-
-  useEffect(() => {
-    const fetchInvoices = async () => {
-      const userId = auth.currentUser?.uid;
-      if (!userId) {
-        setLoading(false);
-        return;
-      }
-
-      const q = query(
-        collection(db, "factures"),
-        where("uid", "==", userId),
-        orderBy("createdAt", "desc")
-      );
-
-      const snapshot = await getDocs(q);
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      setInvoices(data);
-      setLoading(false);
-    };
-
-    fetchInvoices();
-  }, []);
 
   if (loading) return <p className="p-4">Chargement...</p>;
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { db, auth } from "../lib/firebase";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, query, where, doc, getDoc } from "firebase/firestore";
 import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 
@@ -9,22 +9,35 @@ export default function BilanComptable() {
   const [loading, setLoading] = useState(true);
   const [mois, setMois] = useState(new Date().getMonth() + 1);
   const [annee, setAnnee] = useState(new Date().getFullYear());
+  const [entrepriseId, setEntrepriseId] = useState(null);
 
   const euro = new Intl.NumberFormat("fr-FR", {
     style: "currency",
     currency: "EUR",
   });
 
+  // 🔍 Récupérer entrepriseId lié à l'utilisateur
+  useEffect(() => {
+    const getEntreprise = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      const userDoc = await getDoc(doc(db, "utilisateurs", user.uid));
+      if (userDoc.exists()) {
+        setEntrepriseId(userDoc.data().entrepriseId);
+      }
+    };
+    getEntreprise();
+  }, []);
+
   useEffect(() => {
     const fetchData = async () => {
-      const uid = auth.currentUser?.uid;
-      if (!uid) return;
+      if (!entrepriseId) return;
 
       const facturesSnap = await getDocs(
-        query(collection(db, "factures"), where("uid", "==", uid))
+        collection(db, "entreprises", entrepriseId, "factures")
       );
       const depensesSnap = await getDocs(
-        query(collection(db, "depenses"), where("uid", "==", uid))
+        collection(db, "entreprises", entrepriseId, "depenses")
       );
 
       const factures = facturesSnap.docs.map((doc) => {
@@ -66,7 +79,7 @@ export default function BilanComptable() {
     };
 
     fetchData();
-  }, [mois, annee]);
+  }, [mois, annee, entrepriseId]);
 
   const totalRevenus = lignes
     .filter((l) => l.type === "revenu")

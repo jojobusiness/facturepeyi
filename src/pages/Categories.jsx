@@ -7,18 +7,35 @@ import {
   deleteDoc,
   doc,
   query,
-  where,
+  getDoc,
 } from "firebase/firestore";
 import { SketchPicker } from "react-color";
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);
   const [newCategory, setNewCategory] = useState({ nom: "", couleur: "#1B5E20" });
+  const [entrepriseId, setEntrepriseId] = useState(null);
 
-  const uid = auth.currentUser?.uid;
+  // 🔍 Récupère entrepriseId lié à l'utilisateur
+  useEffect(() => {
+    const fetchEntrepriseId = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
 
+      const userDoc = await getDoc(doc(db, "utilisateurs", user.uid));
+      if (userDoc.exists()) {
+        setEntrepriseId(userDoc.data().entrepriseId);
+      }
+    };
+
+    fetchEntrepriseId();
+  }, []);
+
+  // 📥 Récupère les catégories de l'entreprise
   const fetchCategories = async () => {
-    const q = query(collection(db, "categories"), where("uid", "==", uid));
+    if (!entrepriseId) return;
+
+    const q = query(collection(db, "entreprises", entrepriseId, "categories"));
     const querySnapshot = await getDocs(q);
     const result = querySnapshot.docs.map((doc) => ({
       id: doc.id,
@@ -27,27 +44,32 @@ export default function Categories() {
     setCategories(result);
   };
 
+  // ➕ Ajouter une catégorie dans l'entreprise
   const addCategory = async (e) => {
     e.preventDefault();
     if (!newCategory.nom.trim()) return alert("⚠️ Nom requis !");
-    await addDoc(collection(db, "categories"), {
-      uid,
+    if (!entrepriseId) return alert("Entreprise introuvable");
+
+    await addDoc(collection(db, "entreprises", entrepriseId, "categories"), {
       ...newCategory,
     });
+
     setNewCategory({ nom: "", couleur: "#1B5E20" });
     fetchCategories();
   };
 
+  // ❌ Supprimer une catégorie de l'entreprise
   const deleteCategory = async (id) => {
+    if (!entrepriseId) return;
     if (confirm("Supprimer cette catégorie ?")) {
-      await deleteDoc(doc(db, "categories", id));
+      await deleteDoc(doc(db, "entreprises", entrepriseId, "categories", id));
       fetchCategories();
     }
   };
 
   useEffect(() => {
-    if (uid) fetchCategories();
-  }, [uid]);
+    if (entrepriseId) fetchCategories();
+  }, [entrepriseId]);
 
   return (
     <main className="min-h-screen p-6 bg-gray-100">
@@ -57,7 +79,9 @@ export default function Categories() {
         <input
           type="text"
           value={newCategory.nom}
-          onChange={(e) => setNewCategory({ ...newCategory, nom: e.target.value })}
+          onChange={(e) =>
+            setNewCategory({ ...newCategory, nom: e.target.value })
+          }
           placeholder="Nom de la catégorie"
           className="w-full p-2 border rounded"
         />

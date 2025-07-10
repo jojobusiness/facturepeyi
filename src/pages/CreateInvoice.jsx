@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
-import { db, auth } from "../lib/firebase"; // 🔧 tu avais oublié "auth"
-import { addDoc, collection, getDocs, Timestamp, query, where } from "firebase/firestore";
+import { db, auth } from "../lib/firebase";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  Timestamp,
+} from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
 export default function CreateInvoice() {
@@ -14,29 +21,41 @@ export default function CreateInvoice() {
   const [tvaAmount, setTvaAmount] = useState(0);
   const [totalTTC, setTotalTTC] = useState(0);
 
+  const [entrepriseId, setEntrepriseId] = useState(null);
   const navigate = useNavigate();
 
+  // ✅ 1. On récupère entrepriseId de l'utilisateur
   useEffect(() => {
-  const fetchClients = async () => {
-    try {
-      const userId = auth.currentUser?.uid;
-      if (!userId) return;
+    const fetchEntreprise = async () => {
+      const uid = auth.currentUser?.uid;
+      if (!uid) return;
+      const userDoc = await getDoc(doc(db, "utilisateurs", uid));
+      const data = userDoc.data();
+      setEntrepriseId(data?.entrepriseId || null);
+    };
+    fetchEntreprise();
+  }, []);
 
-      const q = query(
-        collection(db, "clients"),
-        where("uid", "==", userId) // 🔥 filtre par entreprise
-      );
+  // ✅ 2. Charger les clients liés à cette entreprise
+  useEffect(() => {
+    if (!entrepriseId) return;
 
-      const snapshot = await getDocs(q);
-      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setClients(data);
-    } catch (err) {
-      console.error("Erreur chargement clients :", err);
-    }
-  };
-  fetchClients();
-}, []);
+    const fetchClients = async () => {
+      try {
+        const snapshot = await getDocs(
+          collection(db, "entreprises", entrepriseId, "clients")
+        );
+        const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setClients(data);
+      } catch (err) {
+        console.error("Erreur chargement clients :", err);
+      }
+    };
 
+    fetchClients();
+  }, [entrepriseId]);
+
+  // ✅ 3. Calculs TVA / Total
   useEffect(() => {
     const base = parseFloat(amount);
     const taux = parseFloat(tvaRate);
@@ -50,19 +69,13 @@ export default function CreateInvoice() {
     }
   }, [amount, tvaRate]);
 
+  // ✅ 4. Enregistrer la facture dans /entreprises/{entrepriseId}/factures
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const userId = auth.currentUser?.uid;
+    const uid = auth.currentUser?.uid;
 
-    if (!clientId) {
-      alert("Veuillez sélectionner un client.");
-      return;
-    }
-    
-    if (!userId) {
-      alert("Utilisateur non connecté.");
-      return;
-    }
+    if (!clientId) return alert("Veuillez sélectionner un client.");
+    if (!uid || !entrepriseId) return alert("Utilisateur non connecté.");
 
     try {
       const selectedClient = clients.find((c) => c.id === clientId);
@@ -78,10 +91,13 @@ export default function CreateInvoice() {
         date: Timestamp.fromDate(new Date(date)),
         status: "en attente",
         createdAt: Timestamp.now(),
-        uid: userId, // ✅ Maintenant bien défini
       };
 
-      await addDoc(collection(db, "factures"), newInvoice);
+      await addDoc(
+        collection(db, "entreprises", entrepriseId, "factures"),
+        newInvoice
+      );
+
       alert("Facture enregistrée !");
       navigate("/factures");
     } catch (err) {

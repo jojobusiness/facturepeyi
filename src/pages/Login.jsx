@@ -10,7 +10,7 @@ import {
   doc,
   setDoc,
   addDoc,
-  getDoc,
+  collection,
 } from "firebase/firestore";
 import './Login.css';
 
@@ -18,7 +18,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [nom, setNom] = useState("");
-  const [role, setRole] = useState("employe"); // employe / comptable / admin
+  const [role, setRole] = useState("admin"); // forcé à admin
   const [isNew, setIsNew] = useState(false);
   const navigate = useNavigate();
 
@@ -29,37 +29,46 @@ export default function Login() {
     return () => unsubscribe();
   }, [navigate]);
 
+  // Forcer le rôle admin si en mode inscription
+  useEffect(() => {
+    if (isNew) setRole("admin");
+  }, [isNew]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       if (isNew) {
-        // ✅ Création du compte
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         const user = cred.user;
 
-        let entrepriseId = null;
+        // Créer l’entreprise liée à cet admin
+        const entrepriseRef = await addDoc(collection(db, "entreprises"), {
+          nom: nom || "Entreprise sans nom",
+          ownerUid: user.uid,
+          createdAt: new Date(),
+        });
+        const entrepriseId = entrepriseRef.id;
 
-        if (role === "admin") {
-          // ✅ Créer une entreprise liée à cet admin
-          const entrepriseRef = await addDoc(collection(db, "entreprises"), {
-            nom: nom || "Entreprise sans nom",
-            ownerUid: user.uid,
-            createdAt: new Date(),
-          });
-          entrepriseId = entrepriseRef.id;
-        }
+        // Ajouter l'utilisateur comme membre admin de l’entreprise
+        await setDoc(doc(db, "entreprises", entrepriseId, "membres", user.uid), {
+          uid: user.uid,
+          nom,
+          email,
+          role: "admin",
+          dateAjout: new Date(),
+        });
 
-        // ✅ Création du document utilisateur
+        // Créer le document utilisateur
         await setDoc(doc(db, "utilisateurs", user.uid), {
           email,
           nom,
-          role,
+          role: "admin",
           createdAt: new Date(),
-          entrepriseId: entrepriseId,
+          entrepriseId,
         });
 
-        alert("✅ Compte créé !");
+        alert("✅ Compte administrateur créé !");
       } else {
         await signInWithEmailAndPassword(auth, email, password);
         alert("🔓 Connexion réussie !");
@@ -80,7 +89,7 @@ export default function Login() {
         className="bg-white p-6 rounded shadow w-full max-w-md space-y-4"
       >
         <h2 className="text-xl font-semibold text-center text-[#1B5E20]">
-          {isNew ? "Créer un compte" : "Connexion"}
+          {isNew ? "Créer un compte administrateur" : "Connexion"}
         </h2>
 
         {isNew && (
@@ -93,16 +102,6 @@ export default function Login() {
               className="w-full p-2 border rounded"
               required
             />
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full p-2 border rounded"
-              required
-            >
-              <option value="employe">Employé</option>
-              <option value="comptable">Comptable</option>
-              <option value="admin">Administrateur</option>
-            </select>
           </>
         )}
 
@@ -127,7 +126,7 @@ export default function Login() {
           type="submit"
           className="bg-[#1B5E20] text-white w-full p-2 rounded hover:bg-[#2e7d32]"
         >
-          {isNew ? "S’inscrire" : "Se connecter"}
+          {isNew ? "S’inscrire comme administrateur" : "Se connecter"}
         </button>
 
         <p
@@ -136,7 +135,7 @@ export default function Login() {
         >
           {isNew
             ? "Déjà inscrit ? Se connecter"
-            : "Pas encore de compte ? S’inscrire"}
+            : "Créer un compte administrateur"}
         </p>
 
         <button

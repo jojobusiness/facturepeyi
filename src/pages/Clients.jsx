@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, orderBy, deleteDoc, doc, where } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  query,
+  orderBy,
+  deleteDoc,
+  doc
+} from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { db, auth } from "../lib/firebase";
 
@@ -10,20 +17,39 @@ export default function ClientList() {
 
   const handleDelete = async (id) => {
     if (!window.confirm("Supprimer ce client ?")) return;
-    await deleteDoc(doc(db, "clients", id));
-    setClients(clients.filter(c => c.id !== id));
+
+    const uid = auth.currentUser?.uid;
+    if (!uid) return alert("Utilisateur non connecté");
+
+    const userDoc = await getDocs(query(
+      collection(db, "utilisateurs"),
+      query => query.where("uid", "==", uid)
+    ));
+
+    const entrepriseId = userDoc.docs[0]?.data()?.entrepriseId;
+    if (!entrepriseId) return alert("Entreprise non trouvée");
+
+    await deleteDoc(doc(db, "entreprises", entrepriseId, "clients", id));
+    setClients(clients.filter((c) => c.id !== id));
   };
 
   const handleEdit = (id) => navigate(`/clients/modifier/${id}`);
 
   useEffect(() => {
     const fetchClients = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
+      const uid = auth.currentUser?.uid;
+      if (!uid) return;
+
+      const userDoc = await getDocs(query(
+        collection(db, "utilisateurs"),
+        query => query.where("uid", "==", uid)
+      ));
+
+      const entrepriseId = userDoc.docs[0]?.data()?.entrepriseId;
+      if (!entrepriseId) return;
 
       const q = query(
-        collection(db, "clients"),
-        where("uid", "==", user.uid),
+        collection(db, "entreprises", entrepriseId, "clients"),
         orderBy("createdAt", "desc")
       );
 
@@ -61,16 +87,31 @@ export default function ClientList() {
             </tr>
           </thead>
           <tbody>
-            {clients.map(client => (
+            {clients.map((client) => (
               <tr key={client.id} className="border-t">
                 <td className="p-2">{client.nom}</td>
                 <td className="p-2">{client.email}</td>
                 <td className="p-2">{client.tel}</td>
                 <td className="p-2">{client.adresse}</td>
                 <td className="p-2 space-x-2">
-                  <button onClick={() => handleEdit(client.id)} className="text-blue-600 hover:underline">Modifier</button>
-                  <button onClick={() => handleDelete(client.id)} className="text-red-600 hover:underline">Supprimer</button>
-                  <button onClick={() => navigate(`/factures/client/${client.id}`)} className="text-blue-600 hover:underline">Voir factures</button>
+                  <button
+                    onClick={() => handleEdit(client.id)}
+                    className="text-blue-600 hover:underline"
+                  >
+                    Modifier
+                  </button>
+                  <button
+                    onClick={() => handleDelete(client.id)}
+                    className="text-red-600 hover:underline"
+                  >
+                    Supprimer
+                  </button>
+                  <button
+                    onClick={() => navigate(`/factures/client/${client.id}`)}
+                    className="text-blue-600 hover:underline"
+                  >
+                    Voir factures
+                  </button>
                 </td>
               </tr>
             ))}

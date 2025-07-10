@@ -23,6 +23,7 @@ import JournalComptable from './pages/JournalComptable';
 import Unauthorized from './pages/Unauthorized';
 import AdminUserManagement from './pages/AdminUserManagement';
 import InviteComplete from './pages/InviteComplete';
+import Rapports from './pages/Rapports'; 
 import PrivateRoute from './components/PrivateRoute';
 import RoleRoute from './components/RoleRoute';
 
@@ -44,6 +45,7 @@ export default function App() {
       <Route path="/depenses/nouvelle" element={<PrivateRoute><DepenseForm /></PrivateRoute>} />
       <Route path="/depenses/import" element={<PrivateRoute><ImportDepenses /></PrivateRoute>} />
       <Route path="/categories" element={<PrivateRoute><Categories /></PrivateRoute>} />
+      <Route path="/rapports" element={<RoleRoute allowedRoles={["comptable", "admin"]}><Rapports /></RoleRoute>} />
       <Route path="/plancomptable" element={<RoleRoute allowedRoles={["comptable", "admin"]}><PlanComptable /></RoleRoute>} />
       <Route path="/bilancomptable" element={<RoleRoute allowedRoles={["comptable", "admin"]}><BilanComptable /></RoleRoute>} />
       <Route path="/journalcomptable" element={<RoleRoute allowedRoles={["comptable", "admin"]}><JournalComptable /></RoleRoute>} />
