@@ -32,7 +32,7 @@ export default function Settings() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const userSnap = await getDocs(query(collection(db, "users"), where("uid", "==", user.uid)));
+      const userSnap = await getDocs(query(collection(db, "utilisateurs"), where("uid", "==", user.uid)));
       const userData = userSnap.docs[0]?.data();
       const entrepriseId = userData?.entrepriseId;
       setIsAdmin(userData?.role === "admin");

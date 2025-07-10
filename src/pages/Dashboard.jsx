@@ -26,7 +26,7 @@ export default function Dashboard() {
       const user = auth.currentUser;
       if (!user) return;
 
-      const userSnap = await getDocs(query(collection(db, "users"), where("uid", "==", user.uid)));
+      const userSnap = await getDocs(query(collection(db, "utilisateurs"), where("uid", "==", user.uid)));
       const userData = userSnap.docs[0]?.data();
       const entrepriseId = userData?.entrepriseId;
       if (!entrepriseId) return;
