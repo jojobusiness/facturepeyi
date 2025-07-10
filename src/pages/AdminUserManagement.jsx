@@ -26,48 +26,49 @@ export default function AdminUserManagement() {
 
   const fetchUsers = async () => {
     setLoading(true);
-    const q = query(collection(db, "utilisateurs"), where("entrepriseId", "==", currentUser.uid));
+    const q = query(
+      collection(db, "utilisateurs"),
+      where("entrepriseId", "==", currentUser.uid)
+    );
     const snapshot = await getDocs(q);
-    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
     setUsers(data);
     setLoading(false);
   };
 
   const handleCreate = async () => {
-  if (!email) return alert("Veuillez entrer un email.");
-  if (!currentUser) return alert("Utilisateur non connecté");
+    if (!email) return alert("Veuillez entrer un email.");
+    if (email === currentUser.email)
+      return alert("Vous ne pouvez pas vous inviter vous-même.");
+    if (!currentUser) return alert("Utilisateur non connecté");
 
-  try {
-    // Génère le lien d'invitation personnalisé
-    const inviteUrl = `${window.location.origin}/invite-complete?email=${encodeURIComponent(email)}&entrepriseId=${currentUser.uid}`;
+    try {
+      const inviteUrl = `${window.location.origin}/invite-complete?email=${encodeURIComponent(email)}&entrepriseId=${currentUser.uid}`;
 
-    const actionCodeSettings = {
-      url: inviteUrl,
-      handleCodeInApp: true,
-    };
+      const actionCodeSettings = {
+        url: inviteUrl,
+        handleCodeInApp: true,
+      };
 
-    // Envoie le lien magique par email
-    await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
 
-    // Stocke temporairement l'utilisateur dans Firestore
-    await addDoc(collection(db, "utilisateurs"), {
-      email,
-      role,
-      entrepriseId: currentUser.uid,
-      createdAt: new Date(),
-      accepted: false,
-    });
+      await addDoc(collection(db, "utilisateurs"), {
+        email,
+        role,
+        entrepriseId: currentUser.uid,
+        createdAt: new Date(),
+        accepted: false,
+      });
 
-    alert(`Invitation envoyée à ${email} !`);
-    setEmail("");
-    setRole("employe");
-    fetchUsers();
-  } catch (err) {
-    console.error("Erreur d'invitation :", err);
-    alert("Erreur lors de l'envoi de l'invitation.");
-  }
-};
-
+      alert(`Invitation envoyée à ${email} !`);
+      setEmail("");
+      setRole("employe");
+      fetchUsers();
+    } catch (err) {
+      console.error("Erreur d'invitation :", err);
+      alert("Erreur lors de l'envoi de l'invitation.");
+    }
+  };
 
   const handleRoleChange = async (userId, newRole) => {
     try {
@@ -94,18 +95,23 @@ export default function AdminUserManagement() {
           type="email"
           placeholder="Email"
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
           className="w-full p-2 border rounded mb-2"
         />
         <select
           value={role}
-          onChange={e => setRole(e.target.value)}
+          onChange={(e) => setRole(e.target.value)}
           className="w-full p-2 border rounded mb-2"
         >
           <option value="comptable">Comptable</option>
           <option value="employe">Employé</option>
         </select>
-        <button onClick={handleCreate} className="bg-[#1B5E20] text-white w-full p-2 rounded">Inviter</button>
+        <button
+          onClick={handleCreate}
+          className="bg-[#1B5E20] text-white w-full p-2 rounded"
+        >
+          Inviter
+        </button>
       </div>
 
       <table className="w-full bg-white shadow rounded">
@@ -118,29 +124,37 @@ export default function AdminUserManagement() {
         </thead>
         <tbody>
           {loading ? (
-            <tr><td className="p-4">Chargement...</td></tr>
+            <tr>
+              <td className="p-4">Chargement...</td>
+            </tr>
           ) : (
-            users.map(user => (
-              <tr key={user.id} className="border-t">
-                <td className="p-2">{user.email}</td>
-                <td className="p-2">
-                  <select
-                    value={user.role}
-                    onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                    className="border p-1 rounded"
-                  >
-                    <option value="comptable">Comptable</option>
-                    <option value="employe">Employé</option>
-                  </select>
-                </td>
-                <td className="p-2">
-                  <button
-                    onClick={() => handleDelete(user.id)}
-                    className="text-red-600 hover:underline"
-                  >Supprimer</button>
-                </td>
-              </tr>
-            ))
+            users
+              .filter((user) => user.email !== currentUser.email) // ⛔ Ne pas inclure soi-même
+              .map((user) => (
+                <tr key={user.id} className="border-t">
+                  <td className="p-2">{user.email}</td>
+                  <td className="p-2">
+                    <select
+                      value={user.role}
+                      onChange={(e) =>
+                        handleRoleChange(user.id, e.target.value)
+                      }
+                      className="border p-1 rounded"
+                    >
+                      <option value="comptable">Comptable</option>
+                      <option value="employe">Employé</option>
+                    </select>
+                  </td>
+                  <td className="p-2">
+                    <button
+                      onClick={() => handleDelete(user.id)}
+                      className="text-red-600 hover:underline"
+                    >
+                      Supprimer
+                    </button>
+                  </td>
+                </tr>
+              ))
           )}
         </tbody>
       </table>
