@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth, db } from '../lib/firebase';
 import { useEffect, useState } from 'react';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc } from 'firebase/firestore';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend,
   PieChart, Pie, Cell,
@@ -26,8 +26,8 @@ export default function Dashboard() {
       const user = auth.currentUser;
       if (!user) return;
 
-      const userSnap = await getDocs(query(collection(db, "utilisateurs"), where("uid", "==", user.uid)));
-      const userData = userSnap.docs[0]?.data();
+      const userDoc = await getDoc(doc(db, "utilisateurs", user.uid));
+      const userData = userDoc.data();
       const entrepriseId = userData?.entrepriseId;
       if (!entrepriseId) return;
 
