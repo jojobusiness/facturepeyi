@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { auth, db, storage } from "../lib/firebase";
-import { doc, getDoc, setDoc, query, where, collection, getDocs } from "firebase/firestore";
+import { doc, getDoc, setDoc, query, where, collection, getDocs, writeBatch } from "firebase/firestore";
 import {
+  EmailAuthProvider,
   sendPasswordResetEmail,
   deleteUser,
 } from "firebase/auth";
@@ -105,10 +106,62 @@ export default function Settings() {
   };
 
   const handleDeleteAccount = async () => {
-    if (confirm("Supprimer définitivement ton compte ?")) {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const confirmation = confirm("❗ Cette action est irréversible. Supprimer votre compte ?");
+    if (!confirmation) return;
+
+    const password = prompt("🔒 Entrez votre mot de passe pour confirmer la suppression :");
+    if (!password) return alert("Annulé");
+
+    try {
+      // 🔐 Re-authentification
+      const credential = EmailAuthProvider.credential(user.email, password);
+      await reauthenticateWithCredential(user, credential);
+
+      // 🔍 Récupération des données utilisateur
+      const userRef = doc(db, "utilisateurs", user.uid);
+      const userSnap = await getDoc(userRef);
+      const userData = userSnap.data();
+      const entrepriseId = userData?.entrepriseId;
+      const role = userData?.role;
+
+      // ⚠️ Supprimer documents Firestore
+      if (role === "admin") {
+        // 🔁 Supprimer tous les sous-docs de l'entreprise
+        const collectionsToDelete = ["factures", "depenses", "clients", "membres", "categories"];
+        const batch = writeBatch(db);
+
+        for (const colName of collectionsToDelete) {
+          const colSnap = await getDocs(collection(db, "entreprises", entrepriseId, colName));
+          colSnap.forEach((docu) => batch.delete(doc(db, "entreprises", entrepriseId, colName, docu.id)));
+        }
+
+        // 🧨 Supprimer l'entreprise elle-même
+        batch.delete(doc(db, "entreprises", entrepriseId));
+
+        // Supprimer l'utilisateur (admin) de la collection utilisateurs
+        batch.delete(userRef);
+
+        await batch.commit();
+        console.log("Entreprise et données supprimées.");
+      } else {
+        // 👤 Si employé/comptable → juste supprimer le doc utilisateur
+        await deleteDoc(userRef);
+
+        // Et le retirer de l’entreprise (collection membres)
+        await deleteDoc(doc(db, "entreprises", entrepriseId, "membres", user.uid));
+      }
+
+      // 🗑️ Supprimer le compte Firebase Auth
       await deleteUser(user);
-      alert("✅ Compte supprimé.");
+
+      alert("✅ Compte supprimé !");
       navigate("/");
+    } catch (err) {
+      console.error("❌ Erreur suppression :", err);
+      alert("Erreur : " + err.message);
     }
   };
 

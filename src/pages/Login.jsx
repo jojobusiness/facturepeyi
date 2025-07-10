@@ -71,6 +71,7 @@ export default function Login() {
           role: "admin",
           createdAt: new Date(),
           entrepriseId,
+          uid: user.uid,
         });
 
         alert("✅ Compte administrateur créé !");
