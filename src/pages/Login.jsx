@@ -5,6 +5,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   onAuthStateChanged,
+  signOut,
 } from "firebase/auth";
 import {
   doc,
@@ -39,9 +40,12 @@ export default function Login() {
 
     try {
       if (isNew) {
+        if (auth.currentUser) {
+          await signOut(auth);
+        }
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         const user = cred.user;
-
+        
         // Créer l’entreprise liée à cet admin
         const entrepriseRef = await addDoc(collection(db, "entreprises"), {
           nom: nom || "Entreprise sans nom",
