@@ -73,7 +73,7 @@ export default function CreateInvoice() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const uid = auth.currentUser?.uid;
-    const userDoc = await getDoc(doc(db, "utilisateurs", currentUser.uid));
+    const userDoc = await getDoc(doc(db, "utilisateurs", uid));
     const entrepriseId = userDoc.data()?.entrepriseId;
 
     if (!clientId) return alert("Veuillez sélectionner un client.");
