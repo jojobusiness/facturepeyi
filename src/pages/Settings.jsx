@@ -4,6 +4,7 @@ import { doc, getDoc, setDoc, query, where, collection, getDocs, writeBatch } fr
 import {
   EmailAuthProvider,
   sendPasswordResetEmail,
+  reauthenticateWithCredential,
   deleteUser,
 } from "firebase/auth";
 import {
