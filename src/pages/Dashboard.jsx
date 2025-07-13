@@ -31,18 +31,19 @@ export default function Dashboard() {
     const entrepriseId = userData?.entrepriseId;
     if (!entrepriseId) return;
 
+    // ✅ On va chercher dans les sous-collections de l'entreprise
     const revenusSnap = await getDocs(
-      query(collection(db, 'factures'), where('entrepriseId', '==', entrepriseId))
+      collection(db, 'entreprises', entrepriseId, 'factures')
     );
-    const revenusData = revenusSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })); // ✅ avec id
+    const revenusData = revenusSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     const depensesSnap = await getDocs(
-      query(collection(db, 'depenses'), where('entrepriseId', '==', entrepriseId))
+      collection(db, 'entreprises', entrepriseId, 'depenses')
     );
-    const depensesData = depensesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })); // ✅ avec id
+    const depensesData = depensesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
     const catSnap = await getDocs(
-      query(collection(db, 'categories'), where('entrepriseId', '==', entrepriseId))
+      collection(db, 'entreprises', entrepriseId, 'categories')
     );
     const categoriesData = catSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
@@ -58,7 +59,8 @@ export default function Dashboard() {
   };
 
   fetchData();
-  }, []);
+}, []);
+
 
   if (loading) return <p className="p-4">Chargement du tableau de bord...</p>;
 
