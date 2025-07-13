@@ -78,12 +78,16 @@ export default function InvoicePDF({ invoice }) {
           <View>
             {invoice.logoDataUrl && <Image src={invoice.logoDataUrl} style={styles.logo} />}
             <Text style={styles.companyInfo}>{invoice.entrepriseNom || "FacturPeyi"}</Text>
+            {invoice.entrepriseAdresse && <Text>{invoice.entrepriseAdresse}</Text>}
             {invoice.entrepriseEmail && <Text>{invoice.entrepriseEmail}</Text>}
             {invoice.entrepriseSiret && <Text>SIRET : {invoice.entrepriseSiret}</Text>}
           </View>
+
           <View style={styles.clientInfo}>
             <Text>Facturé à :</Text>
             <Text>{invoice.clientNom}</Text>
+            {invoice.clientAdresse && <Text>{invoice.clientAdresse}</Text>}
+            {invoice.clientEmail && <Text>{invoice.clientEmail}</Text>}
             {date && <Text>Date : {date}</Text>}
           </View>
         </View>

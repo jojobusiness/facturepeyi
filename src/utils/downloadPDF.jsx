@@ -19,14 +19,25 @@ async function toDataURL(url) {
 export async function downloadInvoicePDF(invoice) {
   let logoDataUrl = "";
 
+  // 🔁 Convertir l'URL Firebase Storage en DataURL (base64)
   if (invoice.logoUrl) {
     try {
-      logoDataUrl = await toDataURL(invoice.logoUrl);
-    } catch (error) {
-      console.error("Erreur chargement du logo :", error);
+      const response = await fetch(invoice.logoUrl, { mode: "cors" });
+      const blob = await response.blob();
+
+      // Lire le blob en base64
+      logoDataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (err) {
+      console.error("Erreur chargement du logo :", err);
     }
   }
 
+  // 🧾 Générer le PDF avec le logo en base64
   const blob = await pdf(
     <InvoicePDF invoice={{ ...invoice, logoDataUrl }} />
   ).toBlob();
