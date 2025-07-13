@@ -67,27 +67,44 @@ export default function InvoiceList() {
   };
 
   const handleGeneratePDF = async (invoice) => {
-    const uid = auth.currentUser?.uid;
-    if (!uid || !entrepriseId) return alert("Utilisateur non connecté");
+  const uid = auth.currentUser?.uid;
+  if (!uid || !entrepriseId) return alert("Utilisateur non connecté");
 
-    try {
-      const snap = await getDoc(doc(db, "entreprises", entrepriseId));
-      const entreprise = snap.exists() ? snap.data() : {};
+  try {
+    // 🔹 Récupérer les infos entreprise
+    const snap = await getDoc(doc(db, "entreprises", entrepriseId));
+    const entreprise = snap.exists() ? snap.data() : {};
 
-      const fullInvoice = {
-        ...invoice,
-        entrepriseNom: entreprise.nom || "Nom Entreprise",
-        entrepriseEmail: entreprise.email || "email@entreprise.com",
-        entrepriseSiret: entreprise.siret || "SIRET inconnu",
-        logoUrl: entreprise.logoUrl || "",
-      };
-
-      await downloadInvoicePDF(fullInvoice);
-    } catch (err) {
-      console.error("Erreur récupération entreprise :", err);
-      alert("Erreur chargement entreprise.");
+    // 🔹 Récupérer infos client (si ID fourni)
+    let clientData = {};
+    if (invoice.clientId) {
+      const clientSnap = await getDoc(doc(db, "entreprises", entrepriseId, "clients", invoice.clientId));
+      if (clientSnap.exists()) {
+        clientData = clientSnap.data();
+      }
     }
-  };
+
+    // 🔹 Fusionner les données
+    const fullInvoice = {
+      ...invoice,
+      clientNom: clientData.nom || invoice.clientNom || "Client inconnu",
+      clientAdresse: clientData.adresse || "",
+      clientEmail: clientData.email || "",
+      entrepriseNom: entreprise.nom || "Nom Entreprise",
+      entrepriseEmail: entreprise.email || "email@entreprise.com",
+      entrepriseSiret: entreprise.siret || "SIRET inconnu",
+      entrepriseAdresse: entreprise.adresse || "",
+      logoUrl: entreprise.logo || "",
+    };
+
+    await downloadInvoicePDF(fullInvoice);
+  } catch (err) {
+    console.error("Erreur récupération entreprise/client :", err);
+    alert("Erreur chargement des données pour le PDF.");
+  }
+};
+
+
 
   if (loading) return <p className="p-4">Chargement...</p>;
 

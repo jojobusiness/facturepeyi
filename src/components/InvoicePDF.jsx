@@ -76,7 +76,7 @@ export default function InvoicePDF({ invoice }) {
         {/* En-tête avec logo et entreprise */}
         <View style={styles.header}>
           <View>
-            {invoice.logoUrl && <Image src={invoice.logoUrl} style={styles.logo} />}
+            {invoice.logoDataUrl && <Image src={invoice.logoDataUrl} style={styles.logo} />}
             <Text style={styles.companyInfo}>{invoice.entrepriseNom || "FacturPeyi"}</Text>
             {invoice.entrepriseEmail && <Text>{invoice.entrepriseEmail}</Text>}
             {invoice.entrepriseSiret && <Text>SIRET : {invoice.entrepriseSiret}</Text>}
