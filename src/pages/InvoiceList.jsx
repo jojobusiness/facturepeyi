@@ -74,9 +74,11 @@ export default function InvoiceList() {
     // 🔹 Récupérer les infos entreprise
     const snap = await getDoc(doc(db, "entreprises", entrepriseId));
     const entreprise = snap.exists() ? snap.data() : {};
-    const proxyUrl = "https://ton-backend-api.com/proxy-logo?url=" + encodeURIComponent(entreprise.logoUrl);
+
+    const proxyUrl = "https://facturepeyi.vercel.app/api/proxy-logo?url=" + encodeURIComponent(entreprise.logoUrl);
     const res = await fetch(proxyUrl);
     const logoDataUrl = await res.text(); // ⚠️ car le backend renvoie une string (data URL)
+
     // 🔹 Récupérer infos client (si ID fourni)
     let clientData = {};
     if (invoice.clientId) {
