@@ -93,7 +93,6 @@ export default function InvoiceList() {
       clientAdresse: clientData.adresse || "",
       clientEmail: clientData.email || "",
       entrepriseNom: entreprise.nom || "Nom Entreprise",
-      entrepriseEmail: utilisateurs.email || "email@entreprise.com",
       entrepriseSiret: entreprise.siret || "SIRET inconnu",
       entrepriseAdresse: entreprise.adresse || "",
       logoDataUrl,
