@@ -69,12 +69,14 @@ export default function InvoiceList() {
   const handleGeneratePDF = async (invoice) => {
   const uid = auth.currentUser?.uid;
   if (!uid || !entrepriseId) return alert("Utilisateur non connecté");
-
+  
   try {
     // 🔹 Récupérer les infos entreprise
     const snap = await getDoc(doc(db, "entreprises", entrepriseId));
     const entreprise = snap.exists() ? snap.data() : {};
-
+    const proxyUrl = "https://ton-backend-api.com/proxy-logo?url=" + encodeURIComponent(entreprise.logoUrl);
+    const res = await fetch(proxyUrl);
+    const logoDataUrl = await res.text(); // ⚠️ car le backend renvoie une string (data URL)
     // 🔹 Récupérer infos client (si ID fourni)
     let clientData = {};
     if (invoice.clientId) {
@@ -91,10 +93,10 @@ export default function InvoiceList() {
       clientAdresse: clientData.adresse || "",
       clientEmail: clientData.email || "",
       entrepriseNom: entreprise.nom || "Nom Entreprise",
-      entrepriseEmail: entreprise.email || "email@entreprise.com",
+      entrepriseEmail: utilisateurs.email || "email@entreprise.com",
       entrepriseSiret: entreprise.siret || "SIRET inconnu",
       entrepriseAdresse: entreprise.adresse || "",
-      logoUrl: entreprise.logo || "",
+      logoDataUrl,
     };
 
     await downloadInvoicePDF(fullInvoice);
