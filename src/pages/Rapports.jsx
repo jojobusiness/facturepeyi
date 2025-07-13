@@ -21,7 +21,7 @@ export default function Rapports() {
     if (!uid) return;
 
     // 🔐 Récupérer l'ID d'entreprise de l'utilisateur connecté
-    const userSnap = await getDocs(query(collection(db, "users"), where("uid", "==", uid)));
+    const userSnap = await getDocs(query(collection(db, "utilisateurs"), where("uid", "==", uid)));
     const userData = userSnap.docs[0]?.data();
     const entrepriseId = userData?.entrepriseId;
     if (!entrepriseId) return alert("Aucune entreprise liée à cet utilisateur");
