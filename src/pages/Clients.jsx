@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   collection,
   getDocs,
+  getDoc,
   query,
   orderBy,
   deleteDoc,
@@ -21,12 +22,9 @@ export default function ClientList() {
     const uid = auth.currentUser?.uid;
     if (!uid) return alert("Utilisateur non connecté");
 
-    const userDoc = await getDocs(query(
-      collection(db, "utilisateurs"),
-      query => query.where("uid", "==", uid)
-    ));
-
+    const userDoc = await getDoc(doc(db, "utilisateurs", uid));
     const entrepriseId = userDoc.docs[0]?.data()?.entrepriseId;
+
     if (!entrepriseId) return alert("Entreprise non trouvée");
 
     await deleteDoc(doc(db, "entreprises", entrepriseId, "clients", id));
@@ -40,12 +38,9 @@ export default function ClientList() {
       const uid = auth.currentUser?.uid;
       if (!uid) return;
 
-      const userDoc = await getDocs(query(
-        collection(db, "utilisateurs"),
-        query => query.where("uid", "==", uid)
-      ));
-
+      const userDoc = await getDoc(doc(db, "utilisateurs", uid));
       const entrepriseId = userDoc.docs[0]?.data()?.entrepriseId;
+      
       if (!entrepriseId) return;
 
       const q = query(
