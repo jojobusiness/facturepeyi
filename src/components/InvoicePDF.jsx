@@ -25,7 +25,8 @@ const styles = StyleSheet.create({
   },
   logo: {
     width: 100,
-    height: 50,
+    height: 60,
+    objectFit: "contain",
     marginBottom: 10,
   },
   header: {
@@ -73,6 +74,7 @@ export default function InvoicePDF({ invoice }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        <Text>LOGO LENGTH: {invoice.logoDataUrl?.length || "none"}</Text>
         {/* En-tête avec logo et entreprise */}
         <View style={styles.header}>
           <View>

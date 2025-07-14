@@ -7,6 +7,7 @@ export default async function handler(req, res) {
     const buffer = await response.arrayBuffer();
     const base64 = Buffer.from(buffer).toString("base64");
     const contentType = response.headers.get("content-type");
+    
     res.status(200).send(`data:${contentType};base64,${base64}`);
   } catch (error) {
     console.error("Erreur proxy:", error);
