@@ -8,7 +8,7 @@ export default function Home() {
       <section className="relative w-full h-[80vh]">
         {/* ✅ Image de fond */}
         <img
-          src="/entreprise-en-Guyane-francaise-.jpg"
+          src="../public/entreprise-en-Guyane-francaise-.jpg"
           alt="Professionnels en Guyane"
           className="absolute inset-0 w-full h-full object-cover"
         />
