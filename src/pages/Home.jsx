@@ -6,35 +6,41 @@ export default function Home() {
     <main className="min-h-screen bg-white text-gray-800">
       {/* HERO */}
       <section className="relative w-full h-[80vh]">
-      {/* ✅ Image de fond */}
-      <img
-        src="/entreprise-en-Guyane-francaise-.jpg"
-        alt="Professionnels en Guyane"
-        className="absolute inset-0 w-full h-full object-cover"
-      />
+        {/* ✅ Image de fond */}
+        <img
+          src="/entreprise-en-Guyane-francaise-.jpg"
+          alt="Professionnels en Guyane"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
 
-      {/* ✅ Overlay foncé pour lisibilité */}
-      <div className="absolute inset-0 bg-black bg-opacity-40" />
+        {/* ✅ Léger overlay foncé pour lisibilité */}
+        <div className="absolute inset-0 bg-black bg-opacity-30" />
 
-      {/* ✅ Contenu centré */}
-      <div className="relative z-10 flex flex-col items-center justify-center text-white text-center h-full px-4">
-        <h1 className="text-4xl sm:text-5xl font-bold mb-4">Factur’Peyi</h1>
-        <p className="text-lg sm:text-xl mb-6 text-yellow-300">
-          💼 La compta simple, locale et efficace en Guyane française.
-        </p>
-        <Link
-          to="/login"
-          className="bg-yellow-400 text-[#1B5E20] font-semibold px-6 py-3 rounded hover:bg-yellow-300 transition"
-        >
-          Commencer maintenant
-        </Link>
-      </div>
-    </section>
+        {/* ✅ En-tête avec nom du site */}
+        <div className="absolute top-0 left-0 w-full p-4 z-20 flex justify-center">
+          <h1 className="text-white text-3xl sm:text-4xl font-bold tracking-wide bg-[#1B5E20] bg-opacity-90 px-4 py-2 rounded-lg shadow-lg">
+            Factur’Peyi
+          </h1>
+        </div>
 
-    {/* ✅ Petite bande verte fine */}
-    <div className="bg-[#1B5E20] text-white text-center text-sm py-2">
-      Solution pensée pour les artisans, commerçants & indépendants en Guyane 🇬🇫
-    </div>
+        {/* ✅ Slogan + bouton centré */}
+        <div className="relative z-10 flex flex-col items-center justify-center text-white text-center h-full px-4">
+          <p className="text-xl sm:text-2xl mb-6 text-yellow-300 font-medium">
+            💼 La compta simple, locale et efficace en Guyane française.
+          </p>
+          <Link
+            to="/login"
+            className="bg-yellow-400 text-[#1B5E20] font-semibold px-6 py-3 rounded hover:bg-yellow-300 transition"
+          >
+            Commencer maintenant
+          </Link>
+        </div>
+        </section>
+
+        {/* ✅ Bande verte fine */}
+        <div className="bg-[#1B5E20] text-white text-center text-sm py-2">
+          Pensé pour les artisans, commerçants & indépendants en Guyane 🇬🇫
+        </div>
 
 
       {/* POUR QUI */}
