@@ -69,21 +69,24 @@ export default function InvoiceList() {
   const handleGeneratePDF = async (invoice) => {
   const uid = auth.currentUser?.uid;
   if (!uid || !entrepriseId) return alert("Utilisateur non connecté");
-  
-  console.log("Contenu du logoDataUrl :", logoDataUrl.substring(0, 100));
-  const contentType = response.headers.get("content-type");
-  console.log("Content-Type image :", contentType);
 
   try {
     // 🔹 Récupérer les infos entreprise
     const snap = await getDoc(doc(db, "entreprises", entrepriseId));
     const entreprise = snap.exists() ? snap.data() : {};
 
-    const proxyUrl = "https://facturepeyi.vercel.app/api/logo-proxy?url=" + encodeURIComponent(entreprise.logo);
-    const res = await fetch(proxyUrl);
-    const logoDataUrl = await res.text(); // ⚠️ car le backend renvoie une string (data URL)
+    // 🔹 Récupérer l'URL du logo depuis le champ correct
+    const logoUrl = entreprise.logoUrl || entreprise.logo || ""; // ⚠️ adapte selon ton champ réel
 
-    // 🔹 Récupérer infos client (si ID fourni)
+    let logoDataUrl = "";
+    if (logoUrl) {
+      const proxyUrl = "https://facturepeyi.vercel.app/api/logo-proxy?url=" + encodeURIComponent(logoUrl);
+      const res = await fetch(proxyUrl);
+      logoDataUrl = await res.text(); // data:image/png;base64,...
+      console.log("Logo récupéré (début base64) :", logoDataUrl.substring(0, 100));
+    }
+
+    // 🔹 Récupérer infos client
     let clientData = {};
     if (invoice.clientId) {
       const clientSnap = await getDoc(doc(db, "entreprises", entrepriseId, "clients", invoice.clientId));
@@ -110,7 +113,6 @@ export default function InvoiceList() {
     alert("Erreur chargement des données pour le PDF.");
   }
 };
-
 
 
   if (loading) return <p className="p-4">Chargement...</p>;
