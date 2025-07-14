@@ -30,9 +30,9 @@ function convertImageToBase64(url) {
 export async function downloadInvoicePDF(invoice) {
   let logoDataUrl = "";
 
-  if (invoice.logoUrl) {
+  if (invoice.logo) {
     try {
-      logoDataUrl = await convertImageToBase64(invoice.logoUrl);
+      logoDataUrl = await convertImageToBase64(invoice.logo);
     } catch (err) {
       console.error("Erreur chargement du logo :", err);
     }
