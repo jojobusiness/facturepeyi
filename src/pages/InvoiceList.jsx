@@ -17,7 +17,7 @@ export default function InvoiceList() {
   const [loading, setLoading] = useState(true);
   const [entrepriseId, setEntrepriseId] = useState(null);
   const navigate = useNavigate();
-
+  
   // ✅ Récupérer l'entrepriseId de l'utilisateur connecté
   useEffect(() => {
     const fetchEntreprise = async () => {
@@ -29,7 +29,7 @@ export default function InvoiceList() {
     };
     fetchEntreprise();
   }, []);
-
+  
   // ✅ Charger les factures de cette entreprise
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -55,7 +55,7 @@ export default function InvoiceList() {
 
     fetchInvoices();
   }, [entrepriseId]);
-
+  
   const handleDelete = async (id) => {
     if (!window.confirm("Supprimer cette facture ?")) return;
     await deleteDoc(doc(db, "entreprises", entrepriseId, "factures", id));

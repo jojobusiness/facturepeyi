@@ -15,6 +15,10 @@ Font.register({
   ],
 });
 
+console.log("Contenu du logoDataUrl :", logoDataUrl.substring(0, 100));
+const contentType = response.headers.get("content-type");
+console.log("Content-Type image :", contentType);
+
 const styles = StyleSheet.create({
   page: {
     fontFamily: "Helvetica",
