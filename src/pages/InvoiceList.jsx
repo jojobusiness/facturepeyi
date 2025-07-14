@@ -79,10 +79,10 @@ export default function InvoiceList() {
     const logoUrl = entreprise.logo || ""; // ⚠️ adapte selon ton champ réel
 
     let logoDataUrl = "";
+    const proxyUrl = "https://facturepeyi.vercel.app/api/logo-proxy?url=" + encodeURIComponent(entreprise.logo);
+    const res = await fetch(proxyUrl);
+    logoDataUrl = await res.text(); // data:image/png;base64,...
     if (logoUrl) {
-      const proxyUrl = "https://facturepeyi.vercel.app/api/logo-proxy?url=" + encodeURIComponent(entreprise.logo);
-      const res = await fetch(proxyUrl);
-      logoDataUrl = await res.text(); // data:image/png;base64,...
       console.log("✅ LOGO DATA URL:", logoDataUrl.slice(0, 100));
       console.log("👉 logoUrl:", entreprise.logo);
     }
