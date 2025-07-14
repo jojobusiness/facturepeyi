@@ -28,6 +28,10 @@ function convertImageToBase64(url) {
 
 
 export async function downloadInvoicePDF(invoice) {
+  let logoDataUrl = "";
+  const proxyUrl = "https://facturepeyi.vercel.app/api/logo-proxy?url=" + encodeURIComponent(entreprise.logo);
+  const res = await fetch(proxyUrl);
+  logoDataUrl = await res.text();
 
   if (invoice.logo) {
     try {
