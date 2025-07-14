@@ -28,7 +28,6 @@ function convertImageToBase64(url) {
 
 
 export async function downloadInvoicePDF(invoice) {
-  let logoDataUrl = "";
 
   if (invoice.logo) {
     try {
