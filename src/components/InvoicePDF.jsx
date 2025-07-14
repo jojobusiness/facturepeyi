@@ -15,10 +15,6 @@ Font.register({
   ],
 });
 
-console.log("Contenu du logoDataUrl :", logoDataUrl.substring(0, 100));
-const contentType = response.headers.get("content-type");
-console.log("Content-Type image :", contentType);
-
 const styles = StyleSheet.create({
   page: {
     fontFamily: "Helvetica",
@@ -83,7 +79,6 @@ export default function InvoicePDF({ invoice }) {
             {invoice.logoDataUrl && <Image src={invoice.logoDataUrl} style={styles.logo} />}
             <Text style={styles.companyInfo}>{invoice.entrepriseNom || "FacturPeyi"}</Text>
             {invoice.entrepriseAdresse && <Text>{invoice.entrepriseAdresse}</Text>}
-            {invoice.entrepriseEmail && <Text>{invoice.entrepriseEmail}</Text>}
             {invoice.entrepriseSiret && <Text>SIRET : {invoice.entrepriseSiret}</Text>}
           </View>
 

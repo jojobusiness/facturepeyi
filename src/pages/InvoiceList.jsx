@@ -70,6 +70,10 @@ export default function InvoiceList() {
   const uid = auth.currentUser?.uid;
   if (!uid || !entrepriseId) return alert("Utilisateur non connecté");
   
+  console.log("Contenu du logoDataUrl :", logoDataUrl.substring(0, 100));
+  const contentType = response.headers.get("content-type");
+  console.log("Content-Type image :", contentType);
+
   try {
     // 🔹 Récupérer les infos entreprise
     const snap = await getDoc(doc(db, "entreprises", entrepriseId));
