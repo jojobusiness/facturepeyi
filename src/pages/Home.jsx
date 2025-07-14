@@ -5,13 +5,37 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-white text-gray-800">
       {/* HERO */}
-      <section className="bg-[#1B5E20] text-white py-20 px-4 text-center">
-        <h1 className="text-4xl font-extrabold mb-4">Factur’Peyi</h1>
-        <p className="text-xl mb-6">💼 La comptabilité simple, locale et efficace en Guyane française.</p>
-        <Link to="/login" className="bg-yellow-400 text-[#1B5E20] font-bold px-6 py-3 rounded shadow hover:bg-yellow-300 transition">
+      <section className="relative w-full h-[80vh]">
+      {/* ✅ Image de fond */}
+      <img
+        src="/entreprise-en-Guyane-francaise-.jpg"
+        alt="Professionnels en Guyane"
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+
+      {/* ✅ Overlay foncé pour lisibilité */}
+      <div className="absolute inset-0 bg-black bg-opacity-40" />
+
+      {/* ✅ Contenu centré */}
+      <div className="relative z-10 flex flex-col items-center justify-center text-white text-center h-full px-4">
+        <h1 className="text-4xl sm:text-5xl font-bold mb-4">Factur’Peyi</h1>
+        <p className="text-lg sm:text-xl mb-6 text-yellow-300">
+          💼 La compta simple, locale et efficace en Guyane française.
+        </p>
+        <Link
+          to="/login"
+          className="bg-yellow-400 text-[#1B5E20] font-semibold px-6 py-3 rounded hover:bg-yellow-300 transition"
+        >
           Commencer maintenant
         </Link>
-      </section>
+      </div>
+    </section>
+
+    {/* ✅ Petite bande verte fine */}
+    <div className="bg-[#1B5E20] text-white text-center text-sm py-2">
+      Solution pensée pour les artisans, commerçants & indépendants en Guyane 🇬🇫
+    </div>
+
 
       {/* POUR QUI */}
       <section className="max-w-5xl mx-auto py-16 px-4 text-center">
