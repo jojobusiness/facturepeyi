@@ -76,18 +76,15 @@ export default function InvoiceList() {
     const entreprise = snap.exists() ? snap.data() : {};
 
     // 🔹 Récupérer l'URL du logo depuis le champ correct
-    const logoUrl = entreprise.logoUrl || entreprise.logo || ""; // ⚠️ adapte selon ton champ réel
+    const logoUrl = entreprise.logo || ""; // ⚠️ adapte selon ton champ réel
 
     let logoDataUrl = "";
     if (logoUrl) {
-      const proxyUrl = "https://facturepeyi.vercel.app/api/logo-proxy?url=" + encodeURIComponent(logoUrl);
+      const proxyUrl = "https://facturepeyi.vercel.app/api/logo-proxy?url=" + encodeURIComponent(entreprise.logo);
       const res = await fetch(proxyUrl);
       logoDataUrl = await res.text(); // data:image/png;base64,...
       console.log("✅ LOGO DATA URL:", logoDataUrl.slice(0, 100));
-      if (!logoDataUrl.startsWith("data:image")) {
-        alert("Le logo reçu n'est pas une image valide !");
-        return;
-      }
+      console.log("👉 logoUrl:", entreprise.logo);
     }
 
     // 🔹 Récupérer infos client
