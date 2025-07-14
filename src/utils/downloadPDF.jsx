@@ -28,12 +28,10 @@ function convertImageToBase64(url) {
 
 
 export async function downloadInvoicePDF(invoice) {
-  let logoDataUrl = "";
-  const proxyUrl = "https://facturepeyi.vercel.app/api/logo-proxy?url=" + encodeURIComponent(entreprise.logo);
-  const res = await fetch(proxyUrl);
-  logoDataUrl = await res.text();
+  let logoDataUrl = invoice.logoDataUrl || "";
 
-  if (invoice.logo) {
+  // Si on a un champ `logo` (et pas de logoDataUrl), on tente de le convertir
+  if (!logoDataUrl && invoice.logo) {
     try {
       logoDataUrl = await convertImageToBase64(invoice.logo);
     } catch (err) {
@@ -41,6 +39,7 @@ export async function downloadInvoicePDF(invoice) {
     }
   }
 
+  // Injection dans le PDF
   const blob = await pdf(
     <InvoicePDF invoice={{ ...invoice, logoDataUrl }} />
   ).toBlob();
