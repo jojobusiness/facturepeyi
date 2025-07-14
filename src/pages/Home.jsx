@@ -1,47 +1,67 @@
-import { useState } from 'react';
-import { db } from '../lib/firebase';
 import { Link } from "react-router-dom";
-import { collection, addDoc } from 'firebase/firestore';
+import { FaCheckCircle, FaMobileAlt, FaUserTie, FaShieldAlt } from "react-icons/fa";
 
 export default function Home() {
-  const [name, setName] = useState('');
-  const [contact, setContact] = useState('');
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!name || !contact) return;
-    try {
-      await addDoc(collection(db, 'inscriptions'), { name, contact, createdAt: new Date() });
-      alert('Inscription envoyée !');
-      setName(''); setContact('');
-    } catch (err) {
-      alert("Erreur lors de l'inscription.");
-    }
-  };
-
   return (
-    <main className="min-h-screen bg-[#F5F5F5] flex flex-col items-center p-4 space-y-10">
-      <div className="bg-[#1B5E20] text-white rounded-2xl p-6 w-full max-w-sm shadow-xl text-center">
-        <h1 className="text-3xl font-bold mb-2">Factur’Peyi</h1>
-        <p className="text-yellow-400 text-lg mb-6">la compta simple et locale</p>
-      </div>
-      <Link to = "/login" className="bg-[#1B5E20] text-white px-6 py-3 rounded hover:bg-[#2e7d32] transition"
-      >Connection et Inscription</Link>
-      <section className="w-full max-w-md bg-white p-6 rounded-xl shadow">
-        <h2 className="text-xl font-semibold mb-4">Pré-inscription</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nom complet" className="w-full p-2 rounded border" />
-          <input value={contact} onChange={(e) => setContact(e.target.value)} placeholder="Email ou téléphone" className="w-full p-2 rounded border" />
-          <button type="submit" className="bg-[#1B5E20] hover:bg-[#2e7d32] text-white p-2 w-full rounded">S’inscrire</button>
-        </form>
+    <main className="min-h-screen bg-white text-gray-800">
+      {/* HERO */}
+      <section className="bg-[#1B5E20] text-white py-20 px-4 text-center">
+        <h1 className="text-4xl font-extrabold mb-4">Factur’Peyi</h1>
+        <p className="text-xl mb-6">💼 La comptabilité simple, locale et efficace en Guyane française.</p>
+        <Link to="/login" className="bg-yellow-400 text-[#1B5E20] font-bold px-6 py-3 rounded shadow hover:bg-yellow-300 transition">
+          Commencer maintenant
+        </Link>
       </section>
 
-      <section className="w-full max-w-md bg-white p-6 rounded-xl shadow">
-        <h2 className="text-xl font-semibold mb-4">À propos</h2>
-        <p className="text-gray-700 text-sm">
-          Factur’Peyi est une solution pensée pour les artisans, commerçants et indépendants de la Guyane française. Simple, rapide et conforme à la TVA DOM, notre outil permet de gérer vos factures sans prise de tête, depuis votre téléphone.
-        </p>
+      {/* POUR QUI */}
+      <section className="max-w-5xl mx-auto py-16 px-4 text-center">
+        <h2 className="text-2xl font-bold mb-8">Pensé pour les pros d’ici</h2>
+        <div className="grid sm:grid-cols-3 gap-8">
+          <Card icon={<FaUserTie size={30} />} label="Artisans & indépendants" />
+          <Card icon={<FaMobileAlt size={30} />} label="100% mobile et simple" />
+          <Card icon={<FaShieldAlt size={30} />} label="Conforme à la TVA DOM" />
+        </div>
+      </section>
+
+      {/* FONCTIONNALITÉS */}
+      <section className="bg-gray-100 py-16 px-4 text-center">
+        <h2 className="text-2xl font-bold mb-8">📋 Ce que vous pouvez faire</h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <Feature text="Créer et envoyer des factures" />
+          <Feature text="Gérer vos dépenses et votre compta" />
+          <Feature text="Suivre les paiements et relancer" />
+          <Feature text="Exporter vos documents en PDF" />
+          <Feature text="Ajouter des employés ou comptables" />
+          <Feature text="Accéder à tout depuis votre téléphone" />
+        </div>
+      </section>
+
+      {/* CTA FINAL */}
+      <section className="py-16 px-4 text-center">
+        <h2 className="text-2xl font-bold mb-4">Rejoignez la révolution locale</h2>
+        <p className="mb-6">Factur’Peyi est là pour vous simplifier la vie. Commencer dès aujourd’hui.</p>
+        <Link to="/login" className="bg-[#1B5E20] text-white px-6 py-3 rounded shadow hover:bg-green-800 transition">
+          Se connecter / S’inscrire
+        </Link>
       </section>
     </main>
+  );
+}
+
+function Card({ icon, label }) {
+  return (
+    <div className="bg-white p-6 rounded shadow text-center">
+      <div className="text-[#1B5E20] mb-3">{icon}</div>
+      <p className="font-semibold">{label}</p>
+    </div>
+  );
+}
+
+function Feature({ text }) {
+  return (
+    <div className="bg-white p-4 rounded shadow flex items-center space-x-3">
+      <FaCheckCircle className="text-[#1B5E20]" />
+      <span>{text}</span>
+    </div>
   );
 }
