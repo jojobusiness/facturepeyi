@@ -83,7 +83,11 @@ export default function InvoiceList() {
       const proxyUrl = "https://facturepeyi.vercel.app/api/logo-proxy?url=" + encodeURIComponent(logoUrl);
       const res = await fetch(proxyUrl);
       logoDataUrl = await res.text(); // data:image/png;base64,...
-      console.log("Logo récupéré (début base64) :", logoDataUrl.substring(0, 100));
+      console.log("✅ LOGO DATA URL:", logoDataUrl.slice(0, 100));
+      if (!logoDataUrl.startsWith("data:image")) {
+        alert("Le logo reçu n'est pas une image valide !");
+        return;
+      }
     }
 
     // 🔹 Récupérer infos client

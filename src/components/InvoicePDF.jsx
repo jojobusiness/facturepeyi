@@ -7,7 +7,7 @@ import {
   Image,
   Font,
 } from "@react-pdf/renderer";
-
+console.log("📦 Invoice reçu dans PDF:", invoice);
 Font.register({
   family: "Helvetica",
   fonts: [
@@ -74,7 +74,6 @@ export default function InvoicePDF({ invoice }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <Text>LOGO LENGTH: {invoice.logoDataUrl?.length || "none"}</Text>
         {/* En-tête avec logo et entreprise */}
         <View style={styles.header}>
           <View>
