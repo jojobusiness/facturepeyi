@@ -7,7 +7,7 @@ import {
   Image,
   Font,
 } from "@react-pdf/renderer";
-console.log("📦 Invoice reçu dans PDF:", invoice);
+
 Font.register({
   family: "Helvetica",
   fonts: [
@@ -70,7 +70,8 @@ const styles = StyleSheet.create({
 
 export default function InvoicePDF({ invoice }) {
   const date = invoice.date?.toDate?.().toLocaleDateString?.() || "";
-
+  console.log("📦 Invoice reçu dans PDF:", invoice);
+  
   return (
     <Document>
       <Page size="A4" style={styles.page}>
