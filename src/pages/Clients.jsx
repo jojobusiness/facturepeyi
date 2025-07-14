@@ -23,8 +23,9 @@ export default function ClientList() {
     if (!uid) return alert("Utilisateur non connecté");
 
     const userDoc = await getDoc(doc(db, "utilisateurs", uid));
-    const entrepriseId = userDoc.docs[0]?.data()?.entrepriseId;
+    if (!userDoc.exists()) return alert("Utilisateur introuvable");
 
+    const entrepriseId = userDoc.data().entrepriseId;
     if (!entrepriseId) return alert("Entreprise non trouvée");
 
     await deleteDoc(doc(db, "entreprises", entrepriseId, "clients", id));
@@ -39,9 +40,10 @@ export default function ClientList() {
       if (!uid) return;
 
       const userDoc = await getDoc(doc(db, "utilisateurs", uid));
-      const entrepriseId = userDoc.docs[0]?.data()?.entrepriseId;
-      
-      if (!entrepriseId) return;
+      if (!userDoc.exists()) return alert("Utilisateur introuvable");
+
+      const entrepriseId = userDoc.data().entrepriseId;
+      if (!entrepriseId) return alert("Entreprise non trouvée");
 
       const q = query(
         collection(db, "entreprises", entrepriseId, "clients"),
