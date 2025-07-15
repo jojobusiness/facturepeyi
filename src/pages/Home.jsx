@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { FaCheckCircle } from "react-icons/fa";
 import FAQSection from "../components/FAQSection";
+import ContactForm from "../components/ContactForm";
 
 // 📸 Chemins vers les images (à mettre dans /public/assets/)
 const artisan = "/assets/artisanat.webp";
@@ -78,53 +79,7 @@ export default function Home() {
 
 
       {/* 🔹 Contact */}
-      <section className="bg-gray-100 py-16 px-4" id="contact">
-        <h2 className="text-2xl font-bold text-center mb-6">📩 Contactez-nous</h2>
-        <p className="text-center mb-10 text-gray-600">
-          Une question, une suggestion ? Écrivez-nous, nous vous répondrons rapidement.
-        </p>
-
-        <form
-          action="https://formspree.io/f/xanbywyy"
-          method="POST"
-          className="max-w-xl mx-auto space-y-4 bg-white p-6 rounded shadow"
-        >
-          <input
-            type="text"
-            name="prenom"
-            placeholder="Prénom"
-            required
-            className="w-full border p-3 rounded"
-          />
-          <input
-            type="text"
-            name="nom"
-            placeholder="Nom"
-            required
-            className="w-full border p-3 rounded"
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Adresse email"
-            required
-            className="w-full border p-3 rounded"
-          />
-          <textarea
-            name="message"
-            placeholder="Votre message"
-            required
-            className="w-full border p-3 rounded h-32"
-          />
-
-          <button
-            type="submit"
-            className="bg-[#1B5E20] text-white px-6 py-3 rounded hover:bg-green-800 w-full"
-          >
-            Envoyer le message
-          </button>
-        </form>
-      </section>
+      <ContactForm />
 
 
       <footer className="bg-[#1B5E20] text-white mt-20">
