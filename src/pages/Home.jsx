@@ -7,14 +7,23 @@ export default function Home() {
       {/* HERO */}
       <section className="relative w-full h-[80vh]">
         {/* ✅ Image de fond */}
-        <img
-          src="../public/entreprise-en-Guyane-francaise-.jpg"
-          alt="Professionnels en Guyane"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-
-        {/* ✅ Léger overlay foncé pour lisibilité */}
-        <div className="absolute inset-0 bg-black bg-opacity-30" />
+        <div className="relative w-full h-[500px]">
+          <img
+            src="/entreprise-en-Guyane-francaise-.webp"
+            alt="Professionnels en Guyane"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/40 flex flex-col justify-center items-center text-white text-center px-4">
+            <h1 className="text-4xl font-bold">Factur’Peyi</h1>
+            <p className="text-lg mt-2">La compta simple et locale 🇬🇫</p>
+            <Link
+              to="/login"
+              className="mt-6 bg-green-700 hover:bg-green-900 px-6 py-3 rounded text-white font-medium transition"
+            >
+              Connexion / Inscription
+            </Link>
+          </div>
+        </div>
 
         {/* ✅ En-tête avec nom du site */}
         <div className="absolute top-0 left-0 w-full p-4 z-20 flex justify-center">
