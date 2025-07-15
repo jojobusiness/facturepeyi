@@ -24,7 +24,7 @@ const questions = [
   },
   {
     question: "Est-ce sécurisé ?",
-    answer: "Oui. Vos données sont stockées de manière sécurisée sur les serveurs de Google (Firebase).",
+    answer: "Oui. Vos données sont stockées de manière sécurisée.",
   },
 ];
 
