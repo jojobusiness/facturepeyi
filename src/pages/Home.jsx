@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { FaCheckCircle } from "react-icons/fa";
-import FAQSection from "./components/FAQSection";
+import FAQSection from "../components/FAQSection";
 
 // 📸 Chemins vers les images (à mettre dans /public/assets/)
 const artisan = "/assets/artisanat.webp";
