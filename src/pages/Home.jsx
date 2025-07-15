@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { FaCheckCircle } from "react-icons/fa";
+import FAQSection from "./components/FAQSection";
 
 // 📸 Chemins vers les images (à mettre dans /public/assets/)
 const artisan = "/assets/artisanat.webp";
@@ -73,42 +74,7 @@ export default function Home() {
       </section>
 
       {/* 🔹 F.A.Q. */}
-      <section className="bg-gray-50 py-16 px-4">
-        <h2 className="text-2xl font-bold text-center mb-8">❓ Questions Fréquentes</h2>
-        <div className="max-w-4xl mx-auto space-y-6 text-gray-700">
-
-          <div>
-            <h3 className="font-semibold text-lg">Est-ce que Factur’Peyi est adapté aux entreprises en Guyane ?</h3>
-            <p>Oui, c’est notre mission. L’outil a été conçu spécifiquement pour les indépendants, artisans et PME de Guyane 🇬🇫 avec gestion complète de la TVA DOM.</p>
-          </div>
-
-          <div>
-            <h3 className="font-semibold text-lg">Puis-je ajouter des employés ou des comptables ?</h3>
-            <p>Oui. Chaque entreprise peut inviter ses collaborateurs avec un rôle : admin, comptable ou employé.</p>
-          </div>
-
-          <div>
-            <h3 className="font-semibold text-lg">Comment gérer mes dépenses et ma comptabilité ?</h3>
-            <p>Vous pouvez enregistrer toutes vos dépenses, les catégoriser et consulter automatiquement vos bilans comptables.</p>
-          </div>
-
-          <div>
-            <h3 className="font-semibold text-lg">Puis-je générer mes déclarations fiscales ?</h3>
-            <p>Oui. Une section est dédiée à la déclaration fiscale avec export PDF des données nécessaires à votre comptable.</p>
-          </div>
-
-          <div>
-            <h3 className="font-semibold text-lg">Dois-je installer une application ?</h3>
-            <p>Non. Factur’Peyi fonctionne 100% en ligne, depuis votre téléphone, tablette ou ordinateur.</p>
-          </div>
-
-          <div>
-            <h3 className="font-semibold text-lg">Est-ce sécurisé ?</h3>
-            <p>Oui. Les données sont hébergées de façon sécurisée.</p>
-          </div>
-
-        </div>
-      </section>
+      <FAQSection />
 
 
       {/* 🔹 Contact */}
@@ -149,14 +115,6 @@ export default function Home() {
             placeholder="Votre message"
             required
             className="w-full border p-3 rounded h-32"
-          />
-
-          {/* Champs cachés pour options Formsubmit */}
-          <input type="hidden" name="_captcha" value="false" />
-          <input
-            type="hidden"
-            name="_autoresponse"
-            value="Merci, nous avons bien reçu votre message !"
           />
 
           <button
