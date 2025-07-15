@@ -2,6 +2,9 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 
 import Home from './pages/Home';
 import Login from './pages/Login';
+import Conditions from './pages/Conditions';
+import Confidentialite from './pages/Confidentialite';
+import Cookies from './pages/Cookies';
 import Dashboard from './pages/Dashboard';
 import EditInvoice from './pages/EditInvoice';
 import CreateInvoice from './pages/CreateInvoice';
@@ -32,6 +35,9 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/conditions" element={<Conditions />} />
+      <Route path="/confidentialite" element={<Confidentialite />} />
+      <Route path="/cookies" element={<Cookies />} />
       <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
       <Route path="/facture/nouvelle" element={<PrivateRoute><CreateInvoice /></PrivateRoute>} />
       <Route path="/factures" element={<PrivateRoute><InvoiceList /></PrivateRoute>} />

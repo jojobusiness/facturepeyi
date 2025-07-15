@@ -62,7 +62,7 @@ export default function Home() {
       <section className="py-20 px-4 text-center">
         <h2 className="text-3xl font-bold mb-4">Rejoignez la révolution locale</h2>
         <p className="mb-6 text-gray-600 text-lg">
-          Factur’Peyi est là pour vous simplifier la vie. Essayez gratuitement dès aujourd’hui.
+          Factur’Peyi est là pour vous simplifier la vie. Commencer dès aujourd’hui.
         </p>
         <Link
           to="/login"
@@ -71,6 +71,134 @@ export default function Home() {
           Se connecter / S’inscrire
         </Link>
       </section>
+
+      {/* 🔹 F.A.Q. */}
+      <section className="bg-gray-50 py-16 px-4">
+        <h2 className="text-2xl font-bold text-center mb-8">❓ Questions Fréquentes</h2>
+        <div className="max-w-4xl mx-auto space-y-6 text-gray-700">
+
+          <div>
+            <h3 className="font-semibold text-lg">Est-ce que Factur’Peyi est adapté aux entreprises en Guyane ?</h3>
+            <p>Oui, c’est notre mission. L’outil a été conçu spécifiquement pour les indépendants, artisans et PME de Guyane 🇬🇫 avec gestion complète de la TVA DOM.</p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-lg">Puis-je ajouter des employés ou des comptables ?</h3>
+            <p>Oui. Chaque entreprise peut inviter ses collaborateurs avec un rôle : admin, comptable ou employé.</p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-lg">Comment gérer mes dépenses et ma comptabilité ?</h3>
+            <p>Vous pouvez enregistrer toutes vos dépenses, les catégoriser et consulter automatiquement vos bilans comptables.</p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-lg">Puis-je générer mes déclarations fiscales ?</h3>
+            <p>Oui. Une section est dédiée à la déclaration fiscale avec export PDF des données nécessaires à votre comptable.</p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-lg">Dois-je installer une application ?</h3>
+            <p>Non. Factur’Peyi fonctionne 100% en ligne, depuis votre téléphone, tablette ou ordinateur.</p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-lg">Est-ce sécurisé ?</h3>
+            <p>Oui. Les données sont hébergées de façon sécurisée.</p>
+          </div>
+
+        </div>
+      </section>
+
+
+      {/* 🔹 Contact */}
+      <section className="bg-gray-100 py-16 px-4" id="contact">
+        <h2 className="text-2xl font-bold text-center mb-6">📩 Contactez-nous</h2>
+        <p className="text-center mb-10 text-gray-600">
+          Une question, une suggestion ? Écrivez-nous, nous vous répondrons rapidement.
+        </p>
+
+        <form
+          action="https://formspree.io/f/xanbywyy"
+          method="POST"
+          className="max-w-xl mx-auto space-y-4 bg-white p-6 rounded shadow"
+        >
+          <input
+            type="text"
+            name="prenom"
+            placeholder="Prénom"
+            required
+            className="w-full border p-3 rounded"
+          />
+          <input
+            type="text"
+            name="nom"
+            placeholder="Nom"
+            required
+            className="w-full border p-3 rounded"
+          />
+          <input
+            type="email"
+            name="email"
+            placeholder="Adresse email"
+            required
+            className="w-full border p-3 rounded"
+          />
+          <textarea
+            name="message"
+            placeholder="Votre message"
+            required
+            className="w-full border p-3 rounded h-32"
+          />
+
+          {/* Champs cachés pour options Formsubmit */}
+          <input type="hidden" name="_captcha" value="false" />
+          <input
+            type="hidden"
+            name="_autoresponse"
+            value="Merci, nous avons bien reçu votre message !"
+          />
+
+          <button
+            type="submit"
+            className="bg-[#1B5E20] text-white px-6 py-3 rounded hover:bg-green-800 w-full"
+          >
+            Envoyer le message
+          </button>
+        </form>
+      </section>
+
+
+      <footer className="bg-[#1B5E20] text-white mt-20">
+        <div className="max-w-6xl mx-auto px-4 py-10 grid grid-cols-1 sm:grid-cols-3 gap-8 text-sm">
+        {/* Liens utiles */}
+        <div>
+          <h4 className="font-semibold text-lg mb-4">Liens utiles</h4>
+        </div>
+
+        {/* Mentions légales */}
+        <div>
+          <h4 className="font-semibold text-lg mb-4">Mentions légales</h4>
+          <ul className="space-y-2">
+            <li><a href="/conditions" className="hover:underline">Conditions générales</a></li>
+            <li><a href="/confidentialite" className="hover:underline">Politique de confidentialité</a></li>
+            <li><a href="/cookies" className="hover:underline">Cookies</a></li>
+          </ul>
+        </div>
+
+        {/* Contact */}
+        <div>
+          <h4 className="font-semibold text-lg mb-4">Contact</h4>
+          <p className="mb-2">📧 contact@facturpeyi.com</p>
+          <p>📍 Guyane française</p>
+        </div>
+      </div>
+
+      <div className="text-center border-t border-white/20 py-4 text-xs">
+        © {new Date().getFullYear()} Factur’Peyi – Tous droits réservés 🇬🇫
+      </div>
+    </footer>
+
     </main>
   );
 }
