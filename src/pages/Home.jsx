@@ -24,7 +24,7 @@ export default function Home() {
             💼 La compta simple, locale et efficace en Guyane française.
           </p>
           <Link
-            to="/login"
+            to="/Forfaits"
             className="bg-yellow-400 text-[#1B5E20] font-semibold px-8 py-3 rounded hover:bg-yellow-300 transition"
           >
             Commencer maintenant

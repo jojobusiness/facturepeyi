@@ -27,6 +27,9 @@ import Unauthorized from './pages/Unauthorized';
 import AdminUserManagement from './pages/AdminUserManagement';
 import InviteComplete from './pages/InviteComplete';
 import Rapports from './pages/Rapports'; 
+import Forfaits from './pages/Forfaits'
+import PaiementSuccess from './pages/PaiementSuccess';
+import PaiementCancel from './pages/PaiementCancel';
 import PrivateRoute from './components/PrivateRoute';
 import RoleRoute from './components/RoleRoute';
 
@@ -35,6 +38,9 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/Forfaits" element={<Forfaits />} />
+      <Route path="/paiement/success" element={<PaiementSuccess />} />
+      <Route path="/paiement/cancel" element={<PaiementCancel />} />
       <Route path="/conditions" element={<Conditions />} />
       <Route path="/confidentialite" element={<Confidentialite />} />
       <Route path="/cookies" element={<Cookies />} />
