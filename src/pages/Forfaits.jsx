@@ -23,14 +23,14 @@ export default function Forfaits() {
           title="Standard"
           price="29,99"
           features={["Factures illimitées", "Gestion des dépenses", "Support email"]}
-          onSubscribe={() => handleCheckout("price_1RlBuyIvy2nu7Abx4m8G2ce5")}
+          onSubscribe={() => handleCheckout("price_1Rlat8Ick4iMBRE91vyvhOFc")}
           loading={loading}
         />
         <ForfaitCard
           title="Premium"
           price="49,99"
           features={["Toutes les fonctionnalités Standard", "Ajout d'utilisateurs", "Support prioritaire", "Export comptable avancé"]}
-          onSubscribe={() => handleCheckout("price_1RlBvpIvy2nu7AbxE1NLhjjZ")}
+          onSubscribe={() => handleCheckout("price_1RlatdIck4iMBRE9fWyZausA")}
           loading={loading}
           highlight
         />
