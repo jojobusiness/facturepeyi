@@ -37,7 +37,7 @@ export default function Forfaits() {
   );
 }
 
-function ForfaitCard({ title, price, features, onSubscribe, loading, highlight }) {
+function ForfaitCard({ title, price, features, paymentLink, highlight }) {
   return (
     <div className={`bg-white rounded-xl shadow p-8 flex flex-col items-center border-2 ${highlight ? "border-yellow-500 scale-105" : "border-transparent"} transition`}>
       <h2 className="text-2xl font-bold mb-2">{title}</h2>
@@ -45,13 +45,13 @@ function ForfaitCard({ title, price, features, onSubscribe, loading, highlight }
       <ul className="mb-6 space-y-2">
         {features.map(f => <li key={f} className="text-gray-700">✔️ {f}</li>)}
       </ul>
-      <button
-        disabled={loading}
-        className="bg-[#1B5E20] text-white px-6 py-3 rounded font-semibold hover:bg-green-800 transition"
-        onClick={onSubscribe}
+      <a
+        href={paymentLink}
+        className="bg-[#1B5E20] text-white px-6 py-3 rounded font-semibold hover:bg-green-800 transition text-center block w-full"
+        target="_blank" rel="noopener noreferrer"
       >
-        {loading ? "Redirection..." : "Commencer"}
-      </button>
+        Payer et commencer
+      </a>
     </div>
   );
 }
