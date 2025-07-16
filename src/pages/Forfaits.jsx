@@ -23,15 +23,13 @@ export default function Forfaits() {
           title="Standard"
           price="29,99"
           features={["Factures illimitées", "Gestion des dépenses", "Support email"]}
-          onSubscribe={() => handleCheckout("price_1Rlat8Ick4iMBRE91vyvhOFc")}
-          loading={loading}
+          paymentLink="https://buy.stripe.com/28E4gzfVJfhJ2Uh0lR2sM00"
         />
         <ForfaitCard
           title="Premium"
           price="49,99"
-          features={["Toutes les fonctionnalités Standard", "Ajout d'utilisateurs", "Support prioritaire", "Export comptable avancé"]}
-          onSubscribe={() => handleCheckout("price_1RlatdIck4iMBRE9fWyZausA")}
-          loading={loading}
+          features={["Toutes les fonctionnalités Standard", "Ajout d'utilisateurs", "Support prioritaire", "Export avancé"]}
+          paymentLink="https://buy.stripe.com/6oUfZh9xl9Xp2Uh4C72sM01"
           highlight
         />
       </div>
