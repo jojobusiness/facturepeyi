@@ -132,7 +132,7 @@ export default function Login() {
           type="submit"
           className="bg-[#1B5E20] text-white w-full p-2 rounded hover:bg-[#2e7d32]"
         >
-          {isNew ? "S’inscrire comme administrateur" : "Se connecter"}
+          {isNew ? "S’inscrire" : "Se connecter"}
         </button>
 
         <p
@@ -141,7 +141,7 @@ export default function Login() {
         >
           {isNew
             ? "Déjà inscrit ? Se connecter"
-            : "Créer un compte administrateur"}
+            : "Créer un compte"}
         </p>
 
         <button
