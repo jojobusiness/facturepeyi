@@ -36,56 +36,52 @@ export default function Login() {
   }, [isNew]);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      if (isNew) {
-        if (auth.currentUser) {
-          await signOut(auth);
-        }
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
-        const user = cred.user;
-        
-        // Créer l’entreprise liée à cet admin
-        const entrepriseRef = await addDoc(collection(db, "entreprises"), {
-          nom: nom || "Entreprise sans nom",
-          ownerUid: user.uid,
-          createdAt: new Date(),
-        });
-        const entrepriseId = entrepriseRef.id;
-
-        // Ajouter l'utilisateur comme membre admin de l’entreprise
-        await setDoc(doc(db, "entreprises", entrepriseId, "membres", user.uid), {
-          uid: user.uid,
-          nom,
-          email,
-          role: "admin",
-          dateAjout: new Date(),
-          entrepriseId,
-        });
-
-        // Créer le document utilisateur
-        await setDoc(doc(db, "utilisateurs", user.uid), {
-          email,
-          nom,
-          role: "admin",
-          createdAt: new Date(),
-          entrepriseId,
-          uid: user.uid,
-        });
-
-        alert("✅ Compte administrateur créé !");
-      } else {
-        await signInWithEmailAndPassword(auth, email, password);
-        alert("🔓 Connexion réussie !");
+  try {
+    if (isNew) {
+      if (auth.currentUser) {
+        await signOut(auth);
       }
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      const user = cred.user;
+      
+      const entrepriseRef = await addDoc(collection(db, "entreprises"), {
+        nom: nom || "Entreprise sans nom",
+        ownerUid: user.uid,
+        createdAt: new Date(),
+      });
+      const entrepriseId = entrepriseRef.id;
 
-      navigate("/dashboard");
+      await setDoc(doc(db, "entreprises", entrepriseId, "membres", user.uid), {
+        uid: user.uid,
+        nom,
+        email,
+        role: "admin",
+        dateAjout: new Date(),
+        entrepriseId,
+      });
 
-    } catch (err) {
-      console.error(err);
-      alert("❌ Erreur : " + err.message);
+      await setDoc(doc(db, "utilisateurs", user.uid), {
+        email,
+        nom,
+        role: "admin",
+        createdAt: new Date(),
+        entrepriseId,
+        uid: user.uid,
+      });
+
+      alert("✅ Compte créé !");
+      navigate("/forfaits"); // ← ICI
+    } else {
+      await signInWithEmailAndPassword(auth, email, password);
+      alert("🔓 Connexion réussie !");
+      navigate("/dashboard"); // ← Connexion classique
     }
+  } catch (err) {
+    console.error(err);
+    alert("❌ Erreur : " + err.message);
+  }
   };
 
   return (
@@ -95,7 +91,7 @@ export default function Login() {
         className="bg-white p-6 rounded shadow w-full max-w-md space-y-4"
       >
         <h2 className="text-xl font-semibold text-center text-[#1B5E20]">
-          {isNew ? "Créer un compte administrateur" : "Connexion"}
+          {isNew ? "Créer un compte" : "Connexion"}
         </h2>
 
         {isNew && (
