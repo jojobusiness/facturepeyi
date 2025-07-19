@@ -40,6 +40,7 @@ export default function Login() {
 
   try {
     if (isNew) {
+      navigate("/forfaits");
       if (auth.currentUser) {
         await signOut(auth);
       }
@@ -72,7 +73,6 @@ export default function Login() {
       });
 
       alert("✅ Compte créé !");
-      navigate("/forfaits"); // ← ICI
     } else {
       await signInWithEmailAndPassword(auth, email, password);
       alert("🔓 Connexion réussie !");
