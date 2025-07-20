@@ -40,14 +40,14 @@ export default function Forfaits() {
           price="29,99"
           features={["Factures illimitées", "Gestion des dépenses", "Support email"]}
           onSubscribe={() => handleCheckout(STANDARD_PRICE_ID_TEST)}
-          loading={loading === STANDARD_PRICE_ID}
+          loading={loading === STANDARD_PRICE_ID_TEST}
         />
         <ForfaitCard
           title="Premium"
           price="49,99"
           features={["Toutes les fonctionnalités Standard", "Ajout d'utilisateurs", "Support prioritaire", "Export avancé"]}
           onSubscribe={() => handleCheckout(PREMIUM_PRICE_ID_TEST)}
-          loading={loading === PREMIUM_PRICE_ID}
+          loading={loading === PREMIUM_PRICE_ID_TEST}
           highlight
         />
       </div>
