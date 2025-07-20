@@ -22,7 +22,7 @@ const menuItems = [
 export default function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
     await signOut(auth);
