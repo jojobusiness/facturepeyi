@@ -19,7 +19,7 @@ import RoleRoute from './components/RoleRoute';
 import DashboardLayout from './layouts/DashboardLayout';
 
 // Pages dashboard (chaque composant peut être détaillé dans son propre fichier)
-import DashboardStats from './pages/DashboardStats';
+import Dashboard from './pages/Dashboard';
 import InvoiceList from './pages/InvoiceList';
 import CreateInvoice from './pages/CreateInvoice';
 import EditInvoice from './pages/EditInvoice';
@@ -65,7 +65,7 @@ export default function App() {
           </PrivateRoute>
         }
       >
-        <Route index element={<DashboardStats />} />
+        <Route index element={<Dashboard />} />
         <Route path="factures" element={<PrivateRoute><InvoiceList /></PrivateRoute>} />
         <Route path="facture/nouvelle" element={<PrivateRoute><CreateInvoice /></PrivateRoute>} />
         <Route path="facture/modifier/:id" element={<PrivateRoute><EditInvoice /></PrivateRoute>} />
