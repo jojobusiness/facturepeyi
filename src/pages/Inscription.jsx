@@ -20,7 +20,14 @@ export default function Inscription() {
   const [nom, setNom] = useState("");
   const [role, setRole] = useState("admin"); // forcé à admin
   const navigate = useNavigate();
-
+  
+  useEffect(() => {
+    if (!location.state || !location.state.paymentOk) {
+      // Accès direct interdit
+      navigate("/", { replace: true });
+    }
+  }, [location.state, navigate]);
+  
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) navigate("/dashboard");
