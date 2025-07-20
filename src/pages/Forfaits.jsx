@@ -29,6 +29,8 @@ export default function Forfaits() {
   // À remplir avec TES vrais Price ID Stripe (dashboard > Produits > Prix > ID commençant par price_)
   const STANDARD_PRICE_ID = "price_1Rlat8Ick4iMBRE91vyvhOFc"; 
   const PREMIUM_PRICE_ID = "price_1RlatdIck4iMBRE9fWyZausA";
+  const STANDARD_PRICE_ID_TEST = "price_1RlBuyIvy2nu7Abx4m8G2ce5"; 
+  const PREMIUM_PRICE_ID_TEST = "price_1RlBvpIvy2nu7AbxE1NLhjjZ";
 
   return (
     <main className="min-h-screen bg-gray-100 flex items-center justify-center py-16">
@@ -37,14 +39,14 @@ export default function Forfaits() {
           title="Standard"
           price="29,99"
           features={["Factures illimitées", "Gestion des dépenses", "Support email"]}
-          onSubscribe={() => handleCheckout(STANDARD_PRICE_ID)}
+          onSubscribe={() => handleCheckout(STANDARD_PRICE_ID_TEST)}
           loading={loading === STANDARD_PRICE_ID}
         />
         <ForfaitCard
           title="Premium"
           price="49,99"
           features={["Toutes les fonctionnalités Standard", "Ajout d'utilisateurs", "Support prioritaire", "Export avancé"]}
-          onSubscribe={() => handleCheckout(PREMIUM_PRICE_ID)}
+          onSubscribe={() => handleCheckout(PREMIUM_PRICE_ID_TEST)}
           loading={loading === PREMIUM_PRICE_ID}
           highlight
         />
