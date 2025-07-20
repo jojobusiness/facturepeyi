@@ -29,11 +29,11 @@ export default function DashboardLayout() {
     navigate('/');
   };
 
-   return (
-    <main className="min-h-screen bg-gray-100 flex flex-col">
+  return (
+    <div className="min-h-screen bg-gray-100">
       {/* ---- TOPBAR ---- */}
-      <header className="w-full h-16 bg-white shadow flex items-center justify-between px-4 md:px-8 fixed z-40 top-0 left-0 right-0">
-        {/* Bouton menu mobile */}
+      <header className="fixed w-full h-16 bg-white shadow flex items-center justify-between px-4 md:px-8 z-40 top-0 left-0 right-0">
+        {/* Hamburger menu mobile */}
         <button
           className="md:hidden text-2xl mr-2"
           onClick={() => setSidebarOpen(true)}
@@ -52,19 +52,18 @@ export default function DashboardLayout() {
         </button>
       </header>
 
-      {/* ---- SIDEBAR ---- */}
+      {/* ---- SIDEBAR : MOBILE (overlay) ---- */}
       <aside
         className={`
-          fixed z-30 top-0 left-0 h-full bg-white shadow-lg p-4 pt-20 flex flex-col
-          w-64 transition-transform duration-200
+          fixed z-50 top-0 left-0 h-full w-64 bg-white shadow-lg p-4 pt-20 flex flex-col
+          transition-transform duration-200
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-          md:translate-x-0 md:static md:p-4 md:pt-8
+          md:hidden
         `}
-        style={{ minWidth: "16rem" }}
       >
-        {/* Bouton close mobile */}
+        {/* Close button mobile */}
         <button
-          className="md:hidden absolute top-4 right-4"
+          className="absolute top-4 right-4"
           onClick={() => setSidebarOpen(false)}
         >
           <span className="text-xl">✕</span>
@@ -86,22 +85,46 @@ export default function DashboardLayout() {
           ))}
         </nav>
       </aside>
-
       {/* Overlay sombre sur mobile */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-40 z-20 md:hidden"
+          className="fixed inset-0 bg-black bg-opacity-40 z-40 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
+      {/* ---- SIDEBAR : DESKTOP (toujours visible) ---- */}
+      <aside
+        className={`
+          hidden
+          md:fixed md:top-0 md:left-0 md:h-full md:w-64 md:bg-white md:shadow-lg md:p-4 md:pt-20 md:flex md:flex-col
+        `}
+        style={{ minWidth: "16rem" }}
+      >
+        <nav className="flex flex-col gap-2 flex-1">
+          {menuItems.map(item => (
+            <Link
+              key={item.key}
+              to={item.to}
+              className={`text-left px-4 py-3 rounded-xl font-medium hover:bg-[#E8F5E9] transition ${
+                location.pathname === item.to
+                  ? "bg-[#C8E6C9] text-[#1B5E20]"
+                  : "text-gray-700"
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+      </aside>
+
       {/* ---- MAIN CONTENT ---- */}
       <section
-        className="flex-1 mt-16 md:ml-64 p-4 md:p-8 transition-all"
+        className="pt-20 px-4 md:px-8 md:ml-64 transition-all"
         style={{ minHeight: "calc(100vh - 4rem)" }}
       >
         <Outlet />
       </section>
-    </main>
+    </div>
   );
 }
