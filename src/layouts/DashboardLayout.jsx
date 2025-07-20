@@ -30,99 +30,82 @@ export default function DashboardLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* ---- TOPBAR ---- */}
-      <header className="fixed w-full h-16 bg-white shadow flex items-center justify-between px-4 md:px-8 z-40 top-0 left-0 right-0">
-        {/* Hamburger menu mobile */}
-        <button
-          className="md:hidden text-2xl mr-2"
-          onClick={() => setSidebarOpen(true)}
-        >
-          ☰
-        </button>
-        <div className="flex items-center gap-3">
-          <span className="font-bold text-[#1B5E20] text-xl">Factur'Peyi</span>
-        </div>
-        {/* Déconnexion à droite */}
+    <div className="min-h-screen bg-gray-100 flex">
+      {/* ======= Bouton Hamburger (mobile seulement) ======= */}
+      <button
+        className="fixed top-4 left-4 z-40 bg-white shadow md:hidden p-2 rounded-xl"
+        onClick={() => setSidebarOpen(true)}
+      >
+        <span className="text-2xl">☰</span>
+      </button>
+
+      {/* ======= SIDEBAR Desktop ======= */}
+      <aside className="w-64 bg-white p-4 shadow-lg flex-col hidden md:flex">
+        <h1 className="text-2xl font-bold text-[#1B5E20] mb-8 text-center">Factur'Peyi</h1>
+        <nav className="flex flex-col gap-2 flex-1">
+          {menuItems.map(item => (
+            <Link
+              key={item.key}
+              to={item.to}
+              className={`text-left px-4 py-3 rounded-xl font-medium hover:bg-[#E8F5E9] transition ${
+                location.pathname === item.to ? "bg-[#C8E6C9] text-[#1B5E20]" : "text-gray-700"
+              }`}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
         <button
           onClick={handleLogout}
-          className="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded font-semibold ml-2"
+          className="mt-6 bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded font-semibold"
         >
           🔓 Déconnexion
         </button>
-      </header>
-
-      {/* ---- SIDEBAR : MOBILE (overlay) ---- */}
-      <aside
-        className={`
-          fixed z-50 top-0 left-0 h-full w-64 bg-white shadow-lg p-4 pt-20 flex flex-col
-          transition-transform duration-200
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-          md:hidden
-        `}
-      >
-        {/* Close button mobile */}
-        <button
-          className="absolute top-4 right-4"
-          onClick={() => setSidebarOpen(false)}
-        >
-          <span className="text-xl">✕</span>
-        </button>
-        <nav className="flex flex-col gap-2 flex-1">
-          {menuItems.map(item => (
-            <Link
-              key={item.key}
-              to={item.to}
-              className={`text-left px-4 py-3 rounded-xl font-medium hover:bg-[#E8F5E9] transition ${
-                location.pathname === item.to
-                  ? "bg-[#C8E6C9] text-[#1B5E20]"
-                  : "text-gray-700"
-              }`}
-              onClick={() => setSidebarOpen(false)}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
       </aside>
-      {/* Overlay sombre sur mobile */}
+
+      {/* ======= SIDEBAR Mobile (overlay) ======= */}
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-40 z-40 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
+        <>
+          <div
+            className="fixed inset-0 bg-black bg-opacity-40 z-30 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+          <aside className="fixed top-0 left-0 z-40 h-screen w-64 bg-white shadow-lg p-4 flex flex-col md:hidden transition-transform duration-200 overflow-y-auto">
+            <div className="flex justify-between items-center mb-8">
+              <h1 className="text-2xl font-bold text-[#1B5E20] text-center w-full">Factur'Peyi</h1>
+              <button
+                className="absolute top-4 right-4"
+                onClick={() => setSidebarOpen(false)}
+              >
+                <span className="text-xl">✕</span>
+              </button>
+            </div>
+            <nav className="flex flex-col gap-2 flex-1">
+              {menuItems.map(item => (
+                <Link
+                  key={item.key}
+                  to={item.to}
+                  className={`text-left px-4 py-3 rounded-xl font-medium hover:bg-[#E8F5E9] transition ${
+                    location.pathname === item.to ? "bg-[#C8E6C9] text-[#1B5E20]" : "text-gray-700"
+                  }`}
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+            <button
+              onClick={handleLogout}
+              className="mt-6 bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded font-semibold"
+            >
+              🔓 Déconnexion
+            </button>
+          </aside>
+        </>
       )}
 
-      {/* ---- SIDEBAR : DESKTOP (toujours visible) ---- */}
-      <aside
-        className={`
-          hidden
-          md:fixed md:top-0 md:left-0 md:h-full md:w-64 md:bg-white md:shadow-lg md:p-4 md:pt-20 md:flex md:flex-col
-        `}
-        style={{ minWidth: "16rem" }}
-      >
-        <nav className="flex flex-col gap-2 flex-1">
-          {menuItems.map(item => (
-            <Link
-              key={item.key}
-              to={item.to}
-              className={`text-left px-4 py-3 rounded-xl font-medium hover:bg-[#E8F5E9] transition ${
-                location.pathname === item.to
-                  ? "bg-[#C8E6C9] text-[#1B5E20]"
-                  : "text-gray-700"
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      </aside>
-
-      {/* ---- MAIN CONTENT ---- */}
-      <section
-        className="pt-20 px-4 md:px-8 md:ml-64 transition-all"
-        style={{ minHeight: "calc(100vh - 4rem)" }}
-      >
+      {/* ======= MAIN CONTENT ======= */}
+      <section className="flex-1 p-4 md:p-8 overflow-y-auto">
         <Outlet />
       </section>
     </div>
