@@ -29,74 +29,77 @@ export default function DashboardLayout() {
     navigate('/');
   };
 
-  return (
-    <main className="min-h-screen bg-gray-100 flex">
-      {/* Bouton hamburger mobile */}
-      <button
-        className="fixed top-4 left-4 z-30 bg-white shadow md:hidden p-2 rounded-xl"
-        onClick={() => setOpen(true)}
-      >
-        <span className="text-2xl">☰</span>
-      </button>
+   return (
+    <main className="min-h-screen bg-gray-100 flex flex-col">
+      {/* ---- TOPBAR ---- */}
+      <header className="w-full h-16 bg-white shadow flex items-center justify-between px-4 md:px-8 fixed z-40 top-0 left-0 right-0">
+        {/* Bouton menu mobile */}
+        <button
+          className="md:hidden text-2xl mr-2"
+          onClick={() => setSidebarOpen(true)}
+        >
+          ☰
+        </button>
+        <div className="flex items-center gap-3">
+          <span className="font-bold text-[#1B5E20] text-xl">Factur'Peyi</span>
+        </div>
+        {/* Déconnexion à droite */}
+        <button
+          onClick={handleLogout}
+          className="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded font-semibold ml-2"
+        >
+          🔓 Déconnexion
+        </button>
+      </header>
 
-      {/* Sidebar */}
+      {/* ---- SIDEBAR ---- */}
       <aside
         className={`
-          fixed inset-y-0 left-0 z-40 bg-white shadow-lg p-4 flex flex-col transform transition-transform
-          w-64
-          ${open ? "translate-x-0" : "-translate-x-full"}
-          md:relative md:translate-x-0 md:w-64 md:flex
+          fixed z-30 top-0 left-0 h-full bg-white shadow-lg p-4 pt-20 flex flex-col
+          w-64 transition-transform duration-200
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          md:translate-x-0 md:static md:p-4 md:pt-8
         `}
         style={{ minWidth: "16rem" }}
       >
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-[#1B5E20] text-center w-full">Factur'Peyi</h1>
-          {/* Bouton close (mobile) */}
-          <button
-            className="md:hidden absolute top-4 right-4"
-            onClick={() => setOpen(false)}
-          >
-            <span className="text-xl">✕</span>
-          </button>
-        </div>
+        {/* Bouton close mobile */}
+        <button
+          className="md:hidden absolute top-4 right-4"
+          onClick={() => setSidebarOpen(false)}
+        >
+          <span className="text-xl">✕</span>
+        </button>
         <nav className="flex flex-col gap-2 flex-1">
-          {menuItems.map(item =>
-            item.key === "logout" ? (
-              <button
-                key={item.key}
-                onClick={handleLogout}
-                className="mt-8 bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded font-semibold"
-              >
-                {item.label}
-              </button>
-            ) : (
-              <Link
-                key={item.key}
-                to={item.to}
-                className={`text-left px-4 py-3 rounded-xl font-medium hover:bg-[#E8F5E9] transition ${
-                  location.pathname === item.to
-                    ? "bg-[#C8E6C9] text-[#1B5E20]"
-                    : "text-gray-700"
-                }`}
-                onClick={() => setOpen(false)}
-              >
-                {item.label}
-              </Link>
-            )
-          )}
+          {menuItems.map(item => (
+            <Link
+              key={item.key}
+              to={item.to}
+              className={`text-left px-4 py-3 rounded-xl font-medium hover:bg-[#E8F5E9] transition ${
+                location.pathname === item.to
+                  ? "bg-[#C8E6C9] text-[#1B5E20]"
+                  : "text-gray-700"
+              }`}
+              onClick={() => setSidebarOpen(false)}
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
       </aside>
 
       {/* Overlay sombre sur mobile */}
-      {open && (
+      {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-40 z-30 md:hidden"
-          onClick={() => setOpen(false)}
+          className="fixed inset-0 bg-black bg-opacity-40 z-20 md:hidden"
+          onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Main content */}
-      <section className="flex-1 p-4 md:p-8 ml-0 md:ml-64 transition-all">
+      {/* ---- MAIN CONTENT ---- */}
+      <section
+        className="flex-1 mt-16 md:ml-64 p-4 md:p-8 transition-all"
+        style={{ minHeight: "calc(100vh - 4rem)" }}
+      >
         <Outlet />
       </section>
     </main>
