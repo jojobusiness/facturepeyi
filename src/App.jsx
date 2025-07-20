@@ -5,10 +5,24 @@ import Login from './pages/Login';
 import Conditions from './pages/Conditions';
 import Confidentialite from './pages/Confidentialite';
 import Cookies from './pages/Cookies';
-import Dashboard from './pages/Dashboard';
-import EditInvoice from './pages/EditInvoice';
-import CreateInvoice from './pages/CreateInvoice';
+import Forfaits from './pages/Forfaits';
+import Inscription from './pages/Inscription';
+import PaiementSuccess from './pages/PaiementSuccess';
+import PaiementCancel from './pages/PaiementCancel';
+import Remboursement from './pages/remboursement';
+import InviteComplete from './pages/InviteComplete';
+import Unauthorized from './pages/Unauthorized';
+import PrivateRoute from './components/PrivateRoute';
+import RoleRoute from './components/RoleRoute';
+
+// Layout sidebar pour le dashboard
+import DashboardLayout from './layouts/DashboardLayout';
+
+// Pages dashboard (chaque composant peut être détaillé dans son propre fichier)
+import DashboardStats from './pages/DashboardStats';
 import InvoiceList from './pages/InvoiceList';
+import CreateInvoice from './pages/CreateInvoice';
+import EditInvoice from './pages/EditInvoice';
 import FacturesClient from './pages/FacturesClient';
 import Clients from './pages/Clients';
 import AddClient from './pages/AddClient';
@@ -23,17 +37,8 @@ import Settings from './pages/Settings';
 import PlanComptable from './pages/PlanComptable';
 import BilanComptable from './pages/BilanComptable';
 import JournalComptable from './pages/JournalComptable';
-import Unauthorized from './pages/Unauthorized';
 import AdminUserManagement from './pages/AdminUserManagement';
-import InviteComplete from './pages/InviteComplete';
-import Rapports from './pages/Rapports'; 
-import Forfaits from './pages/Forfaits'
-import Inscription from './pages/Inscription';
-import PaiementSuccess from './pages/PaiementSuccess';
-import PaiementCancel from './pages/PaiementCancel';
-import Remboursement from './pages/remboursement';
-import PrivateRoute from './components/PrivateRoute';
-import RoleRoute from './components/RoleRoute';
+import Rapports from './pages/Rapports';
 
 export default function App() {
   return (
@@ -48,28 +53,65 @@ export default function App() {
       <Route path="/conditions" element={<Conditions />} />
       <Route path="/confidentialite" element={<Confidentialite />} />
       <Route path="/cookies" element={<Cookies />} />
-      <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-      <Route path="/facture/nouvelle" element={<PrivateRoute><CreateInvoice /></PrivateRoute>} />
-      <Route path="/factures" element={<PrivateRoute><InvoiceList /></PrivateRoute>} />
-      <Route path="/facture/modifier/:id" element={<PrivateRoute><EditInvoice /></PrivateRoute>} />
-      <Route path="/factures/client/:clientId" element={<PrivateRoute><FacturesClient /></PrivateRoute>} />
-      <Route path="/clients" element={<PrivateRoute><Clients /></PrivateRoute>} />
-      <Route path="/clients/ajouter" element={<PrivateRoute><AddClient /></PrivateRoute>} />
-      <Route path="/clients/modifier/:id" element={<PrivateRoute><EditClient /></PrivateRoute>} />
-      <Route path="/client/:id" element={<PrivateRoute><ClientDetails /></PrivateRoute>} />
-      <Route path="/depenses" element={<PrivateRoute><DepenseList /></PrivateRoute>} />
-      <Route path="/depenses/nouvelle" element={<PrivateRoute><DepenseForm /></PrivateRoute>} />
-      <Route path="/depenses/import" element={<PrivateRoute><ImportDepenses /></PrivateRoute>} />
-      <Route path="/categories" element={<PrivateRoute><Categories /></PrivateRoute>} />
-      <Route path="/rapports" element={<RoleRoute allowedRoles={["comptable", "admin"]}><Rapports /></RoleRoute>} />
-      <Route path="/plancomptable" element={<RoleRoute allowedRoles={["comptable", "admin"]}><PlanComptable /></RoleRoute>} />
-      <Route path="/bilancomptable" element={<RoleRoute allowedRoles={["comptable", "admin"]}><BilanComptable /></RoleRoute>} />
-      <Route path="/journalcomptable" element={<RoleRoute allowedRoles={["comptable", "admin"]}><JournalComptable /></RoleRoute>} />
-      <Route path="/declarationfiscale" element={<RoleRoute allowedRoles={["comptable", "admin"]}><DeclarationFiscale /></RoleRoute>} />
-      <Route path="/admin" element={<RoleRoute allowedRoles={["admin"]}><AdminUserManagement /></RoleRoute>} />
-      <Route path="/parametres" element={<PrivateRoute><Settings /></PrivateRoute>} />
       <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="/invite-complete" element={<InviteComplete />} />
+
+      {/* Dashboard imbriqué dans PrivateRoute */}
+      <Route
+        path="/dashboard"
+        element={
+          <PrivateRoute>
+            <DashboardLayout />
+          </PrivateRoute>
+        }
+      >
+        <Route index element={<DashboardStats />} />
+        <Route path="factures" element={<PrivateRoute><InvoiceList /></PrivateRoute>} />
+        <Route path="facture/nouvelle" element={<PrivateRoute><CreateInvoice /></PrivateRoute>} />
+        <Route path="facture/modifier/:id" element={<PrivateRoute><EditInvoice /></PrivateRoute>} />
+        <Route path="factures/client/:clientId" element={<PrivateRoute><FacturesClient /></PrivateRoute>} />
+        <Route path="clients" element={<PrivateRoute><Clients /></PrivateRoute>} />
+        <Route path="clients/ajouter" element={<PrivateRoute><AddClient /></PrivateRoute>} />
+        <Route path="clients/modifier/:id" element={<PrivateRoute><EditClient /></PrivateRoute>} />
+        <Route path="client/:id" element={<PrivateRoute><ClientDetails /></PrivateRoute>} />
+        <Route path="depenses" element={<PrivateRoute><DepenseList /></PrivateRoute>} />
+        <Route path="depenses/nouvelle" element={<PrivateRoute><DepenseForm /></PrivateRoute>} />
+        <Route path="depenses/import" element={<PrivateRoute><ImportDepenses /></PrivateRoute>} />
+        <Route path="categories" element={<PrivateRoute><Categories /></PrivateRoute>} />
+        <Route path="rapports" element={
+          <RoleRoute allowedRoles={["comptable", "admin"]}>
+            <Rapports />
+          </RoleRoute>
+        } />
+        <Route path="plancomptable" element={
+          <RoleRoute allowedRoles={["comptable", "admin"]}>
+            <PlanComptable />
+          </RoleRoute>
+        } />
+        <Route path="bilancomptable" element={
+          <RoleRoute allowedRoles={["comptable", "admin"]}>
+            <BilanComptable />
+          </RoleRoute>
+        } />
+        <Route path="journalcomptable" element={
+          <RoleRoute allowedRoles={["comptable", "admin"]}>
+            <JournalComptable />
+          </RoleRoute>
+        } />
+        <Route path="declarationfiscale" element={
+          <RoleRoute allowedRoles={["comptable", "admin"]}>
+            <DeclarationFiscale />
+          </RoleRoute>
+        } />
+        <Route path="admin" element={
+          <RoleRoute allowedRoles={["admin"]}>
+            <AdminUserManagement />
+          </RoleRoute>
+        } />
+        <Route path="parametres" element={<PrivateRoute><Settings /></PrivateRoute>} />
+      </Route>
+
+      {/* Redirection inconnue */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
