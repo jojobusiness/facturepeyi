@@ -21,7 +21,7 @@ export default function PaiementSuccess() {
         </p>
         {/* Mets ici ton formulaire d'inscription */}
         <Link
-          to="/login"
+          to="/Inscription"
           className="bg-[#1B5E20] hover:bg-green-900 text-white px-6 py-3 rounded font-medium transition"
         >
           Créer mon compte

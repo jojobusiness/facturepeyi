@@ -1,76 +1,90 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "../lib/firebase";
-import { doc, setDoc, addDoc, collection } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut,
+} from "firebase/auth";
+import {
+  doc,
+  setDoc,
+  addDoc,
+  collection,
+} from "firebase/firestore";
+import './Login.css';
 
 export default function Inscription() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [nom, setNom] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [role, setRole] = useState("admin"); // forcé à admin
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) navigate("/dashboard");
+    });
+    return () => unsubscribe();
+  }, [navigate]);
+
+  useEffect(() => {
+    setRole("admin");
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-
     try {
-      // 🔐 Créer le compte utilisateur dans Firebase Auth
+      if (auth.currentUser) {
+        await signOut(auth);
+      }
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       const user = cred.user;
-
-      // 🏢 Créer une nouvelle entreprise liée à cet utilisateur (admin)
+      
+      // Créer l’entreprise liée à cet admin
       const entrepriseRef = await addDoc(collection(db, "entreprises"), {
         nom: nom || "Entreprise sans nom",
         ownerUid: user.uid,
         createdAt: new Date(),
       });
-
       const entrepriseId = entrepriseRef.id;
 
-      // 👤 Créer l'utilisateur dans la collection "utilisateurs"
-      await setDoc(doc(db, "utilisateurs", user.uid), {
-        uid: user.uid,
-        email,
-        nom,
-        role: "admin",
-        entrepriseId,
-        createdAt: new Date(),
-      });
-
-      // ➕ Ajouter l'utilisateur dans la sous-collection "membres" de l'entreprise
+      // Ajouter l'utilisateur comme membre admin de l’entreprise
       await setDoc(doc(db, "entreprises", entrepriseId, "membres", user.uid), {
         uid: user.uid,
+        nom,
+        email,
+        role: "admin",
+        dateAjout: new Date(),
+        entrepriseId,
+      });
+
+      // Créer le document utilisateur
+      await setDoc(doc(db, "utilisateurs", user.uid), {
         email,
         nom,
         role: "admin",
-        dateAjout: new Date(),
+        createdAt: new Date(),
+        entrepriseId,
+        uid: user.uid,
       });
 
-      alert("✅ Compte administrateur créé !");
+      alert("✅ Compte créé !");
       navigate("/dashboard");
-
     } catch (err) {
-      console.error("Erreur inscription :", err);
-      if (err.code === "auth/email-already-in-use") {
-        alert("⚠️ Cet email est déjà utilisé.");
-      } else {
-        alert("❌ Erreur : " + err.message);
-      }
-    } finally {
-      setLoading(false);
+      console.error(err);
+      alert("❌ Erreur : " + err.message);
     }
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50">
+    <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <form
         onSubmit={handleSubmit}
         className="bg-white p-6 rounded shadow w-full max-w-md space-y-4"
       >
         <h2 className="text-xl font-semibold text-center text-[#1B5E20]">
-          Créer un compte administrateur
+          Créer un compte
         </h2>
 
         <input
@@ -90,7 +104,6 @@ export default function Inscription() {
           className="w-full p-2 border rounded"
           required
         />
-
         <input
           type="password"
           placeholder="Mot de passe"
@@ -102,10 +115,24 @@ export default function Inscription() {
 
         <button
           type="submit"
-          disabled={loading}
           className="bg-[#1B5E20] text-white w-full p-2 rounded hover:bg-[#2e7d32]"
         >
-          {loading ? "Création en cours..." : "S’inscrire"}
+          S’inscrire
+        </button>
+
+        <p
+          onClick={() => navigate("/login")}
+          className="text-sm text-blue-600 text-center cursor-pointer"
+        >
+          Déjà inscrit ? Se connecter
+        </p>
+
+        <button
+          type="button"
+          onClick={() => navigate("/")}
+          className="text-sm text-gray-600 underline w-full text-center mt-2"
+        >
+          ← Revenir à l’accueil
         </button>
       </form>
     </main>
