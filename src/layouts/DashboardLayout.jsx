@@ -31,16 +31,23 @@ export default function DashboardLayout() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
-      {/* ======= Bouton Hamburger (mobile seulement) ======= */}
-      <button
-        className="fixed top-4 left-4 z-40 bg-white shadow md:hidden p-2 rounded-xl"
-        onClick={() => setSidebarOpen(true)}
-      >
-        <span className="text-2xl">☰</span>
-      </button>
+      {/* ===== TOPBAR (mobile + desktop) ===== */}
+      <header className="fixed top-0 left-0 w-full h-16 bg-white shadow flex items-center z-30 px-4 md:hidden">
+        {/* Bouton menu mobile, discret à côté du nom */}
+        <button
+          className="text-2xl mr-2 text-[#1B5E20] focus:outline-none"
+          onClick={() => setSidebarOpen(true)}
+        >
+          ☰
+        </button>
+        <span className="font-bold text-[#1B5E20] text-xl">Factur'Peyi</span>
+      </header>
 
-      {/* ======= SIDEBAR Desktop ======= */}
-      <aside className="w-64 bg-white p-4 shadow-lg flex-col hidden md:flex" style={{ minHeight: "100vh" }}>
+      {/* ===== SIDEBAR Desktop ===== */}
+      <aside
+        className="hidden md:flex flex-col w-64 bg-white p-4 shadow-lg min-h-screen"
+        style={{ minHeight: "100vh" }}
+      >
         <h1 className="text-2xl font-bold text-[#1B5E20] mb-8 text-center">Factur'Peyi</h1>
         <nav className="flex flex-col gap-2 flex-1">
           {menuItems.map(item => (
@@ -63,14 +70,14 @@ export default function DashboardLayout() {
         </button>
       </aside>
 
-      {/* ======= SIDEBAR Mobile (overlay) ======= */}
+      {/* ===== SIDEBAR Mobile (overlay) ===== */}
       {sidebarOpen && (
         <>
           <div
-            className="fixed inset-0 bg-black bg-opacity-40 z-30 md:hidden"
+            className="fixed inset-0 bg-black bg-opacity-40 z-40 md:hidden"
             onClick={() => setSidebarOpen(false)}
           />
-          <aside className="fixed top-0 left-0 z-40 h-screen w-64 bg-white shadow-lg p-4 flex flex-col md:hidden transition-transform duration-200 overflow-y-auto">
+          <aside className="fixed top-0 left-0 z-50 h-screen w-64 bg-white shadow-lg p-4 flex flex-col md:hidden transition-transform duration-200 overflow-y-auto">
             <div className="flex justify-between items-center mb-8">
               <h1 className="text-2xl font-bold text-[#1B5E20] text-center w-full">Factur'Peyi</h1>
               <button
@@ -104,8 +111,8 @@ export default function DashboardLayout() {
         </>
       )}
 
-      {/* ======= MAIN CONTENT ======= */}
-      <section className="flex-1 p-4 md:p-8 overflow-y-auto">
+      {/* ===== MAIN CONTENT ===== */}
+      <section className="flex-1 pt-20 md:pt-0 p-4 md:p-8 overflow-y-auto">
         <Outlet />
       </section>
     </div>
