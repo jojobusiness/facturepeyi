@@ -31,9 +31,9 @@ export default function DashboardLayout() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex">
-      {/* ===== TOPBAR (mobile + desktop) ===== */}
+      {/* TOPBAR (mobile uniquement) */}
       <header className="fixed top-0 left-0 w-full h-16 bg-white shadow flex items-center z-30 px-4 md:hidden">
-        {/* Bouton menu mobile, discret à côté du nom */}
+        {/* Bouton menu mobile */}
         <button
           className="text-2xl mr-2 text-[#1B5E20] focus:outline-none"
           onClick={() => setSidebarOpen(true)}
@@ -43,10 +43,9 @@ export default function DashboardLayout() {
         <span className="font-bold text-[#1B5E20] text-xl">Factur'Peyi</span>
       </header>
 
-      {/* ===== SIDEBAR Desktop ===== */}
+      {/* SIDEBAR PC */}
       <aside
         className="hidden md:flex flex-col w-64 bg-white p-4 shadow-lg min-h-screen"
-        style={{ minHeight: "100vh" }}
       >
         <h1 className="text-2xl font-bold text-[#1B5E20] mb-8 text-center">Factur'Peyi</h1>
         <nav className="flex flex-col gap-2 flex-1">
@@ -70,7 +69,7 @@ export default function DashboardLayout() {
         </button>
       </aside>
 
-      {/* ===== SIDEBAR Mobile (overlay) ===== */}
+      {/* SIDEBAR Mobile (overlay) */}
       {sidebarOpen && (
         <>
           <div
@@ -111,7 +110,7 @@ export default function DashboardLayout() {
         </>
       )}
 
-      {/* ===== MAIN CONTENT ===== */}
+      {/* MAIN CONTENT */}
       <section className="flex-1 pt-20 md:pt-0 p-4 md:p-8 overflow-y-auto">
         <Outlet />
       </section>
