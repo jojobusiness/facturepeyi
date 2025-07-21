@@ -40,10 +40,7 @@ export default function DashboardLayout() {
       </button>
 
       {/* ======= SIDEBAR Desktop ======= */}
-      <aside
-        className="w-64 bg-white p-4 shadow-lg flex-col hidden md:flex"
-        style={{ minHeight: "100vh" }}
-      >
+      <aside className="w-64 bg-white p-4 shadow-lg flex-col hidden md:flex" style={{ minHeight: "100vh" }}>
         <h1 className="text-2xl font-bold text-[#1B5E20] mb-8 text-center">Factur'Peyi</h1>
         <nav className="flex flex-col gap-2 flex-1">
           {menuItems.map(item => (
