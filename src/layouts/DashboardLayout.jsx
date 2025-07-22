@@ -30,24 +30,39 @@ export default function DashboardLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
-      {/* TOPBAR (mobile uniquement) */}
-      <header className="fixed top-0 left-0 w-full h-16 bg-white shadow flex items-center z-30 px-4 md:hidden">
-        {/* Bouton menu mobile */}
-        <button
-          className="text-2xl mr-2 text-[#1B5E20] focus:outline-none"
-          onClick={() => setSidebarOpen(true)}
-        >
-          ☰
-        </button>
-        <span className="font-bold text-[#1B5E20] text-xl">Factur'Peyi</span>
-      </header>
-
-      {/* SIDEBAR PC */}
-      <aside
-        className="hidden md:flex flex-col w-64 bg-white p-4 shadow-lg min-h-screen"
+    <div className="min-h-screen bg-gray-100 flex relative">
+      {/* BOUTON OUVERTURE SIDEBAR (mobile uniquement) */}
+      <button
+        className="fixed top-4 left-4 z-40 md:hidden bg-white rounded-full p-2 shadow-lg border border-gray-100"
+        onClick={() => setSidebarOpen(true)}
+        aria-label="Ouvrir le menu"
       >
-        <h1 className="text-2xl font-bold text-[#1B5E20] mb-8 text-center">Factur'Peyi</h1>
+        <span className="text-2xl text-[#1B5E20]">☰</span>
+      </button>
+
+      {/* SIDEBAR - toujours visible sur md+, slide sur mobile */}
+      <aside className={`
+        fixed top-0 left-0 h-full w-64 bg-white p-4 shadow-lg flex-col z-50 transition-transform duration-300
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:static md:translate-x-0 md:flex
+      `}>
+        {/* Titre + bouton fermeture sur mobile */}
+        <div className="flex items-center justify-between mb-8">
+          <h1
+            className="text-2xl font-bold text-[#1B5E20] cursor-pointer"
+            onClick={() => { if (window.innerWidth < 768) setSidebarOpen(false); }}
+          >
+            Factur'Peyi
+          </h1>
+          {/* Bouton fermer (mobile uniquement) */}
+          <button
+            className="md:hidden text-2xl p-2"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Fermer le menu"
+          >
+            ✕
+          </button>
+        </div>
         <nav className="flex flex-col gap-2 flex-1">
           {menuItems.map(item => (
             <Link
@@ -56,6 +71,7 @@ export default function DashboardLayout() {
               className={`text-left px-4 py-3 rounded-xl font-medium hover:bg-[#E8F5E9] transition ${
                 location.pathname === item.to ? "bg-[#C8E6C9] text-[#1B5E20]" : "text-gray-700"
               }`}
+              onClick={() => { if (window.innerWidth < 768) setSidebarOpen(false); }}
             >
               {item.label}
             </Link>
@@ -69,49 +85,16 @@ export default function DashboardLayout() {
         </button>
       </aside>
 
-      {/* SIDEBAR Mobile (overlay) */}
+      {/* OVERLAY (mobile uniquement, quand menu ouvert) */}
       {sidebarOpen && (
-        <>
-          <div
-            className="fixed inset-0 bg-black bg-opacity-40 z-40 md:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-          <aside className="fixed top-0 left-0 z-50 h-screen w-64 bg-white shadow-lg p-4 flex flex-col md:hidden transition-transform duration-200 overflow-y-auto">
-            <div className="flex justify-between items-center mb-8">
-              <h1 className="text-2xl font-bold text-[#1B5E20] text-center w-full">Factur'Peyi</h1>
-              <button
-                className="absolute top-4 right-4"
-                onClick={() => setSidebarOpen(false)}
-              >
-                <span className="text-xl">✕</span>
-              </button>
-            </div>
-            <nav className="flex flex-col gap-2 flex-1">
-              {menuItems.map(item => (
-                <Link
-                  key={item.key}
-                  to={item.to}
-                  className={`text-left px-4 py-3 rounded-xl font-medium hover:bg-[#E8F5E9] transition ${
-                    location.pathname === item.to ? "bg-[#C8E6C9] text-[#1B5E20]" : "text-gray-700"
-                  }`}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-            <button
-              onClick={handleLogout}
-              className="mt-6 bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded font-semibold"
-            >
-              🔓 Déconnexion
-            </button>
-          </aside>
-        </>
+        <div
+          className="fixed inset-0 bg-black bg-opacity-30 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
       )}
 
-      {/* MAIN CONTENT */}
-      <section className="flex-1 pt-20 md:pt-0 p-4 md:p-8 overflow-y-auto">
+      {/* CONTENU PRINCIPAL */}
+      <section className="flex-1 p-4 md:p-8 overflow-y-auto ml-0 md:ml-64 transition-all duration-300">
         <Outlet />
       </section>
     </div>
