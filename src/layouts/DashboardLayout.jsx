@@ -41,11 +41,9 @@ export default function DashboardLayout() {
           className="text-2xl text-[#1B5E20] focus:outline-none"
           onClick={() => setSidebarOpen(true)}
           aria-label="Ouvrir le menu"
-        >
-          ☰
-        </button>
+        >☰</button>
         <span className="font-bold text-[#1B5E20] text-xl ml-4">Factur'Peyi</span>
-        <span className="w-8" /> {/* Pour équilibrer l'espace à droite */}
+        <span className="w-8" />
       </header>
 
       {/* ===== SIDEBAR PC ===== */}
@@ -63,17 +61,13 @@ export default function DashboardLayout() {
                   ? "bg-[#C8E6C9] text-[#1B5E20]"
                   : "text-gray-700"
               }`}
-            >
-              {item.label}
-            </Link>
+            >{item.label}</Link>
           ))}
         </nav>
         <button
           onClick={handleLogout}
           className="mt-6 bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded font-semibold"
-        >
-          🔓 Déconnexion
-        </button>
+        >🔓 Déconnexion</button>
       </aside>
 
       {/* ===== SIDEBAR MOBILE OVERLAY ===== */}
@@ -92,9 +86,7 @@ export default function DashboardLayout() {
                 className="text-2xl p-2"
                 onClick={() => setSidebarOpen(false)}
                 aria-label="Fermer le menu"
-              >
-                ✕
-              </button>
+              >✕</button>
             </div>
             <nav className="flex flex-col gap-2 flex-1">
               {menuItems.map(item => (
@@ -107,17 +99,13 @@ export default function DashboardLayout() {
                       : "text-gray-700"
                   }`}
                   onClick={handleMenuClick}
-                >
-                  {item.label}
-                </Link>
+                >{item.label}</Link>
               ))}
             </nav>
             <button
               onClick={() => { handleLogout(); setSidebarOpen(false); }}
               className="mt-6 bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded font-semibold"
-            >
-              🔓 Déconnexion
-            </button>
+            >🔓 Déconnexion</button>
           </aside>
         </>
       )}
