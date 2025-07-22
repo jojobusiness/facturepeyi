@@ -51,9 +51,6 @@ export default function DashboardLayout() {
         <h1 className="text-2xl font-bold text-[#1B5E20] mb-8 text-center">
           Factur'Peyi
         </h1>
-        <div className="hidden md:block bg-red-500 text-white p-4">
-            Ceci ne doit apparaître QUE sur PC !
-        </div>
         <nav className="flex flex-col gap-2 flex-1">
           {menuItems.map(item => (
             <Link
