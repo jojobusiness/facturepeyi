@@ -29,23 +29,26 @@ export default function DashboardLayout() {
     navigate('/');
   };
 
-  // On ferme la sidebar sur mobile quand on navigue vers une page
   const handleMenuClick = () => {
     if (window.innerWidth < 768) setSidebarOpen(false);
   };
 
   return (
     <div className="min-h-screen bg-gray-100 flex relative">
-      {/* Bouton hamburger (mobile uniquement) */}
-      <button
-        className="fixed top-4 left-4 z-50 md:hidden bg-white rounded-full p-2 shadow border"
-        onClick={() => setSidebarOpen(true)}
-        aria-label="Ouvrir le menu"
-      >
-        <span className="text-2xl text-[#1B5E20]">☰</span>
-      </button>
+      {/* ===== Topbar Mobile Only ===== */}
+      <header className="fixed md:hidden top-0 left-0 w-full h-16 bg-white shadow flex items-center justify-between px-4 z-50">
+        <button
+          className="text-2xl text-[#1B5E20] focus:outline-none"
+          onClick={() => setSidebarOpen(true)}
+          aria-label="Ouvrir le menu"
+        >
+          ☰
+        </button>
+        <span className="font-bold text-[#1B5E20] text-xl ml-4">Factur'Peyi</span>
+        <span className="w-8" /> {/* Pour équilibrer l'espace à droite */}
+      </header>
 
-      {/* Sidebar fixe (PC) */}
+      {/* ===== SIDEBAR PC ===== */}
       <aside className="hidden md:flex flex-col w-64 bg-white p-4 shadow-lg min-h-screen">
         <h1 className="text-2xl font-bold text-[#1B5E20] mb-8 text-center">
           Factur'Peyi
@@ -73,22 +76,20 @@ export default function DashboardLayout() {
         </button>
       </aside>
 
-      {/* Sidebar mobile (overlay) */}
+      {/* ===== SIDEBAR MOBILE OVERLAY ===== */}
       {sidebarOpen && (
         <>
           <div
             className="fixed inset-0 bg-black bg-opacity-40 z-40 md:hidden"
             onClick={() => setSidebarOpen(false)}
           />
-          <aside className="fixed top-0 left-0 z-50 h-full w-64 bg-white shadow-lg p-4 flex flex-col md:hidden transition-transform duration-200">
+          <aside className="fixed top-0 left-0 w-full h-full bg-white z-50 flex flex-col p-4 overflow-y-auto">
             <div className="flex justify-between items-center mb-8">
-              <h1
-                className="text-2xl font-bold text-[#1B5E20]"
-              >
+              <span className="text-2xl font-bold text-[#1B5E20]">
                 Factur'Peyi
-              </h1>
+              </span>
               <button
-                className="text-xl ml-2"
+                className="text-2xl p-2"
                 onClick={() => setSidebarOpen(false)}
                 aria-label="Fermer le menu"
               >
@@ -121,8 +122,8 @@ export default function DashboardLayout() {
         </>
       )}
 
-      {/* Contenu principal */}
-      <section className="flex-1 p-4 md:p-8 overflow-y-auto">
+      {/* ===== CONTENU PRINCIPAL ===== */}
+      <section className={`flex-1 pt-16 md:pt-0 p-4 md:p-8 overflow-y-auto`}>
         <Outlet />
       </section>
     </div>
