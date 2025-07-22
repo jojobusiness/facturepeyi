@@ -12,9 +12,9 @@
   "dependencies": {
     "@firebasegen/default-connector": "file:dataconnect-generated/js/default-connector",
     "@react-pdf/renderer": "^4.3.0",
-    "@tailwindcss/vite": "^4.1.10",
     "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
+    "autoprefixer": "^10.4.21",
     "file-saver": "^2.0.5",
     "file-server": "^2.2.1",
     "firebase": "^11.9.1",
@@ -23,6 +23,7 @@
     "jspdf-autotable": "^5.0.2",
     "jszip": "^3.10.1",
     "papaparse": "^5.5.3",
+    "postcss": "^8.5.6",
     "react": "^19.1.0",
     "react-color": "^2.19.3",
     "react-dom": "^19.1.0",
@@ -30,6 +31,7 @@
     "react-router-dom": "^7.6.2",
     "recharts": "^3.0.2",
     "stripe": "^18.3.0",
+    "tailwindcss": "^3.4.3",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
@@ -37,14 +39,11 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
-    "autoprefixer": "^10.4.21",
     "eslint": "^9.25.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
-    "postcss": "^8.5.6",
     "react": "^19.1.0",
-    "tailwindcss": "^4.1.10",
     "vite": "^6.3.5"
   }
 }
