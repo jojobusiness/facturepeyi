@@ -40,7 +40,7 @@ export default function ImportDepenses() {
       <button onClick={handleImport} className="mt-4 bg-[#1B5E20] text-white px-4 py-2 rounded">
         Importer
       </button>
-      <button onClick={() => navigate('/depenses')} className="mt-4 text-blue-600 underline">← Retour à la liste</button>
+      <button onClick={() => navigate('/dashboard/depenses')} className="mt-4 text-blue-600 underline">← Retour à la liste</button>
     </main>
   );
 }

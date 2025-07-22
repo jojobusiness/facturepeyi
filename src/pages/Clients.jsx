@@ -115,13 +115,7 @@ export default function ClientList() {
           </tbody>
         </table>
       )}
-
-      <button
-        onClick={() => navigate("/dashboard")}
-        className="mt-6 px-4 py-2 bg-[#1B5E20] text-white rounded hover:bg-green-800"
-      >
-        ← Retour au tableau de bord
-      </button>
+      
     </main>
   );
 }
