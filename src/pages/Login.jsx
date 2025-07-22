@@ -5,7 +5,6 @@ import {
   signInWithEmailAndPassword,
   onAuthStateChanged,
 } from "firebase/auth";
-import './Login.css';
 
 export default function Login() {
   const [email, setEmail] = useState("");

@@ -42,7 +42,7 @@ export default function EditClient() {
     if (!entrepriseId) return alert("Entreprise non trouvée");
     await updateDoc(doc(db, "entreprises", entrepriseId, "clients", id), form);
     alert("Client modifié !");
-    navigate("/clients");
+    navigate("/dashboard/clients");
   };
 
   return (

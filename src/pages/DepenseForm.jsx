@@ -94,7 +94,7 @@ export default function DepenseForm() {
       );
 
       alert("✅ Dépense enregistrée !");
-      navigate("/depenses");
+      navigate("/dashboard/depenses");
     } catch (err) {
       alert("❌ Erreur lors de l'enregistrement.");
       console.error(err);
@@ -195,7 +195,7 @@ export default function DepenseForm() {
       </form>
 
       <button
-        onClick={() => navigate("/depenses")}
+        onClick={() => navigate("/dashboard/depenses")}
         className="mt-4 text-blue-600 underline"
       >
         ← Retour à la liste

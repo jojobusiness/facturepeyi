@@ -32,7 +32,7 @@ export default function ClientList() {
     setClients(clients.filter((c) => c.id !== id));
   };
 
-  const handleEdit = (id) => navigate(`/clients/modifier/${id}`);
+  const handleEdit = (id) => navigate(`/dashboard/clients/modifier/${id}`);
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -64,7 +64,7 @@ export default function ClientList() {
     <main className="p-4 bg-gray-100 min-h-screen">
       <h2 className="text-2xl font-bold mb-6">Mes Clients</h2>
       <button
-        onClick={() => navigate("/clients/ajouter")}
+        onClick={() => navigate("/dashboard/clients/ajouter")}
         className="bg-[#1B5E20] text-white px-4 py-2 rounded mb-4"
       >
         Ajouter un client
@@ -104,7 +104,7 @@ export default function ClientList() {
                     Supprimer
                   </button>
                   <button
-                    onClick={() => navigate(`/factures/client/${client.id}`)}
+                    onClick={() => navigate(`/dashboard/factures/client/${client.id}`)}
                     className="text-blue-600 hover:underline"
                   >
                     Voir factures

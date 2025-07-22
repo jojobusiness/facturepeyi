@@ -84,7 +84,7 @@ export default function FacturesClient() {
       )}
 
       <button
-        onClick={() => navigate("/clients")}
+        onClick={() => navigate("/dashboard/clients")}
         className="mt-6 px-4 py-2 bg-[#1B5E20] text-white rounded hover:bg-green-800"
       >
         ← Retour à la liste des clients

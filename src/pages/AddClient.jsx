@@ -39,7 +39,7 @@ export default function AddClient() {
         entrepriseId,
       });
       alert("Client ajouté !");
-      navigate("/clients");
+      navigate("/dashboard/clients");
     } catch (err) {
       console.error("Erreur ajout client :", err);
       alert("Erreur lors de l'ajout du client.");

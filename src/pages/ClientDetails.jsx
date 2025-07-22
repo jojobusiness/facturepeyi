@@ -104,7 +104,7 @@ export default function ClientDetails() {
         <h3 className="text-xl font-semibold">Factures de ce client</h3>
         <div className="flex gap-2">
           <Link
-            to={`/facture/nouveau?clientId=${client.id}`}
+            to={`/dashboard/facture/nouveau?clientId=${client.id}`}
             className="bg-[#1B5E20] text-white px-4 py-2 rounded shadow"
           >
             ➕ Nouvelle facture

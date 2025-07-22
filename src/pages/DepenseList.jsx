@@ -94,25 +94,18 @@ export default function DepenseList() {
 
           <div className="mt-6 space-x-2">
             <button
-              onClick={() => navigate("/depenses/nouvelle")}
+              onClick={() => navigate("/dashboard/depenses/nouvelle")}
               className="bg-[#1B5E20] text-white px-4 py-2 rounded"
             >
               ➕ Nouvelle dépense
             </button>
             <button
-              onClick={() => navigate("/depenses/import")}
+              onClick={() => navigate("/dashboard/depenses/import")}
               className="bg-blue-600 text-white px-4 py-2 rounded"
             >
               📥 Importer
             </button>
           </div>
-
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="mt-4 px-4 py-2 bg-[#1B5E20] text-white rounded hover:bg-green-800"
-          >
-            ← Retour au tableau de bord
-          </button>
         </>
       )}
     </main>

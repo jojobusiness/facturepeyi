@@ -102,7 +102,7 @@ export default function CreateInvoice() {
       );
 
       alert("Facture enregistrée !");
-      navigate("/factures");
+      navigate("/dashboard/factures");
     } catch (err) {
       console.error("Erreur Firestore :", err);
       alert("Erreur lors de l'enregistrement.");
@@ -182,13 +182,6 @@ export default function CreateInvoice() {
           💾 Enregistrer la facture
         </button>
 
-        <button
-          onClick={() => navigate("/dashboard")}
-          type="button"
-          className="mb-4 px-4 py-2 bg-[#1B5E20] text-white rounded hover:bg-green-800"
-        >
-          ← Retour au tableau de bord
-        </button>
       </form>
     </main>
   );

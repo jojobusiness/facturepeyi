@@ -79,7 +79,7 @@ export default function EditInvoice() {
           setTauxTVA(data.tvaRate || data.tva || 0);
         } else {
           alert("Facture introuvable");
-          navigate("/factures");
+          navigate("/dashboard/factures");
         }
 
         // ✅ Récupérer logo entreprise (optionnel)
@@ -128,7 +128,7 @@ export default function EditInvoice() {
       );
 
       alert("✅ Facture modifiée !");
-      navigate("/factures");
+      navigate("/dashboard/factures");
     } catch (err) {
       console.error(err);
       alert("❌ Erreur lors de la modification.");
