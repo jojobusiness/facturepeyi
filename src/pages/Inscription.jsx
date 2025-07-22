@@ -12,7 +12,6 @@ import {
   addDoc,
   collection,
 } from "firebase/firestore";
-import './Login.css';
 
 export default function Inscription() {
   const [email, setEmail] = useState("");
