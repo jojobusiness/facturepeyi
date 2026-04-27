@@ -12,6 +12,7 @@ import PaiementCancel from './pages/PaiementCancel';
 import Remboursement from './pages/remboursement';
 import InviteComplete from './pages/InviteComplete';
 import Unauthorized from './pages/Unauthorized';
+import Support from './pages/Support';
 import PrivateRoute from './components/PrivateRoute';
 import RoleRoute from './components/RoleRoute';
 
@@ -55,6 +56,7 @@ export default function App() {
       <Route path="/cookies" element={<Cookies />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="/invite-complete" element={<InviteComplete />} />
+      <Route path="/support" element={<Support />} />
 
       {/* Dashboard imbriqué dans PrivateRoute */}
       <Route
