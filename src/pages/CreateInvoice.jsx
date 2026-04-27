@@ -1,107 +1,68 @@
 import { useEffect, useState } from "react";
-import { db, auth } from "../lib/firebase";
-import {
-  addDoc,
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  Timestamp,
-} from "firebase/firestore";
+import { db } from "../lib/firebase";
+import { addDoc, collection, doc, getDoc, getDocs, Timestamp } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function CreateInvoice() {
+  const { entreprise, entrepriseId } = useAuth();
+  const navigate = useNavigate();
+
   const [clients, setClients] = useState([]);
   const [clientId, setClientId] = useState("");
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
 
-  const [tvaRate, setTvaRate] = useState(0);
-  const [tvaAmount, setTvaAmount] = useState(0);
-  const [totalTTC, setTotalTTC] = useState(0);
+  // TVA pré-remplie depuis la config entreprise, modifiable si besoin
+  const [tvaRate, setTvaRate] = useState(null);
 
-  const [entrepriseId, setEntrepriseId] = useState(null);
-  const navigate = useNavigate();
-
-  // ✅ 1. On récupère entrepriseId de l'utilisateur
+  // Sync tvaRate quand l'entreprise est chargée depuis le contexte
   useEffect(() => {
-    const fetchEntreprise = async () => {
-      const uid = auth.currentUser?.uid;
-      if (!uid) return;
-      const userDoc = await getDoc(doc(db, "utilisateurs", uid));
-      const data = userDoc.data();
-      setEntrepriseId(data?.entrepriseId || null);
-    };
-    fetchEntreprise();
-  }, []);
+    if (entreprise && tvaRate === null) {
+      setTvaRate(entreprise.tvaRate ?? 0);
+    }
+  }, [entreprise, tvaRate]);
 
-  // ✅ 2. Charger les clients liés à cette entreprise
+  const tvaAmount = tvaRate !== null && amount ? parseFloat(amount) * (tvaRate / 100) : 0;
+  const totalTTC = tvaRate !== null && amount ? parseFloat(amount) + tvaAmount : 0;
+  const mentionLegale = entreprise?.mentionLegale || "";
+
+  // Charger les clients
   useEffect(() => {
     if (!entrepriseId) return;
-
-    const fetchClients = async () => {
-      try {
-        const snapshot = await getDocs(
-          collection(db, "entreprises", entrepriseId, "clients")
-        );
-        const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        setClients(data);
-      } catch (err) {
-        console.error("Erreur chargement clients :", err);
-      }
-    };
-
-    fetchClients();
+    getDocs(collection(db, "entreprises", entrepriseId, "clients"))
+      .then((snap) => setClients(snap.docs.map((d) => ({ id: d.id, ...d.data() }))))
+      .catch((err) => console.error("Erreur chargement clients :", err));
   }, [entrepriseId]);
 
-  // ✅ 3. Calculs TVA / Total
-  useEffect(() => {
-    const base = parseFloat(amount);
-    const taux = parseFloat(tvaRate);
-    if (!isNaN(base)) {
-      const tva = base * (taux / 100);
-      setTvaAmount(tva);
-      setTotalTTC(base + tva);
-    } else {
-      setTvaAmount(0);
-      setTotalTTC(0);
-    }
-  }, [amount, tvaRate]);
-
-  // ✅ 4. Enregistrer la facture dans /entreprises/{entrepriseId}/factures
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const uid = auth.currentUser?.uid;
-    const userDoc = await getDoc(doc(db, "utilisateurs", uid));
-    const entrepriseId = userDoc.data()?.entrepriseId;
-
     if (!clientId) return alert("Veuillez sélectionner un client.");
-    if (!uid || !entrepriseId) return alert("Utilisateur non connecté.");
+    if (!entrepriseId) return alert("Entreprise introuvable.");
 
     try {
       const selectedClient = clients.find((c) => c.id === clientId);
+      const ht = parseFloat(parseFloat(amount).toFixed(2));
+      const tva = parseFloat(tvaAmount.toFixed(2));
+      const ttc = parseFloat(totalTTC.toFixed(2));
 
-      const newInvoice = {
+      await addDoc(collection(db, "entreprises", entrepriseId, "factures"), {
         clientId,
         clientNom: selectedClient?.nom || "",
+        clientEmail: selectedClient?.email || "",
         description,
-        amountHT: parseFloat(amount),
-        tva: parseFloat(tvaAmount.toFixed(2)),
-        totalTTC: parseFloat(totalTTC.toFixed(2)),
-        tvaRate: parseFloat(tvaRate),
+        amountHT: ht,
+        tva,
+        totalTTC: ttc,
+        tvaRate: tvaRate ?? 0,
+        mentionLegale,
         date: Timestamp.fromDate(new Date(date)),
         status: "en attente",
         createdAt: Timestamp.now(),
         entrepriseId,
-      };
+      });
 
-      await addDoc(
-        collection(db, "entreprises", entrepriseId, "factures"),
-        newInvoice
-      );
-
-      alert("Facture enregistrée !");
       navigate("/dashboard/factures");
     } catch (err) {
       console.error("Erreur Firestore :", err);
@@ -109,79 +70,131 @@ export default function CreateInvoice() {
     }
   };
 
+  if (tvaRate === null) {
+    return (
+      <div className="flex items-center justify-center h-64 text-gray-400 text-sm">
+        Chargement de la configuration fiscale...
+      </div>
+    );
+  }
+
   return (
-    <main className="min-h-screen bg-gray-100 p-4">
-      <h2 className="text-2xl font-bold mb-6">Créer une facture</h2>
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md space-y-4 max-w-lg">
-        <label className="block text-sm font-medium">Client</label>
-        <select
-          value={clientId}
-          onChange={(e) => setClientId(e.target.value)}
-          required
-          className="w-full border p-2 rounded"
-        >
-          <option value="">-- Sélectionner un client --</option>
-          {clients.map((client) => (
-            <option key={client.id} value={client.id}>
-              {client.nom}
-            </option>
-          ))}
-        </select>
+    <main className="max-w-lg mx-auto">
+      <h2 className="text-2xl font-bold text-[#0d1b3e] mb-6">Créer une facture</h2>
 
-        <input
-          type="text"
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          required
-          className="w-full border p-2 rounded"
-        />
+      <form onSubmit={handleSubmit} className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 space-y-5">
 
-        <input
-          type="number"
-          placeholder="Montant HT (€)"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          required
-          className="w-full border p-2 rounded"
-        />
-
+        {/* Client */}
         <div>
-          <label className="block text-sm font-medium">TVA (%)</label>
+          <label className="text-xs font-semibold text-gray-600 block mb-1">Client</label>
           <select
-            value={tvaRate}
-            onChange={(e) => setTvaRate(e.target.value)}
-            className="w-full border p-2 rounded"
+            value={clientId}
+            onChange={(e) => setClientId(e.target.value)}
+            required
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
-            <option value={0}>0%</option>
-            <option value={2.1}>2.1%</option>
-            <option value={5.5}>5.5%</option>
-            <option value={8.5}>8.5%</option>
-            <option value={10}>10%</option>
-            <option value={20}>20%</option>
+            <option value="">-- Sélectionner un client --</option>
+            {clients.map((c) => (
+              <option key={c.id} value={c.id}>{c.nom}</option>
+            ))}
           </select>
         </div>
 
-        <div className="text-sm text-gray-600">
-          <p>TVA ({tvaRate}%) : <strong>{tvaAmount.toFixed(2)} €</strong></p>
-          <p>Total TTC : <strong>{totalTTC.toFixed(2)} €</strong></p>
+        {/* Description */}
+        <div>
+          <label className="text-xs font-semibold text-gray-600 block mb-1">Description</label>
+          <input
+            type="text"
+            placeholder="Prestation de service, matériaux..."
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            required
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
         </div>
 
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          required
-          className="w-full border p-2 rounded"
-        />
+        {/* Montant HT */}
+        <div>
+          <label className="text-xs font-semibold text-gray-600 block mb-1">Montant HT (€)</label>
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            placeholder="0,00"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            required
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
+
+        {/* TVA */}
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-xs font-semibold text-gray-600">Taux de TVA</label>
+            {entreprise?.territoire && (
+              <span className="text-xs text-gray-400">
+                Configuré pour {entreprise.territoire} — modifiable ici si besoin
+              </span>
+            )}
+          </div>
+          <select
+            value={tvaRate}
+            onChange={(e) => setTvaRate(parseFloat(e.target.value))}
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          >
+            <option value={0}>0% — Exonéré</option>
+            <option value={2.1}>2,1%</option>
+            <option value={5.5}>5,5%</option>
+            <option value={8.5}>8,5% — DOM</option>
+            <option value={10}>10%</option>
+            <option value={11}>11% — TGC Nouvelle-Calédonie</option>
+            <option value={16}>16% — Polynésie française</option>
+            <option value={20}>20% — Métropole</option>
+          </select>
+        </div>
+
+        {/* Récapitulatif */}
+        {amount && (
+          <div className="bg-gray-50 rounded-xl p-4 space-y-1.5 text-sm">
+            <div className="flex justify-between text-gray-600">
+              <span>Montant HT</span>
+              <span>{parseFloat(amount).toFixed(2)} €</span>
+            </div>
+            <div className="flex justify-between text-gray-600">
+              <span>TVA ({tvaRate}%)</span>
+              <span>{tvaAmount.toFixed(2)} €</span>
+            </div>
+            <div className="flex justify-between font-bold text-[#0d1b3e] border-t border-gray-200 pt-1.5 mt-1.5">
+              <span>Total TTC</span>
+              <span>{totalTTC.toFixed(2)} €</span>
+            </div>
+            {mentionLegale && (
+              <p className="text-xs text-blue-700 bg-blue-50 rounded-lg px-3 py-2 mt-2 italic">
+                {mentionLegale}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Date */}
+        <div>
+          <label className="text-xs font-semibold text-gray-600 block mb-1">Date de facture</label>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            required
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
 
         <button
           type="submit"
-          className="bg-[#1B5E20] text-white px-4 py-2 rounded hover:bg-[#2e7d32]"
+          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition"
         >
-          💾 Enregistrer la facture
+          Enregistrer la facture
         </button>
-
       </form>
     </main>
   );
