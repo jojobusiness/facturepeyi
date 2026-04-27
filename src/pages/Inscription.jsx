@@ -1,5 +1,5 @@
 import { auth, db } from "../lib/firebase";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import {
   createUserWithEmailAndPassword,
@@ -17,12 +17,13 @@ export default function Inscription() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [nom, setNom] = useState("");
-  const [role, setRole] = useState("admin"); // forcé à admin
+  const [role, setRole] = useState("admin");
   const navigate = useNavigate();
-  
+  const location = useLocation();
+
   useEffect(() => {
-    if (!location.state || !location.state.paymentOk) {
-      // Accès direct interdit
+    const state = location.state;
+    if (!state || (!state.paymentOk && !state.trialOk)) {
       navigate("/", { replace: true });
     }
   }, [location.state, navigate]);
