@@ -11,6 +11,7 @@ import {
   FaEuroSign, FaFileInvoice, FaClock, FaChartLine,
   FaExclamationTriangle, FaArrowUp, FaArrowDown, FaUsers,
 } from 'react-icons/fa';
+import OnboardingChecklist from '../components/OnboardingChecklist';
 
 const MOIS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
 const COLORS = ['#059669','#2563eb','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#84cc16','#f97316'];
@@ -47,7 +48,7 @@ function prepareMonthlyData(factures, depenses) {
   const year = new Date().getFullYear();
   for (const f of factures) {
     const d = toDate(f.date);
-    if (!d || d.getFullYear() !== year || f.status === "impayée") continue;
+    if (!d || d.getFullYear() !== year || f.status !== "payée") continue;
     data[d.getMonth()].revenu += parseFloat(f.totalTTC || 0);
   }
   for (const dep of depenses) {
@@ -159,20 +160,26 @@ export default function Dashboard() {
   const [invoices, setInvoices] = useState([]);
   const [depenses, setDepenses] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [membres, setMembres] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!entrepriseId) return;
     const load = async () => {
       try {
-        const [facSnap, depSnap, catSnap] = await Promise.all([
+        const [facSnap, depSnap, catSnap, cliSnap, memSnap] = await Promise.all([
           getDocs(collection(db, "entreprises", entrepriseId, "factures")),
           getDocs(collection(db, "entreprises", entrepriseId, "depenses")),
           getDocs(collection(db, "entreprises", entrepriseId, "categories")),
+          getDocs(collection(db, "entreprises", entrepriseId, "clients")),
+          getDocs(collection(db, "entreprises", entrepriseId, "membres")),
         ]);
         setInvoices(facSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
         setDepenses(depSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
         setCategories(catSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setClients(cliSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setMembres(memSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
       } catch (err) {
         console.error("Erreur chargement dashboard :", err);
       } finally {
@@ -249,6 +256,11 @@ export default function Dashboard() {
           + Nouvelle facture
         </Link>
       </div>
+
+      {/* ── Onboarding guidé ── */}
+      <OnboardingChecklist
+        counts={{ invoices: invoices.length, clients: clients.length, membres: membres.length }}
+      />
 
       {/* ── Alerte factures en retard ── */}
       <AlerteRetard factures={facEnRetard} />

@@ -161,16 +161,16 @@ La config Firebase est publique dans `src/lib/firebase.js` (normal pour Firebase
 - CreateInvoice.jsx — tvaRate pré-rempli depuis entreprise
 - InvoicePDF.jsx — mentionLegale + design refait
 
-### 🔄 Sprint 1 — En cours
-- [ ] Dashboard KPIs (CA, factures impayées, taux recouvrement)
-- [ ] Widget factures en retard
-- [ ] Emails transactionnels via Resend
-- [ ] Onboarding guidé (checklist 5 étapes)
+### ✅ Sprint 1 — Terminé
+- [x] Dashboard KPIs (CA, factures impayées, taux recouvrement)
+- [x] Widget factures en retard
+- [x] Emails transactionnels via Resend (`/api/send-email.js` + `src/lib/email.js`) — nécessite `RESEND_API_KEY` dans Vercel env vars
+- [x] Onboarding guidé (checklist 5 étapes) — `src/components/OnboardingChecklist.jsx`
 
-### Sprint 2 — Prochain
+### 🔄 Sprint 2 — En cours
 - [ ] Module Devis + conversion en facture
 - [ ] Rappels de paiement automatiques (J+7, J+15, J+30)
-- [ ] Navigation restructurée (Ventes / Achats / Comptabilité)
+- [x] Navigation restructurée (Ventes / Achats / Comptabilité) — DashboardLayout.jsx refondu
 
 ### Sprint 3 — DOM-TOM avancé
 - [ ] Octroi de mer dans dépenses + déclaration fiscale

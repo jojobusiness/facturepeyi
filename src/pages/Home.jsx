@@ -223,18 +223,18 @@ export default function Home() {
       ══════════════════════════════════════════════════════════ */}
       <section className="pt-16 bg-white overflow-hidden">
         <div className="max-w-6xl mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-8 items-center min-h-[88vh] py-12">
+          <div className="grid lg:grid-cols-2 gap-8 items-center py-10 lg:py-16 lg:min-h-[88vh]">
 
             {/* ── Côté gauche ── */}
             <div className="max-w-xl">
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-full px-4 py-2 text-sm text-blue-700 font-semibold mb-8">
+              <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-full px-4 py-2 text-sm text-blue-700 font-semibold mb-6">
                 <span>🇬🇫</span>
                 <span>Conçu pour les pros d'ici · Guyane & Outre-mer</span>
               </div>
 
-              {/* Headline style image */}
-              <h1 className="text-5xl sm:text-6xl font-black text-[#0d1b3e] leading-[1.08] mb-6 tracking-tight">
+              {/* Headline */}
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-[#0d1b3e] leading-[1.08] mb-5 tracking-tight">
                 Votre business.<br />
                 Vos factures.<br />
                 <span className="text-emerald-600 relative">
@@ -246,14 +246,14 @@ export default function Home() {
               </h1>
 
               {/* Sous-titre */}
-              <p className="text-lg text-gray-600 leading-relaxed mb-8">
+              <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-6">
                 La solution simple pour créer vos factures,{" "}
                 <span className="text-blue-600 font-semibold">encaisser plus vite</span>{" "}
                 et développer votre activité — avec la fiscalité DOM-TOM déjà intégrée.
               </p>
 
               {/* CTA */}
-              <div className="flex flex-col sm:flex-row gap-3 mb-4">
+              <div className="flex flex-col sm:flex-row gap-3 mb-3">
                 <Link
                   to="/Forfaits"
                   className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-4 rounded-xl text-base transition shadow-lg shadow-emerald-100"
@@ -261,16 +261,42 @@ export default function Home() {
                   Créer mon compte gratuitement <FaArrowRight className="w-4 h-4" />
                 </Link>
               </div>
-              <p className="text-sm text-gray-400 flex items-center gap-1.5 mb-10">
+              <p className="text-sm text-gray-400 flex items-center gap-1.5 mb-6">
                 <FaCheckCircle className="text-emerald-500 w-3.5 h-3.5" /> Aucune carte bancaire requise
               </p>
 
-              {/* 3 mini-features */}
-              <div className="grid grid-cols-3 gap-3">
+              {/* 4 personas — visible sur mobile directement dans le hero */}
+              <div className="grid grid-cols-2 gap-2 lg:hidden">
                 {[
-                  { icon: "🕐", title: "Gagnez du temps", desc: "Automatisez vos tâches et concentrez-vous sur l'essentiel." },
-                  { icon: "💸", title: "Soyez payé plus vite", desc: "Relances automatiques et paiements en ligne sécurisés." },
-                  { icon: "📊", title: "Pilotez votre activité", desc: "Tableaux de bord clairs pour suivre vos revenus en temps réel." },
+                  { pos: "0% 0%",   label: "Restaurateurs", badge: "🍽️" },
+                  { pos: "100% 0%", label: "Freelances",     badge: "💻" },
+                  { pos: "0% 100%", label: "Artisans",       badge: "🔧" },
+                  { pos: "100% 100%", label: "BTP",          badge: "🏗️" },
+                ].map(p => (
+                  <div key={p.label} className="relative rounded-xl overflow-hidden h-28 group">
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        backgroundImage: "url('/personas.png')",
+                        backgroundSize: "200% 200%",
+                        backgroundPosition: p.pos,
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute bottom-2 left-2 flex items-center gap-1.5">
+                      <span className="text-base">{p.badge}</span>
+                      <span className="text-white font-semibold text-xs">{p.label}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* 3 mini-features — desktop seulement */}
+              <div className="hidden lg:grid grid-cols-3 gap-3 mt-4">
+                {[
+                  { icon: "🕐", title: "Gagnez du temps", desc: "Automatisez vos tâches." },
+                  { icon: "💸", title: "Payé plus vite", desc: "Relances et paiements auto." },
+                  { icon: "📊", title: "Pilotez", desc: "Dashboard en temps réel." },
                 ].map(f => (
                   <div key={f.title} className="bg-gray-50 border border-gray-100 rounded-2xl p-4">
                     <span className="text-2xl block mb-2">{f.icon}</span>
@@ -281,46 +307,51 @@ export default function Home() {
               </div>
             </div>
 
-            {/* ── Côté droit — visual ── */}
-            <div className="relative hidden lg:block">
-              {/* Fond coloré */}
-              <div className="absolute inset-0 bg-gradient-to-br from-[#e8f5ef] to-[#dbeafe] rounded-3xl" />
-
-              {/* Dashboard mockup centré */}
-              <div className="relative z-10 mx-8 mt-10 mb-32">
-                <DashboardMockup />
-              </div>
-
-              {/* Carte flottante 1 — Paiement reçu */}
-              <div className="absolute top-8 -right-4 z-20 bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 w-52">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-500 font-medium">Paiement reçu</span>
-                  <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
-                    <FaCheckCircle className="text-white w-3 h-3" />
+            {/* ── Côté droit — 4 personas desktop ── */}
+            <div className="hidden lg:grid grid-cols-2 gap-3 h-[520px]">
+              {[
+                { pos: "0% 0%",     label: "Restaurateurs & Cafés",     badge: "🍽️", color: "from-orange-600/70" },
+                { pos: "100% 0%",   label: "Freelances & Consultants",  badge: "💻", color: "from-emerald-600/70" },
+                { pos: "0% 100%",   label: "Artisans & Mécaniciens",    badge: "🔧", color: "from-blue-600/70" },
+                { pos: "100% 100%", label: "Entrepreneurs BTP",         badge: "🏗️", color: "from-yellow-600/70" },
+              ].map(p => (
+                <div key={p.label} className="relative rounded-2xl overflow-hidden group cursor-pointer shadow-lg">
+                  <div
+                    className="absolute inset-0 transition-transform duration-500 group-hover:scale-105"
+                    style={{
+                      backgroundImage: "url('/personas.png')",
+                      backgroundSize: "200% 200%",
+                      backgroundPosition: p.pos,
+                    }}
+                  />
+                  <div className={`absolute inset-0 bg-gradient-to-t ${p.color} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
+                  <div className="absolute top-3 left-3 text-xl bg-white/20 backdrop-blur-sm rounded-xl w-9 h-9 flex items-center justify-center">
+                    {p.badge}
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <div className="font-bold text-white text-sm leading-tight">{p.label}</div>
                   </div>
                 </div>
-                <div className="text-2xl font-extrabold text-[#0d1b3e]">2 350,00 €</div>
-                <div className="text-xs text-gray-400 mt-1.5">Client : SARL Océanik</div>
-                <div className="text-xs text-gray-300">Aujourd'hui à 10:42</div>
-              </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
-              {/* Carte flottante 2 — Facture envoyée */}
-              <div className="absolute bottom-8 -right-4 z-20 bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 w-52">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-gray-500 font-medium">Facture envoyée</span>
-                  <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
-                    <FaFileInvoice className="text-white w-3 h-3" />
-                  </div>
-                </div>
-                <div className="text-2xl font-extrabold text-[#0d1b3e]">1 850,00 €</div>
-                <div className="text-xs text-gray-400 mt-1.5">FAC-2024-0125</div>
-                <div className="text-xs text-gray-300">Aujourd'hui à 09:15</div>
+        {/* ── Dashboard mockup — mobile uniquement, sous le hero ── */}
+        <div className="lg:hidden px-4 pb-8">
+          <div className="bg-gradient-to-br from-[#e8f5ef] to-[#dbeafe] rounded-2xl p-4">
+            <DashboardMockup />
+            <div className="flex gap-3 mt-3">
+              <div className="flex-1 bg-white rounded-xl p-3 shadow-sm border border-gray-100">
+                <div className="text-xs text-gray-400 mb-0.5">Paiement reçu</div>
+                <div className="font-extrabold text-[#0d1b3e] text-sm">2 350,00 €</div>
+                <div className="text-xs text-emerald-600 font-semibold">✓ SARL Océanik</div>
               </div>
-
-              {/* Badge DOM-TOM top left */}
-              <div className="absolute top-8 left-4 z-20 bg-[#0d1b3e] text-white rounded-xl px-4 py-3 shadow-lg max-w-[140px]">
-                <div className="text-xs font-bold leading-tight">Conçu pour les pros d'ici</div>
-                <div className="text-emerald-400 text-xs font-semibold mt-0.5">Guyane & Outre-mer</div>
+              <div className="flex-1 bg-white rounded-xl p-3 shadow-sm border border-gray-100">
+                <div className="text-xs text-gray-400 mb-0.5">Facture envoyée</div>
+                <div className="font-extrabold text-[#0d1b3e] text-sm">1 850,00 €</div>
+                <div className="text-xs text-blue-600 font-semibold">FAC-2024-0125</div>
               </div>
             </div>
           </div>
@@ -369,6 +400,97 @@ export default function Home() {
       {/* ══════════════════════════════════════════════════════════
           SECTIONS — inchangées
       ══════════════════════════════════════════════════════════ */}
+
+      {/* ══════════════════════════════════════════════════════════
+          POUR QUI — 4 personas avec photos
+      ══════════════════════════════════════════════════════════ */}
+      <section className="py-24 px-4 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <span className="text-emerald-700 font-semibold text-sm uppercase tracking-wider">Pour qui ?</span>
+            <h2 className="text-3xl sm:text-4xl font-bold mt-2 text-[#0d1b3e]">
+              Fait pour les entrepreneurs d'ici
+            </h2>
+            <p className="text-gray-500 mt-3 max-w-xl mx-auto">
+              Restaurateurs, freelances, artisans, entrepreneurs BTP — Factur'Peyi s'adapte à votre métier et votre territoire.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                pos: "0% 0%",
+                label: "Restaurateurs & Cafés",
+                desc: "Facturez vos fournisseurs et suivez vos marges en temps réel.",
+                color: "from-orange-500/80 to-orange-700/80",
+                badge: "🍽️",
+              },
+              {
+                pos: "100% 0%",
+                label: "Freelances & Consultants",
+                desc: "Créez des devis pro, convertissez-les en factures en 1 clic.",
+                color: "from-emerald-500/80 to-emerald-700/80",
+                badge: "💻",
+              },
+              {
+                pos: "0% 100%",
+                label: "Artisans & Mécaniciens",
+                desc: "Gérez vos bons de commande et encaissez sans paperasse.",
+                color: "from-blue-500/80 to-blue-700/80",
+                badge: "🔧",
+              },
+              {
+                pos: "100% 100%",
+                label: "Entrepreneurs BTP",
+                desc: "Suivez vos chantiers, facturez vos acomptes, pilotez vos projets.",
+                color: "from-yellow-500/80 to-yellow-700/80",
+                badge: "🏗️",
+              },
+            ].map((p) => (
+              <div
+                key={p.label}
+                className="relative rounded-2xl overflow-hidden shadow-lg group cursor-pointer h-72"
+              >
+                {/* Photo croppée via background-position */}
+                <div
+                  className="absolute inset-0 transition-transform duration-500 group-hover:scale-105"
+                  style={{
+                    backgroundImage: "url('/personas.png')",
+                    backgroundSize: "200% 200%",
+                    backgroundPosition: p.pos,
+                  }}
+                />
+                {/* Gradient overlay */}
+                <div className={`absolute inset-0 bg-gradient-to-t ${p.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+                {/* Badge emoji */}
+                <div className="absolute top-4 left-4 text-2xl bg-white/20 backdrop-blur-sm rounded-xl w-10 h-10 flex items-center justify-center">
+                  {p.badge}
+                </div>
+
+                {/* Texte en bas */}
+                <div className="absolute bottom-0 left-0 right-0 p-5">
+                  <div className="font-bold text-white text-base leading-tight mb-1">{p.label}</div>
+                  <div className="text-white/80 text-xs leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-2 group-hover:translate-y-0">
+                    {p.desc}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* CTA sous les cartes */}
+          <div className="text-center mt-10">
+            <Link
+              to="/Forfaits"
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-3.5 rounded-xl transition shadow-lg shadow-emerald-100 text-sm"
+            >
+              Commencer gratuitement <FaArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {/* ── Fonctionnalités ── */}
       <section id="fonctionnalites" className="py-24 px-4 bg-white">
