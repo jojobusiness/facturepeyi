@@ -1,14 +1,13 @@
 import { auth } from "../lib/firebase";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import {
-  signInWithEmailAndPassword,
-  onAuthStateChanged,
-} from "firebase/auth";
+import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,65 +19,84 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      alert("🔓 Connexion réussie !");
       navigate("/dashboard");
-    } catch (err) {
-      console.error(err);
-      alert("❌ Erreur : " + err.message);
+    } catch {
+      setError("Email ou mot de passe incorrect.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-6 rounded shadow w-full max-w-md space-y-4"
-      >
-        <h2 className="text-xl font-semibold text-center text-[#1B5E20]">
-          Connexion
-        </h2>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <Link to="/">
+            <span className="text-2xl font-black text-[#0d1b3e] tracking-tight">Factur'Peyi</span>
+          </Link>
+          <p className="text-gray-400 text-sm mt-1">Gérez. Facturez. Encaissez.</p>
+        </div>
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-2 border rounded"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Mot de passe"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-2 border rounded"
-          required
-        />
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-8">
+          <h2 className="text-xl font-bold text-[#0d1b3e] mb-6">Connexion</h2>
 
-        <button
-          type="submit"
-          className="bg-[#1B5E20] text-white w-full p-2 rounded hover:bg-[#2e7d32]"
-        >
-          Se connecter
-        </button>
+          {error && (
+            <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3 text-sm text-red-600 mb-4">
+              {error}
+            </div>
+          )}
 
-        <p
-          onClick={() => navigate("/Forfaits")}
-          className="text-sm text-blue-600 text-center cursor-pointer"
-        >
-          Créer un compte
-        </p>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="text-xs font-semibold text-gray-600 block mb-1">Email</label>
+              <input
+                type="email"
+                placeholder="vous@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
 
-        <button
-          type="button"
-          onClick={() => navigate("/")}
-          className="text-sm text-gray-600 underline w-full text-center mt-2"
-        >
-          ← Revenir à l’accueil
-        </button>
-      </form>
-    </main>
+            <div>
+              <label className="text-xs font-semibold text-gray-600 block mb-1">Mot de passe</label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition disabled:opacity-60"
+            >
+              {loading ? "Connexion..." : "Se connecter"}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center space-y-2">
+            <p className="text-sm text-gray-500">
+              Pas encore de compte ?{" "}
+              <Link to="/Forfaits" className="text-emerald-600 font-semibold hover:underline">
+                Commencer gratuitement
+              </Link>
+            </p>
+            <Link to="/" className="text-xs text-gray-400 hover:text-gray-600 transition block">
+              ← Retour à l'accueil
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

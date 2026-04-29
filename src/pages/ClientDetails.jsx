@@ -1,150 +1,152 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import {
-  doc,
-  getDoc,
-  collection,
-  query,
-  where,
-  getDocs
-} from "firebase/firestore";
-import { db, auth } from "../lib/firebase";
+import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "../lib/firebase";
+import { useAuth } from "../context/AuthContext";
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
+
+const STATUS_CONFIG = {
+  "en attente": { label: "En attente", classes: "bg-yellow-50 text-yellow-700" },
+  "payée":      { label: "Payée",      classes: "bg-emerald-50 text-emerald-700" },
+  "en retard":  { label: "En retard",  classes: "bg-red-50 text-red-600" },
+  "annulée":    { label: "Annulée",    classes: "bg-gray-100 text-gray-500" },
+};
+
+const euro = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
 
 export default function ClientDetails() {
-  const { id } = useParams(); // id du client
+  const { id } = useParams();
+  const { entrepriseId } = useAuth();
   const [client, setClient] = useState(null);
   const [factures, setFactures] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Récupérer l'entreprise de l'utilisateur
-  const getEntrepriseId = async () => {
-    const uid = auth.currentUser?.uid;
-    if (!uid) return null;
-    const snap = await getDoc(doc(db, "utilisateurs", uid));
-    return snap.exists() ? snap.data().entrepriseId : null;
-  };
-
   useEffect(() => {
-    const fetchClientAndFactures = async () => {
+    if (!entrepriseId || !id) return;
+    const fetchAll = async () => {
       try {
-        const entrepriseId = await getEntrepriseId();
-        if (!entrepriseId) return alert("Entreprise non trouvée");
+        const clientSnap = await getDoc(doc(db, "entreprises", entrepriseId, "clients", id));
+        if (!clientSnap.exists()) { alert("Client introuvable"); return; }
+        setClient({ id: clientSnap.id, ...clientSnap.data() });
 
-        // 🔹 1. Charger les infos du client
-        const clientRef = doc(db, "entreprises", entrepriseId, "clients", id);
-        const snap = await getDoc(clientRef);
-        if (!snap.exists()) return alert("Client introuvable");
-        setClient({ id: snap.id, ...snap.data() });
-
-        // 🔹 2. Charger les factures du client
-        const q = query(
-          collection(db, "entreprises", entrepriseId, "factures"),
-          where("clientId", "==", id)
-        );
-        const snapshot = await getDocs(q);
-        const data = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setFactures(data);
+        const q = query(collection(db, "entreprises", entrepriseId, "factures"), where("clientId", "==", id));
+        const snap = await getDocs(q);
+        setFactures(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
       } catch (err) {
-        console.error("Erreur lors du chargement :", err);
+        console.error(err);
         alert("Erreur chargement des données.");
       } finally {
         setLoading(false);
       }
     };
-
-    fetchClientAndFactures();
-  }, [id]);
+    fetchAll();
+  }, [entrepriseId, id]);
 
   const handleExportPDF = () => {
     const docPDF = new jsPDF();
     docPDF.text(`Factures de ${client.nom}`, 14, 20);
-
-    const rows = factures.map((f) => [
-      f.description,
-      `${f.totalTTC || f.amount || 0} €`,
-      f.status,
-    ]);
-
-    docPDF.autoTable({
-      head: [["Description", "Montant", "Statut"]],
-      body: rows,
+    autoTable(docPDF, {
+      head: [["Description", "Montant TTC", "Statut"]],
+      body: factures.map((f) => [f.description, `${(f.totalTTC || 0).toFixed(2)} €`, f.status]),
       startY: 30,
     });
-
     docPDF.save(`factures_${client.nom}.pdf`);
   };
 
-  const total = factures.reduce(
-    (sum, f) => sum + Number(f.totalTTC || f.amount || 0),
-    0
-  );
-  const totalPayé = factures
-    .filter((f) => f.status === "payée")
-    .reduce((sum, f) => sum + Number(f.totalTTC || f.amount || 0), 0);
+  const total = factures.reduce((s, f) => s + Number(f.totalTTC || 0), 0);
+  const totalPayé = factures.filter((f) => f.status === "payée").reduce((s, f) => s + Number(f.totalTTC || 0), 0);
 
-  if (loading || !client) return <p className="p-4">Chargement...</p>;
+  if (loading || !client) return <div className="flex items-center justify-center h-64 text-gray-400 text-sm">Chargement...</div>;
 
   return (
-    <main className="min-h-screen bg-gray-100 p-4">
-      <h2 className="text-2xl font-bold mb-4">Détails du client</h2>
-
-      <div className="bg-white p-4 rounded shadow mb-6">
-        <p><strong>Nom :</strong> {client.nom}</p>
-        <p><strong>Email :</strong> {client.email}</p>
-        <p><strong>Téléphone :</strong> {client.telephone}</p>
-        <p><strong>Entreprise :</strong> {client.entreprise}</p>
-      </div>
-
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl font-semibold">Factures de ce client</h3>
+    <main>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-[#0d1b3e]">{client.nom}</h2>
+          <p className="text-sm text-gray-400 mt-0.5">{factures.length} facture{factures.length !== 1 ? "s" : ""}</p>
+        </div>
         <div className="flex gap-2">
           <Link
-            to={`/dashboard/facture/nouveau?clientId=${client.id}`}
-            className="bg-[#1B5E20] text-white px-4 py-2 rounded shadow"
+            to={`/dashboard/facture/nouvelle?clientId=${client.id}`}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition"
           >
-            ➕ Nouvelle facture
+            + Nouvelle facture
           </Link>
           <button
             onClick={handleExportPDF}
-            className="bg-blue-600 text-white px-4 py-2 rounded shadow"
+            className="border border-gray-200 text-gray-600 hover:bg-gray-50 font-medium text-sm px-4 py-2.5 rounded-xl transition"
           >
-            📄 Export PDF
+            PDF
           </button>
         </div>
       </div>
 
-      {factures.length === 0 ? (
-        <p>Aucune facture associée.</p>
-      ) : (
-        <table className="w-full bg-white shadow rounded">
-          <thead className="bg-[#1B5E20] text-white">
-            <tr>
-              <th className="text-left p-2">Description</th>
-              <th className="text-left p-2">Montant</th>
-              <th className="text-left p-2">Statut</th>
-            </tr>
-          </thead>
-          <tbody>
-            {factures.map((f) => (
-              <tr key={f.id} className="border-t">
-                <td className="p-2">{f.description}</td>
-                <td className="p-2">{f.totalTTC || f.amount || 0} €</td>
-                <td className="p-2 capitalize">{f.status}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-
-      <div className="mt-4 p-4 bg-white rounded shadow text-sm">
-        <p><strong>Total facturé :</strong> {total.toFixed(2)} €</p>
-        <p><strong>Total payé :</strong> {totalPayé.toFixed(2)} €</p>
+      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 mb-6">
+        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Informations client</h3>
+        <dl className="grid grid-cols-2 gap-4 text-sm">
+          {[
+            { label: "Nom", val: client.nom },
+            { label: "Email", val: client.email || "—" },
+            { label: "Téléphone", val: client.telephone || "—" },
+            { label: "Entreprise", val: client.entreprise || "—" },
+          ].map((item) => (
+            <div key={item.label}>
+              <dt className="text-xs text-gray-400 mb-0.5">{item.label}</dt>
+              <dd className="font-medium text-[#0d1b3e]">{item.val}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
+
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+          <div className="text-xs text-gray-400 mb-1">Total facturé</div>
+          <div className="text-lg font-extrabold text-[#0d1b3e]">{euro.format(total)}</div>
+        </div>
+        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+          <div className="text-xs text-gray-400 mb-1">Total payé</div>
+          <div className="text-lg font-extrabold text-emerald-600">{euro.format(totalPayé)}</div>
+        </div>
+      </div>
+
+      {factures.length === 0 ? (
+        <div className="bg-white border border-gray-100 rounded-2xl p-12 text-center">
+          <p className="text-gray-500 font-medium">Aucune facture associée</p>
+          <p className="text-gray-400 text-sm mt-1 mb-5">Créez une première facture pour ce client</p>
+          <Link to={`/dashboard/facture/nouvelle?clientId=${client.id}`} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition">
+            Créer une facture
+          </Link>
+        </div>
+      ) : (
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-100 bg-gray-50">
+                {["Description", "Montant TTC", "Statut"].map((h) => (
+                  <th key={h} className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {factures.map((f) => {
+                const cfg = STATUS_CONFIG[f.status] || STATUS_CONFIG["en attente"];
+                return (
+                  <tr key={f.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-5 py-4 text-[#0d1b3e] font-medium">{f.description}</td>
+                    <td className="px-5 py-4 font-semibold text-[#0d1b3e]">{euro.format(f.totalTTC || 0)}</td>
+                    <td className="px-5 py-4">
+                      <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-semibold ${cfg.classes}`}>
+                        {cfg.label}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
     </main>
   );
 }

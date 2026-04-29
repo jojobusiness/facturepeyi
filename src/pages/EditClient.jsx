@@ -1,95 +1,97 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db, auth } from "../lib/firebase";
+import { db } from "../lib/firebase";
+import { useAuth } from "../context/AuthContext";
 
 export default function EditClient() {
-  const { id } = useParams(); // id du client
+  const { id } = useParams();
   const navigate = useNavigate();
-  const [form, setForm] = useState({
-    nom: "",
-    email: "",
-    tel: "",
-    adresse: "",
-  });
-
-  const [entrepriseId, setEntrepriseId] = useState(null);
+  const { entrepriseId } = useAuth();
+  const [form, setForm] = useState({ nom: "", email: "", tel: "", adresse: "" });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchClient = async () => {
-      const uid = auth.currentUser?.uid;
-      if (!uid) return;
-
-      const userDoc = await getDoc(doc(db, "utilisateurs", uid));
-      const entrepriseId = userDoc.exists() ? userDoc.data().entrepriseId : null;
-      setEntrepriseId(entrepriseId);
-
-      if (!entrepriseId) return alert("Entreprise introuvable");
-
-      const snap = await getDoc(doc(db, "entreprises", entrepriseId, "clients", id));
+    if (!entrepriseId || !id) return;
+    getDoc(doc(db, "entreprises", entrepriseId, "clients", id)).then((snap) => {
       if (snap.exists()) setForm(snap.data());
-      else alert("Client introuvable");
-    };
+      else { alert("Client introuvable"); navigate("/dashboard/clients"); }
+    });
+  }, [entrepriseId, id, navigate]);
 
-    fetchClient();
-  }, [id]);
-
-  const handleChange = (e) =>
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!entrepriseId) return alert("Entreprise non trouvée");
-    await updateDoc(doc(db, "entreprises", entrepriseId, "clients", id), form);
-    alert("Client modifié !");
-    navigate("/dashboard/clients");
+    if (!entrepriseId) return;
+    setLoading(true);
+    try {
+      await updateDoc(doc(db, "entreprises", entrepriseId, "clients", id), form);
+      navigate("/dashboard/clients");
+    } catch (err) {
+      console.error(err);
+      alert("Erreur lors de la modification.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <main className="p-4 bg-gray-100 min-h-screen">
-      <h2 className="text-2xl font-bold mb-4">Modifier le client</h2>
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-4 rounded shadow space-y-4 max-w-md"
-      >
-        <input
-          type="text"
-          name="nom"
-          onChange={handleChange}
-          value={form.nom}
-          placeholder="Nom"
-          className="w-full p-2 border rounded"
-          required
-        />
-        <input
-          type="email"
-          name="email"
-          onChange={handleChange}
-          value={form.email}
-          placeholder="Email"
-          className="w-full p-2 border rounded"
-        />
-        <input
-          type="text"
-          name="tel"
-          onChange={handleChange}
-          value={form.tel}
-          placeholder="Téléphone"
-          className="w-full p-2 border rounded"
-        />
-        <input
-          type="text"
-          name="adresse"
-          onChange={handleChange}
-          value={form.adresse}
-          placeholder="Adresse"
-          className="w-full p-2 border rounded"
-        />
+    <main className="max-w-lg mx-auto">
+      <h2 className="text-2xl font-bold text-[#0d1b3e] mb-6">Modifier le client</h2>
+
+      <form onSubmit={handleSubmit} className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 space-y-5">
+        <div>
+          <label className="text-xs font-semibold text-gray-600 block mb-1">Nom *</label>
+          <input
+            type="text"
+            name="nom"
+            value={form.nom}
+            onChange={handleChange}
+            required
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
+
+        <div>
+          <label className="text-xs font-semibold text-gray-600 block mb-1">Email</label>
+          <input
+            type="email"
+            name="email"
+            value={form.email}
+            onChange={handleChange}
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
+
+        <div>
+          <label className="text-xs font-semibold text-gray-600 block mb-1">Téléphone</label>
+          <input
+            type="text"
+            name="tel"
+            value={form.tel}
+            onChange={handleChange}
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
+
+        <div>
+          <label className="text-xs font-semibold text-gray-600 block mb-1">Adresse</label>
+          <input
+            type="text"
+            name="adresse"
+            value={form.adresse}
+            onChange={handleChange}
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
+
         <button
           type="submit"
-          className="bg-[#1B5E20] text-white w-full p-2 rounded"
+          disabled={loading}
+          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition disabled:opacity-60"
         >
-          Enregistrer
+          {loading ? "Enregistrement..." : "Enregistrer les modifications"}
         </button>
       </form>
     </main>

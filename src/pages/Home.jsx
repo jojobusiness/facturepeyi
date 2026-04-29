@@ -3,8 +3,7 @@ import { useState } from "react";
 import {
   FaFileInvoice, FaChartBar, FaUsers, FaReceipt,
   FaLock, FaMobileAlt, FaCheckCircle, FaChevronDown,
-  FaChevronUp, FaWhatsapp, FaArrowRight, FaBolt,
-  FaCreditCard, FaBell, FaChartLine
+  FaChevronUp, FaWhatsapp, FaArrowRight,
 } from "react-icons/fa";
 import { HiOutlineDocumentText, HiOutlineCurrencyEuro } from "react-icons/hi";
 
@@ -110,6 +109,33 @@ const faq = [
   },
 ];
 
+const personas = [
+  {
+    img: "/persona-resto.png",
+    label: "Restaurateurs & Cafés",
+    desc: "Facturez vos fournisseurs et suivez vos marges en temps réel.",
+    color: "from-orange-500/80 to-orange-700/80",
+  },
+  {
+    img: "/persona-freelance.png",
+    label: "Freelances & Consultants",
+    desc: "Créez des devis pro, convertissez-les en factures en 1 clic.",
+    color: "from-emerald-500/80 to-emerald-700/80",
+  },
+  {
+    img: "/persona-meca.png",
+    label: "Artisans & Mécaniciens",
+    desc: "Gérez vos bons de commande et encaissez sans paperasse.",
+    color: "from-blue-500/80 to-blue-700/80",
+  },
+  {
+    img: "/persona-btp.png",
+    label: "Entrepreneurs BTP",
+    desc: "Suivez vos chantiers, facturez vos acomptes, pilotez vos projets.",
+    color: "from-yellow-500/80 to-yellow-700/80",
+  },
+];
+
 // ─── Sous-composants ──────────────────────────────────────────────────────────
 
 function FAQItem({ q, a }) {
@@ -129,11 +155,9 @@ function FAQItem({ q, a }) {
   );
 }
 
-// Mockup dashboard CSS-only
 function DashboardMockup() {
   return (
     <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100 w-full">
-      {/* Chrome bar */}
       <div className="bg-gray-100 border-b border-gray-200 px-4 py-2.5 flex items-center gap-2">
         <div className="flex gap-1.5">
           <div className="w-3 h-3 rounded-full bg-red-400" />
@@ -145,23 +169,21 @@ function DashboardMockup() {
         </div>
       </div>
       <div className="flex h-44">
-        {/* Sidebar */}
         <div className="w-28 bg-gray-50 border-r border-gray-100 p-2 flex-shrink-0">
           <div className="text-xs font-bold text-emerald-700 mb-2 px-2">Factur'Peyi</div>
-          {["Tableau de bord", "Factures", "Devis", "Clients", "Paiements", "Rapports"].map((item, i) => (
-            <div key={item} className={`px-2 py-1.5 rounded-lg text-xs mb-0.5 ${i === 0 ? "bg-emerald-600 text-white font-semibold" : "text-gray-500 hover:bg-gray-100"}`}>
+          {["Tableau de bord", "Factures", "Devis", "Clients", "Dépenses", "Rapports"].map((item, i) => (
+            <div key={item} className={`px-2 py-1.5 rounded-lg text-xs mb-0.5 ${i === 0 ? "bg-emerald-600 text-white font-semibold" : "text-gray-500"}`}>
               {item}
             </div>
           ))}
         </div>
-        {/* Content */}
         <div className="flex-1 p-3 overflow-hidden">
           <div className="text-xs font-bold text-gray-700 mb-2">Tableau de bord</div>
           <div className="grid grid-cols-3 gap-1.5 mb-2.5">
             {[
-              { label: "Chiffre d'affaires", val: "28 450 €", color: "text-gray-900", change: "+28%", up: true },
-              { label: "Factures payées", val: "18 450 €", color: "text-gray-900", change: "+35%", up: true },
-              { label: "En attente", val: "5 200 €", color: "text-gray-900", change: "-12%", up: false },
+              { label: "Chiffre d'affaires", val: "28 450 €", change: "+28%", up: true },
+              { label: "Factures payées", val: "18 450 €", change: "+35%", up: true },
+              { label: "En attente", val: "5 200 €", change: "-12%", up: false },
             ].map(s => (
               <div key={s.label} className="bg-gray-50 rounded-lg p-2">
                 <div className="text-gray-400" style={{fontSize: "9px"}}>{s.label}</div>
@@ -170,7 +192,6 @@ function DashboardMockup() {
               </div>
             ))}
           </div>
-          {/* Mini chart */}
           <div className="bg-gray-50 rounded-lg p-2">
             <div className="text-gray-400 mb-1.5" style={{fontSize: "9px"}}>Évolution du chiffre d'affaires</div>
             <div className="flex items-end gap-0.5 h-10">
@@ -219,7 +240,7 @@ export default function Home() {
       </nav>
 
       {/* ══════════════════════════════════════════════════════════
-          HERO — style image (split layout, blanc + navy + vert)
+          HERO
       ══════════════════════════════════════════════════════════ */}
       <section className="pt-16 bg-white overflow-hidden">
         <div className="max-w-6xl mx-auto px-4">
@@ -227,13 +248,11 @@ export default function Home() {
 
             {/* ── Côté gauche ── */}
             <div className="max-w-xl">
-              {/* Badge */}
               <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-full px-4 py-2 text-sm text-blue-700 font-semibold mb-6">
                 <span>🇬🇫</span>
                 <span>Conçu pour les pros d'ici · Guyane & Outre-mer</span>
               </div>
 
-              {/* Headline */}
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-[#0d1b3e] leading-[1.08] mb-5 tracking-tight">
                 Votre business.<br />
                 Vos factures.<br />
@@ -245,14 +264,12 @@ export default function Home() {
                 </span>
               </h1>
 
-              {/* Sous-titre */}
               <p className="text-base sm:text-lg text-gray-600 leading-relaxed mb-6">
                 La solution simple pour créer vos factures,{" "}
                 <span className="text-blue-600 font-semibold">encaisser plus vite</span>{" "}
                 et développer votre activité — avec la fiscalité DOM-TOM déjà intégrée.
               </p>
 
-              {/* CTA */}
               <div className="flex flex-col sm:flex-row gap-3 mb-3">
                 <Link
                   to="/Forfaits"
@@ -265,33 +282,7 @@ export default function Home() {
                 <FaCheckCircle className="text-emerald-500 w-3.5 h-3.5" /> Aucune carte bancaire requise
               </p>
 
-              {/* 4 personas — visible sur mobile directement dans le hero */}
-              <div className="grid grid-cols-2 gap-2 lg:hidden">
-                {[
-                  { pos: "0% 0%",   label: "Restaurateurs", badge: "🍽️" },
-                  { pos: "100% 0%", label: "Freelances",     badge: "💻" },
-                  { pos: "0% 100%", label: "Artisans",       badge: "🔧" },
-                  { pos: "100% 100%", label: "BTP",          badge: "🏗️" },
-                ].map(p => (
-                  <div key={p.label} className="relative rounded-xl overflow-hidden h-28 group">
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        backgroundImage: "url('/personas.png')",
-                        backgroundSize: "200% 200%",
-                        backgroundPosition: p.pos,
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <div className="absolute bottom-2 left-2 flex items-center gap-1.5">
-                      <span className="text-base">{p.badge}</span>
-                      <span className="text-white font-semibold text-xs">{p.label}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* 3 mini-features — desktop seulement */}
+              {/* 3 mini-features */}
               <div className="hidden lg:grid grid-cols-3 gap-3 mt-4">
                 {[
                   { icon: "🕐", title: "Gagnez du temps", desc: "Automatisez vos tâches." },
@@ -307,38 +298,26 @@ export default function Home() {
               </div>
             </div>
 
-            {/* ── Côté droit — 4 personas desktop ── */}
-            <div className="hidden lg:grid grid-cols-2 gap-3 h-[520px]">
-              {[
-                { pos: "0% 0%",     label: "Restaurateurs & Cafés",     badge: "🍽️", color: "from-orange-600/70" },
-                { pos: "100% 0%",   label: "Freelances & Consultants",  badge: "💻", color: "from-emerald-600/70" },
-                { pos: "0% 100%",   label: "Artisans & Mécaniciens",    badge: "🔧", color: "from-blue-600/70" },
-                { pos: "100% 100%", label: "Entrepreneurs BTP",         badge: "🏗️", color: "from-yellow-600/70" },
-              ].map(p => (
-                <div key={p.label} className="relative rounded-2xl overflow-hidden group cursor-pointer shadow-lg">
-                  <div
-                    className="absolute inset-0 transition-transform duration-500 group-hover:scale-105"
-                    style={{
-                      backgroundImage: "url('/personas.png')",
-                      backgroundSize: "200% 200%",
-                      backgroundPosition: p.pos,
-                    }}
-                  />
-                  <div className={`absolute inset-0 bg-gradient-to-t ${p.color} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
-                  <div className="absolute top-3 left-3 text-xl bg-white/20 backdrop-blur-sm rounded-xl w-9 h-9 flex items-center justify-center">
-                    {p.badge}
-                  </div>
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <div className="font-bold text-white text-sm leading-tight">{p.label}</div>
-                  </div>
+            {/* ── Côté droit — Dashboard mockup desktop ── */}
+            <div className="hidden lg:flex flex-col justify-center gap-3">
+              <DashboardMockup />
+              <div className="flex gap-3">
+                <div className="flex-1 bg-white rounded-xl p-3 shadow-sm border border-gray-100">
+                  <div className="text-xs text-gray-400 mb-0.5">Paiement reçu</div>
+                  <div className="font-extrabold text-[#0d1b3e] text-sm">2 350,00 €</div>
+                  <div className="text-xs text-emerald-600 font-semibold">✓ SARL Océanik</div>
                 </div>
-              ))}
+                <div className="flex-1 bg-white rounded-xl p-3 shadow-sm border border-gray-100">
+                  <div className="text-xs text-gray-400 mb-0.5">Facture envoyée</div>
+                  <div className="font-extrabold text-[#0d1b3e] text-sm">1 850,00 €</div>
+                  <div className="text-xs text-blue-600 font-semibold">FAC-2024-0125</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* ── Dashboard mockup — mobile uniquement, sous le hero ── */}
+        {/* ── Dashboard mockup mobile ── */}
         <div className="lg:hidden px-4 pb-8">
           <div className="bg-gradient-to-br from-[#e8f5ef] to-[#dbeafe] rounded-2xl p-4">
             <DashboardMockup />
@@ -357,22 +336,19 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ── Barre du bas — 4 features ── */}
+        {/* ── Personas — barre images sous le hero ── */}
         <div className="bg-[#0d1b3e]">
-          <div className="max-w-6xl mx-auto px-4 py-8 grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { icon: <FaBolt />, label: "Factures en 1 min", desc: "Créez et envoyez vos factures facilement." },
-              { icon: <FaCreditCard />, label: "Paiements en ligne", desc: "Encaissez par carte ou virement." },
-              { icon: <FaBell />, label: "Relances automatiques", desc: "Soyez payé sans avoir à relancer." },
-              { icon: <FaChartLine />, label: "Suivi & rapports", desc: "Pilotez votre activité en temps réel." },
-            ].map(f => (
-              <div key={f.label} className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white flex-shrink-0">
-                  {f.icon}
-                </div>
-                <div>
-                  <div className="font-bold text-white text-sm">{f.label}</div>
-                  <div className="text-gray-400 text-xs mt-0.5">{f.desc}</div>
+          <div className="max-w-6xl mx-auto px-4 py-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+            {personas.map(p => (
+              <div key={p.label} className="relative rounded-2xl overflow-hidden h-36 group cursor-pointer">
+                <img
+                  src={p.img}
+                  alt={p.label}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-3">
+                  <div className="font-semibold text-white text-xs leading-tight">{p.label}</div>
                 </div>
               </div>
             ))}
@@ -398,11 +374,7 @@ export default function Home() {
       </section>
 
       {/* ══════════════════════════════════════════════════════════
-          SECTIONS — inchangées
-      ══════════════════════════════════════════════════════════ */}
-
-      {/* ══════════════════════════════════════════════════════════
-          POUR QUI — 4 personas avec photos
+          POUR QUI — 4 personas avec vraies photos
       ══════════════════════════════════════════════════════════ */}
       <section className="py-24 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
@@ -417,59 +389,18 @@ export default function Home() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                pos: "0% 0%",
-                label: "Restaurateurs & Cafés",
-                desc: "Facturez vos fournisseurs et suivez vos marges en temps réel.",
-                color: "from-orange-500/80 to-orange-700/80",
-                badge: "🍽️",
-              },
-              {
-                pos: "100% 0%",
-                label: "Freelances & Consultants",
-                desc: "Créez des devis pro, convertissez-les en factures en 1 clic.",
-                color: "from-emerald-500/80 to-emerald-700/80",
-                badge: "💻",
-              },
-              {
-                pos: "0% 100%",
-                label: "Artisans & Mécaniciens",
-                desc: "Gérez vos bons de commande et encaissez sans paperasse.",
-                color: "from-blue-500/80 to-blue-700/80",
-                badge: "🔧",
-              },
-              {
-                pos: "100% 100%",
-                label: "Entrepreneurs BTP",
-                desc: "Suivez vos chantiers, facturez vos acomptes, pilotez vos projets.",
-                color: "from-yellow-500/80 to-yellow-700/80",
-                badge: "🏗️",
-              },
-            ].map((p) => (
+            {personas.map(p => (
               <div
                 key={p.label}
                 className="relative rounded-2xl overflow-hidden shadow-lg group cursor-pointer h-72"
               >
-                {/* Photo croppée via background-position */}
-                <div
-                  className="absolute inset-0 transition-transform duration-500 group-hover:scale-105"
-                  style={{
-                    backgroundImage: "url('/personas.png')",
-                    backgroundSize: "200% 200%",
-                    backgroundPosition: p.pos,
-                  }}
+                <img
+                  src={p.img}
+                  alt={p.label}
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                {/* Gradient overlay */}
                 <div className={`absolute inset-0 bg-gradient-to-t ${p.color} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-
-                {/* Badge emoji */}
-                <div className="absolute top-4 left-4 text-2xl bg-white/20 backdrop-blur-sm rounded-xl w-10 h-10 flex items-center justify-center">
-                  {p.badge}
-                </div>
-
-                {/* Texte en bas */}
                 <div className="absolute bottom-0 left-0 right-0 p-5">
                   <div className="font-bold text-white text-base leading-tight mb-1">{p.label}</div>
                   <div className="text-white/80 text-xs leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-2 group-hover:translate-y-0">
@@ -480,7 +411,6 @@ export default function Home() {
             ))}
           </div>
 
-          {/* CTA sous les cartes */}
           <div className="text-center mt-10">
             <Link
               to="/Forfaits"
@@ -619,7 +549,7 @@ export default function Home() {
                 <div className={`text-sm font-semibold mb-1 ${p.highlight ? "text-emerald-400" : "text-emerald-700"}`}>{p.name}</div>
                 <div className="flex items-baseline gap-1 mb-1">
                   <span className={`text-3xl font-extrabold ${p.highlight ? "text-white" : "text-[#0d1b3e]"}`}>{p.price}</span>
-                  <span className={`text-sm ${p.highlight ? "text-gray-400" : "text-gray-400"}`}>{p.period}</span>
+                  <span className="text-sm text-gray-400">{p.period}</span>
                 </div>
                 <ul className={`mt-4 mb-6 space-y-2 flex-1 text-sm ${p.highlight ? "text-gray-300" : "text-gray-600"}`}>
                   {p.features.map(f => (
