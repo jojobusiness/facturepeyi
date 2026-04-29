@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { db } from "../lib/firebase";
-import { collection, addDoc, getDocs, Timestamp } from "firebase/firestore";
+import { collection, addDoc, getDocs, getDoc, updateDoc, doc, Timestamp } from "firebase/firestore";
 import { useAuth } from "../context/AuthContext";
 
 export default function DepenseForm() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEdit = !!id;
   const { entreprise, entrepriseId } = useAuth();
   const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({ fournisseur: "", description: "", date: "", categorieId: "" });
@@ -13,6 +15,7 @@ export default function DepenseForm() {
   const [tauxTVA, setTauxTVA] = useState(0);
   const [montantOctroiDeMer, setMontantOctroiDeMer] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(isEdit);
 
   const showOctroi = entreprise?.octroiDeMer === true;
   const montantTVA = montantHT ? parseFloat(montantHT) * (tauxTVA / 100) : 0;
@@ -21,7 +24,7 @@ export default function DepenseForm() {
     : 0;
 
   useEffect(() => {
-    if (entreprise && tauxTVA === 0) setTauxTVA(entreprise.tvaRate ?? 0);
+    if (entreprise && tauxTVA === 0 && !isEdit) setTauxTVA(entreprise.tvaRate ?? 0);
   }, [entreprise]);
 
   useEffect(() => {
@@ -30,6 +33,24 @@ export default function DepenseForm() {
       .then((snap) => setCategories(snap.docs.map((d) => ({ id: d.id, ...d.data() }))));
   }, [entrepriseId]);
 
+  useEffect(() => {
+    if (!isEdit || !entrepriseId || !id) return;
+    getDoc(doc(db, "entreprises", entrepriseId, "depenses", id)).then((snap) => {
+      if (!snap.exists()) { navigate("/dashboard/depenses"); return; }
+      const data = snap.data();
+      setFormData({
+        fournisseur: data.fournisseur || "",
+        description: data.description || "",
+        date: data.date?.toDate().toISOString().split("T")[0] || "",
+        categorieId: data.categorieId || "",
+      });
+      setMontantHT(data.montantHT?.toString() || "");
+      setTauxTVA(data.tauxTVA ?? 0);
+      setMontantOctroiDeMer(data.montantOctroiDeMer ? data.montantOctroiDeMer.toString() : "");
+      setLoadingData(false);
+    });
+  }, [isEdit, entrepriseId, id, navigate]);
+
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
@@ -37,7 +58,7 @@ export default function DepenseForm() {
     if (!entrepriseId) return alert("Entreprise introuvable.");
     setLoading(true);
     try {
-      await addDoc(collection(db, "entreprises", entrepriseId, "depenses"), {
+      const payload = {
         ...formData,
         montantHT: parseFloat(montantHT),
         tauxTVA: parseFloat(tauxTVA),
@@ -45,9 +66,16 @@ export default function DepenseForm() {
         montantOctroiDeMer: showOctroi && montantOctroiDeMer ? parseFloat(parseFloat(montantOctroiDeMer).toFixed(2)) : 0,
         montantTTC: parseFloat(montantTTC.toFixed(2)),
         date: Timestamp.fromDate(new Date(formData.date)),
-        createdAt: Timestamp.now(),
         entrepriseId,
-      });
+      };
+      if (isEdit) {
+        await updateDoc(doc(db, "entreprises", entrepriseId, "depenses", id), payload);
+      } else {
+        await addDoc(collection(db, "entreprises", entrepriseId, "depenses"), {
+          ...payload,
+          createdAt: Timestamp.now(),
+        });
+      }
       navigate("/dashboard/depenses");
     } catch (err) {
       console.error(err);
@@ -59,9 +87,15 @@ export default function DepenseForm() {
 
   const inputClass = "w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500";
 
+  if (loadingData) {
+    return <div className="flex items-center justify-center h-64 text-gray-400 text-sm">Chargement...</div>;
+  }
+
   return (
     <main className="max-w-lg mx-auto">
-      <h2 className="text-2xl font-bold text-[#0d1b3e] mb-6">Nouvelle dépense</h2>
+      <h2 className="text-2xl font-bold text-[#0d1b3e] mb-6">
+        {isEdit ? "Modifier la dépense" : "Nouvelle dépense"}
+      </h2>
 
       <form onSubmit={handleSubmit} className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 space-y-5">
         <div>
@@ -158,7 +192,7 @@ export default function DepenseForm() {
         )}
 
         <button type="submit" disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition disabled:opacity-60">
-          {loading ? "Enregistrement..." : "Enregistrer la dépense"}
+          {loading ? "Enregistrement..." : isEdit ? "Enregistrer les modifications" : "Enregistrer la dépense"}
         </button>
       </form>
     </main>

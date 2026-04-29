@@ -85,6 +85,7 @@ export default function App() {
         <Route path="client/:id" element={<PrivateRoute><ClientDetails /></PrivateRoute>} />
         <Route path="depenses" element={<PrivateRoute><DepenseList /></PrivateRoute>} />
         <Route path="depenses/nouvelle" element={<PrivateRoute><DepenseForm /></PrivateRoute>} />
+        <Route path="depenses/modifier/:id" element={<PrivateRoute><DepenseForm /></PrivateRoute>} />
         <Route path="depenses/import" element={<PrivateRoute><ImportDepenses /></PrivateRoute>} />
         <Route path="categories" element={<PrivateRoute><Categories /></PrivateRoute>} />
         <Route path="rapports" element={

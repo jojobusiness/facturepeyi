@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { db } from '../lib/firebase';
+import { getPlanStatus, isTrialExpired } from '../lib/plans';
 import { collection, getDocs } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -256,6 +257,40 @@ export default function Dashboard() {
           + Nouvelle facture
         </Link>
       </div>
+
+      {/* ── Bannière plan/essai ── */}
+      {(() => {
+        const status = getPlanStatus(entreprise);
+        if (status === "expired") return (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center justify-between gap-4">
+            <div>
+              <span className="font-bold text-red-700 text-sm">Votre période d'essai a expiré</span>
+              <p className="text-xs text-red-500 mt-0.5">Passez à un plan payant pour continuer à utiliser Factur'Peyi</p>
+            </div>
+            <Link to="/Forfaits" className="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition flex-shrink-0">
+              Voir les forfaits
+            </Link>
+          </div>
+        );
+        if (status === "trial" && entreprise?.trialEndsAt) {
+          const ends = entreprise.trialEndsAt?.toDate?.() ?? new Date(entreprise.trialEndsAt);
+          const daysLeft = Math.ceil((ends - new Date()) / (1000 * 60 * 60 * 24));
+          if (daysLeft <= 7) return (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 flex items-center justify-between gap-4">
+              <div>
+                <span className="font-bold text-yellow-800 text-sm">
+                  Essai gratuit — {daysLeft} jour{daysLeft > 1 ? "s" : ""} restant{daysLeft > 1 ? "s" : ""}
+                </span>
+                <p className="text-xs text-yellow-600 mt-0.5">Passez à un plan payant pour ne pas perdre vos données</p>
+              </div>
+              <Link to="/Forfaits" className="bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition flex-shrink-0">
+                Voir les forfaits
+              </Link>
+            </div>
+          );
+        }
+        return null;
+      })()}
 
       {/* ── Onboarding guidé ── */}
       <OnboardingChecklist

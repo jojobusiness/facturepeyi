@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { collection, getDocs, query, orderBy, deleteDoc, doc, getDoc } from "firebase/firestore";
 import { useNavigate, Link } from "react-router-dom";
-import { db, auth } from "../lib/firebase";
+import { db } from "../lib/firebase";
 import { downloadInvoicePDF } from "../utils/downloadPDF";
 import { useAuth } from "../context/AuthContext";
 
@@ -13,7 +13,7 @@ const STATUS_CONFIG = {
 };
 
 export default function InvoiceList() {
-  const { entrepriseId } = useAuth();
+  const { entrepriseId, entreprise } = useAuth();
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -36,9 +36,7 @@ export default function InvoiceList() {
   const handleGeneratePDF = async (invoice) => {
     if (!entrepriseId) return;
     try {
-      const snap = await getDoc(doc(db, "entreprises", entrepriseId));
-      const entreprise = snap.exists() ? snap.data() : {};
-      const logoUrl = entreprise.logo || "";
+      const logoUrl = entreprise?.logo || "";
       let logoDataUrl = "";
       if (logoUrl) {
         const proxyUrl = "https://facturepeyi.vercel.app/api/logo-proxy?url=" + encodeURIComponent(logoUrl);
@@ -55,9 +53,9 @@ export default function InvoiceList() {
         clientNom: clientData.nom || invoice.clientNom || "Client inconnu",
         clientAdresse: clientData.adresse || "",
         clientEmail: clientData.email || "",
-        entrepriseNom: entreprise.nom || "Nom Entreprise",
-        entrepriseSiret: entreprise.siret || "SIRET inconnu",
-        entrepriseAdresse: entreprise.adresse || "",
+        entrepriseNom: entreprise?.nom || "Nom Entreprise",
+        entrepriseSiret: entreprise?.siret || "SIRET inconnu",
+        entrepriseAdresse: entreprise?.adresse || "",
         logoDataUrl,
       });
     } catch (err) {

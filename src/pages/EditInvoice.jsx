@@ -10,7 +10,7 @@ export default function EditInvoice() {
   const { entreprise, entrepriseId } = useAuth();
 
   const [clients, setClients] = useState([]);
-  const [form, setForm] = useState({ clientId: "", clientNom: "", description: "", status: "en attente" });
+  const [form, setForm] = useState({ clientId: "", clientNom: "", description: "", status: "en attente", date: "" });
   const [montantHT, setMontantHT] = useState(0);
   const [tauxTVA, setTauxTVA] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -29,7 +29,8 @@ export default function EditInvoice() {
     getDoc(doc(db, "entreprises", entrepriseId, "factures", id)).then((snap) => {
       if (!snap.exists()) { alert("Facture introuvable"); navigate("/dashboard/factures"); return; }
       const data = snap.data();
-      setForm({ clientId: data.clientId || "", clientNom: data.clientNom || "", description: data.description || "", status: data.status || "en attente" });
+      const dateStr = data.date?.toDate().toISOString().split("T")[0] || new Date().toISOString().split("T")[0];
+      setForm({ clientId: data.clientId || "", clientNom: data.clientNom || "", description: data.description || "", status: data.status || "en attente", date: dateStr });
       setMontantHT(data.amountHT || 0);
       setTauxTVA(data.tvaRate || data.tva || 0);
       setLoading(false);
@@ -54,7 +55,7 @@ export default function EditInvoice() {
         tvaRate: parseFloat(tauxTVA),
         tva: parseFloat(montantTVA.toFixed(2)),
         totalTTC: parseFloat(montantTTC.toFixed(2)),
-        date: Timestamp.fromDate(new Date()),
+        date: Timestamp.fromDate(new Date(form.date)),
       });
       navigate("/dashboard/factures");
     } catch (err) {
@@ -151,6 +152,17 @@ export default function EditInvoice() {
             </div>
           </div>
         )}
+
+        <div>
+          <label className="text-xs font-semibold text-gray-600 block mb-1">Date de facture</label>
+          <input
+            type="date"
+            value={form.date}
+            onChange={(e) => setForm({ ...form, date: e.target.value })}
+            required
+            className={inputClass}
+          />
+        </div>
 
         <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition">
           Enregistrer les modifications

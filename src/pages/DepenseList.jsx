@@ -81,12 +81,20 @@ export default function DepenseList() {
                     {dep.date?.toDate().toLocaleDateString("fr-FR")}
                   </td>
                   <td className="px-5 py-4 text-right">
-                    <button
-                      onClick={() => handleDelete(dep.id)}
-                      className="text-xs font-medium text-red-400 hover:text-red-600 transition"
-                    >
-                      Supprimer
-                    </button>
+                    <div className="flex items-center justify-end gap-3">
+                      <button
+                        onClick={() => navigate(`/dashboard/depenses/modifier/${dep.id}`)}
+                        className="text-xs font-medium text-gray-500 hover:text-[#0d1b3e] transition"
+                      >
+                        Modifier
+                      </button>
+                      <button
+                        onClick={() => handleDelete(dep.id)}
+                        className="text-xs font-medium text-red-400 hover:text-red-600 transition"
+                      >
+                        Supprimer
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
