@@ -25,7 +25,8 @@ const nav = [
       { key: "factures",       label: "Factures",          icon: <FaFileInvoice />, to: "/dashboard/factures" },
       { key: "nouvelleFacture",label: "Nouvelle facture",  icon: <FaPlus />,        to: "/dashboard/facture/nouvelle", accent: true },
       { key: "clients",        label: "Clients",           icon: <FaUsers />,       to: "/dashboard/clients" },
-      { key: "devis",          label: "Devis",             icon: <FaFileAlt />,     to: "/dashboard/devis", badge: "Bientôt" },
+      { key: "devis",       label: "Devis",         icon: <FaFileAlt />, to: "/dashboard/devis" },
+      { key: "nouveauDevis",label: "Nouveau devis", icon: <FaPlus />,        to: "/dashboard/devis/nouveau", accent: true },
     ],
   },
   {

@@ -40,6 +40,9 @@ import BilanComptable from './pages/BilanComptable';
 import JournalComptable from './pages/JournalComptable';
 import AdminUserManagement from './pages/AdminUserManagement';
 import Rapports from './pages/Rapports';
+import DevisList from './pages/DevisList';
+import CreateDevis from './pages/CreateDevis';
+import EditDevis from './pages/EditDevis';
 
 export default function App() {
   return (
@@ -72,6 +75,9 @@ export default function App() {
         <Route path="facture/nouvelle" element={<PrivateRoute><CreateInvoice /></PrivateRoute>} />
         <Route path="facture/modifier/:id" element={<PrivateRoute><EditInvoice /></PrivateRoute>} />
         <Route path="factures/client/:clientId" element={<PrivateRoute><FacturesClient /></PrivateRoute>} />
+        <Route path="devis" element={<PrivateRoute><DevisList /></PrivateRoute>} />
+        <Route path="devis/nouveau" element={<PrivateRoute><CreateDevis /></PrivateRoute>} />
+        <Route path="devis/modifier/:id" element={<PrivateRoute><EditDevis /></PrivateRoute>} />
         <Route path="clients" element={<PrivateRoute><Clients /></PrivateRoute>} />
         <Route path="clients/ajouter" element={<PrivateRoute><AddClient /></PrivateRoute>} />
         <Route path="clients/modifier/:id" element={<PrivateRoute><EditClient /></PrivateRoute>} />
