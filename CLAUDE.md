@@ -167,16 +167,17 @@ La config Firebase est publique dans `src/lib/firebase.js` (normal pour Firebase
 - [x] Emails transactionnels via Resend (`/api/send-email.js` + `src/lib/email.js`) — nécessite `RESEND_API_KEY` dans Vercel env vars
 - [x] Onboarding guidé (checklist 5 étapes) — `src/components/OnboardingChecklist.jsx`
 
-### 🔄 Sprint 2 — En cours
-- [ ] Module Devis + conversion en facture
-- [ ] Rappels de paiement automatiques (J+7, J+15, J+30)
+### ✅ Sprint 2 — Terminé
+- [x] Module Devis + conversion en facture
+- [x] Rappels de paiement automatiques (J+7, J+15, J+30) — `/api/send-reminders.js` + cron Vercel
 - [x] Navigation restructurée (Ventes / Achats / Comptabilité) — DashboardLayout.jsx refondu
+- [x] Env vars Vercel configurées : `FIREBASE_SERVICE_ACCOUNT_JSON` + `CRON_SECRET`
 
-### Sprint 3 — DOM-TOM avancé
-- [ ] Octroi de mer dans dépenses + déclaration fiscale
-- [ ] Régimes fiscaux avancés dans Settings
-- [ ] Calendrier fiscal avec rappels
-- [ ] PWA mobile
+### ✅ Sprint 3 — DOM-TOM avancé — Terminé
+- [x] Octroi de mer dans dépenses + déclaration fiscale
+- [x] Régimes fiscaux avancés dans Settings (territoire + régime + aperçu temps réel)
+- [x] Calendrier fiscal avec rappels (J−14 rouge, J−30 orange, par régime)
+- [x] PWA mobile (manifest.json + meta tags Apple)
 
 ### Sprint 4 — Scale
 - [ ] Plan Cabinet (multi-entreprises, experts-comptables)
