@@ -8,7 +8,7 @@ export default function PaiementSuccess() {
   const sessionId = params.get("session_id");
 
   const [loading, setLoading] = useState(true);
-  const [paymentOk, setPaymentOk] = useState(false);
+  const [sessionInfo, setSessionInfo] = useState(null);
   const [error, setError] = useState(false);
 
   useEffect(() => {
@@ -18,27 +18,22 @@ export default function PaiementSuccess() {
       return;
     }
 
-    fetch(`/api/verify-payment?session_id=${sessionId}`)
+    fetch(`/api/get-session-info?session_id=${sessionId}`)
       .then(res => res.json())
       .then(data => {
-        if (data.paymentOk) {
-          setPaymentOk(true);
-        } else {
+        if (data.error) {
           setError(true);
+        } else {
+          setSessionInfo(data);
         }
       })
-      .catch(() => {
-        setError(true);
-      })
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, [sessionId]);
 
-  // Redirection après 3 secondes si erreur
   useEffect(() => {
     if (error) {
-      const timer = setTimeout(() => {
-        navigate("/Forfaits", { replace: true });
-      }, 5000);
+      const timer = setTimeout(() => navigate("/Forfaits", { replace: true }), 5000);
       return () => clearTimeout(timer);
     }
   }, [error, navigate]);
@@ -57,7 +52,7 @@ export default function PaiementSuccess() {
     return (
       <main className="min-h-screen flex flex-col justify-center items-center bg-red-50 p-8">
         <div className="bg-white shadow-lg rounded-lg p-8 text-center max-w-md">
-          <h1 className="text-2xl font-bold text-red-700 mb-4">⛔ Vous n'avez pas encore payé</h1>
+          <h1 className="text-2xl font-bold text-red-700 mb-4">Paiement non confirmé</h1>
           <p className="mb-4">
             Vous allez être redirigé vers la page des forfaits dans quelques secondes...
           </p>
@@ -75,14 +70,19 @@ export default function PaiementSuccess() {
   return (
     <main className="min-h-screen flex flex-col justify-center items-center bg-green-50 p-8">
       <div className="bg-white shadow-lg rounded-lg p-8 text-center max-w-md">
-        <h1 className="text-3xl font-bold text-green-700 mb-4">🎉 Paiement validé !</h1>
+        <h1 className="text-3xl font-bold text-green-700 mb-4">Paiement validé !</h1>
         <p className="mb-6">
           Merci pour votre paiement.<br />
           Vous pouvez maintenant créer votre compte et commencer à utiliser Factur'Peyi.
         </p>
         <Link
           to="/Inscription"
-          state={{ paymentOk: true }}
+          state={{
+            paymentOk: true,
+            planId: sessionInfo.planId,
+            stripeCustomerId: sessionInfo.stripeCustomerId,
+            stripeSubscriptionId: sessionInfo.stripeSubscriptionId,
+          }}
           className="bg-[#1B5E20] hover:bg-green-900 text-white px-6 py-3 rounded font-medium transition"
         >
           Créer mon compte

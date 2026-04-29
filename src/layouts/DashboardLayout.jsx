@@ -3,6 +3,7 @@ import { useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
+import { getPlan } from "../lib/plans";
 import {
   FaHome, FaFileInvoice, FaPlus, FaUsers, FaFileAlt,
   FaReceipt, FaTag, FaBook, FaBalanceScale, FaChartBar,
@@ -95,10 +96,18 @@ function SidebarContent({ onClose }) {
           <div className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center flex-shrink-0">
             <FaBuilding className="w-3 h-3 text-white" />
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="text-xs font-bold text-white truncate">{entreprise.nom}</div>
             <div className="text-xs text-white/40 truncate">{entreprise.territoire || "DOM-TOM"}</div>
           </div>
+          {(() => {
+            const plan = getPlan(entreprise.plan || "decouverte");
+            return (
+              <span className={`flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${plan.badgeColor}`}>
+                {plan.badge}
+              </span>
+            );
+          })()}
         </div>
       )}
 

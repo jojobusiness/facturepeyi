@@ -3,10 +3,13 @@ import { db } from "../lib/firebase";
 import { addDoc, collection, doc, getDoc, getDocs, Timestamp } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { checkFacturesLimit } from "../lib/plans";
+import PlanGate from "../components/PlanGate";
 
 export default function CreateInvoice() {
   const { entreprise, entrepriseId } = useAuth();
   const navigate = useNavigate();
+  const [planBlock, setPlanBlock] = useState(null);
 
   const [clients, setClients] = useState([]);
   const [clientId, setClientId] = useState("");
@@ -27,6 +30,15 @@ export default function CreateInvoice() {
   const tvaAmount = tvaRate !== null && amount ? parseFloat(amount) * (tvaRate / 100) : 0;
   const totalTTC = tvaRate !== null && amount ? parseFloat(amount) + tvaAmount : 0;
   const mentionLegale = entreprise?.mentionLegale || "";
+
+  // Vérifier limite factures selon plan
+  useEffect(() => {
+    if (!entrepriseId || !entreprise) return;
+    getDocs(collection(db, "entreprises", entrepriseId, "factures")).then((snap) => {
+      const check = checkFacturesLimit(entreprise.plan || "decouverte", snap.size);
+      if (!check.allowed) setPlanBlock(check);
+    });
+  }, [entrepriseId, entreprise]);
 
   // Charger les clients
   useEffect(() => {
@@ -75,6 +87,15 @@ export default function CreateInvoice() {
       <div className="flex items-center justify-center h-64 text-gray-400 text-sm">
         Chargement de la configuration fiscale...
       </div>
+    );
+  }
+
+  if (planBlock) {
+    return (
+      <main className="max-w-lg mx-auto">
+        <h2 className="text-2xl font-bold text-[#0d1b3e] mb-6">Créer une facture</h2>
+        <PlanGate reason={planBlock.reason} upgradeRequired={planBlock.upgradeRequired} />
+      </main>
     );
   }
 

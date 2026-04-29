@@ -94,7 +94,7 @@ export default function Forfaits() {
       const res = await fetch("/api/stripe-checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId }),
+        body: JSON.stringify({ priceId, planId }),
       });
       const data = await res.json();
       if (data.url) {

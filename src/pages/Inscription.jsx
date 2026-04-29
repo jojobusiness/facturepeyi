@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, setDoc, addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, addDoc, collection, serverTimestamp, Timestamp } from "firebase/firestore";
 import { auth, db } from "../lib/firebase";
 import { TERRITORIES, REGIMES, getTvaRate, getMentionLegale } from "../lib/territories";
 import { FaCheckCircle, FaArrowRight, FaArrowLeft } from "react-icons/fa";
@@ -63,10 +63,26 @@ export default function Inscription() {
     try {
       if (auth.currentUser) await signOut(auth);
 
+      const state = location.state || {};
+      const isPaid = !!state.paymentOk;
+
+      const planData = isPaid
+        ? {
+            plan: state.planId || "solo",
+            planStatus: "active",
+            stripeCustomerId: state.stripeCustomerId || null,
+            stripeSubscriptionId: state.stripeSubscriptionId || null,
+          }
+        : {
+            plan: "decouverte",
+            planStatus: "trial",
+            trialEndsAt: Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)),
+          };
+
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       const user = cred.user;
 
-      // Créer le document entreprise avec toute la config fiscale
+      // Créer le document entreprise avec toute la config fiscale + plan
       const entrepriseRef = await addDoc(collection(db, "entreprises"), {
         nom: nomEntreprise || "Mon entreprise",
         ownerUid: user.uid,
@@ -76,6 +92,7 @@ export default function Inscription() {
         regime,
         octroiDeMer,
         createdAt: serverTimestamp(),
+        ...planData,
       });
       const entrepriseId = entrepriseRef.id;
 

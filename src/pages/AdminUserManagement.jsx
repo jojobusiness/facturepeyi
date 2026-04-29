@@ -5,8 +5,12 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "../lib/firebase";
 import { sendSignInLinkToEmail } from "firebase/auth";
+import { useAuth } from "../context/AuthContext";
+import { checkUsersLimit } from "../lib/plans";
+import PlanGate from "../components/PlanGate";
 
 export default function AdminUserManagement() {
+  const { entreprise } = useAuth();
   const [users, setUsers] = useState([]);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("employe");
@@ -71,6 +75,8 @@ export default function AdminUserManagement() {
 
   const ROLE_LABELS = { admin: "Admin", comptable: "Comptable", employe: "Employé" };
 
+  const usersLimitCheck = checkUsersLimit(entreprise?.plan || "decouverte", users.length);
+
   return (
     <main>
       <h2 className="text-2xl font-bold text-[#0d1b3e] mb-6">Gestion de l'équipe</h2>
@@ -78,6 +84,9 @@ export default function AdminUserManagement() {
       {/* Inviter */}
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 mb-6 max-w-lg">
         <h3 className="text-sm font-bold text-[#0d1b3e] mb-4">Inviter un collaborateur</h3>
+        {!usersLimitCheck.allowed ? (
+          <PlanGate reason={usersLimitCheck.reason} upgradeRequired={usersLimitCheck.upgradeRequired} className="py-6" />
+        ) : (
         <div className="space-y-4">
           <div>
             <label className="text-xs font-semibold text-gray-600 block mb-1">Email</label>
@@ -108,6 +117,7 @@ export default function AdminUserManagement() {
             {sending ? "Envoi en cours..." : "Envoyer l'invitation"}
           </button>
         </div>
+        )}
       </div>
 
       {/* Liste */}
