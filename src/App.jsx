@@ -43,6 +43,7 @@ import Rapports from './pages/Rapports';
 import DevisList from './pages/DevisList';
 import CreateDevis from './pages/CreateDevis';
 import EditDevis from './pages/EditDevis';
+import CalendrierFiscal from './pages/CalendrierFiscal';
 
 export default function App() {
   return (
@@ -109,6 +110,11 @@ export default function App() {
         <Route path="declarationfiscale" element={
           <RoleRoute allowedRoles={["comptable", "admin"]}>
             <DeclarationFiscale />
+          </RoleRoute>
+        } />
+        <Route path="calendrierfiscal" element={
+          <RoleRoute allowedRoles={["comptable", "admin"]}>
+            <CalendrierFiscal />
           </RoleRoute>
         } />
         <Route path="admin" element={

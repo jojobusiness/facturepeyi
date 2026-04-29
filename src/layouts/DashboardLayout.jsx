@@ -7,7 +7,7 @@ import {
   FaHome, FaFileInvoice, FaPlus, FaUsers, FaFileAlt,
   FaReceipt, FaTag, FaBook, FaBalanceScale, FaChartBar,
   FaFilePdf, FaUserShield, FaCog, FaSignOutAlt, FaBars, FaTimes,
-  FaChevronDown, FaChevronRight, FaBuilding,
+  FaChevronDown, FaChevronRight, FaBuilding, FaCalendarAlt,
 } from "react-icons/fa";
 
 // ─── Structure du menu ────────────────────────────────────────────────────────
@@ -42,8 +42,9 @@ const nav = [
       { key: "journal",     label: "Journal",          icon: <FaBook />,         to: "/dashboard/journalcomptable" },
       { key: "bilan",       label: "Bilan",             icon: <FaBalanceScale />, to: "/dashboard/bilancomptable" },
       { key: "plan",        label: "Plan comptable",    icon: <FaChartBar />,     to: "/dashboard/plancomptable" },
-      { key: "declaration", label: "Déclaration TVA",   icon: <FaFilePdf />,      to: "/dashboard/declarationfiscale" },
-      { key: "rapports",    label: "Rapports",          icon: <FaFilePdf />,      to: "/dashboard/rapports" },
+      { key: "declaration",  label: "Déclaration TVA",   icon: <FaFilePdf />,       to: "/dashboard/declarationfiscale" },
+      { key: "calendrier",   label: "Calendrier fiscal", icon: <FaCalendarAlt />,   to: "/dashboard/calendrierfiscal" },
+      { key: "rapports",     label: "Rapports",          icon: <FaFilePdf />,       to: "/dashboard/rapports" },
     ],
   },
   {
