@@ -18,6 +18,7 @@
     "file-saver": "^2.0.5",
     "file-server": "^2.2.1",
     "firebase": "^11.9.1",
+    "firebase-admin": "^13.8.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
