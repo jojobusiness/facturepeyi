@@ -256,32 +256,6 @@ export default function Home() {
                 <FaCheckCircle className="text-emerald-500 w-3.5 h-3.5" /> Aucune carte bancaire requise
               </p>
 
-              {/* 4 personas — mobile uniquement */}
-              <div className="grid grid-cols-2 gap-2 lg:hidden">
-                {[
-                  { pos: "0% 0%",     label: "Restaurateurs", badge: "🍽️" },
-                  { pos: "100% 0%",   label: "Freelances",    badge: "💻" },
-                  { pos: "0% 100%",   label: "Artisans",      badge: "🔧" },
-                  { pos: "100% 100%", label: "BTP",           badge: "🏗️" },
-                ].map(p => (
-                  <div key={p.label} className="relative rounded-xl overflow-hidden h-28 group">
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        backgroundImage: "url('/personas.png')",
-                        backgroundSize: "200% 200%",
-                        backgroundPosition: p.pos,
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <div className="absolute bottom-2 left-2 flex items-center gap-1.5">
-                      <span className="text-base">{p.badge}</span>
-                      <span className="text-white font-semibold text-xs">{p.label}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
               {/* 3 mini-features — desktop seulement */}
               <div className="hidden lg:grid grid-cols-3 gap-3 mt-4">
                 {[
@@ -298,33 +272,21 @@ export default function Home() {
               </div>
             </div>
 
-            {/* ── Côté droit — 4 personas desktop ── */}
-            <div className="hidden lg:grid grid-cols-2 gap-3 h-[520px]">
-              {[
-                { pos: "0% 0%",     label: "Restaurateurs & Cafés",    badge: "🍽️", color: "from-orange-600/70" },
-                { pos: "100% 0%",   label: "Freelances & Consultants", badge: "💻", color: "from-emerald-600/70" },
-                { pos: "0% 100%",   label: "Artisans & Mécaniciens",   badge: "🔧", color: "from-blue-600/70" },
-                { pos: "100% 100%", label: "Entrepreneurs BTP",        badge: "🏗️", color: "from-yellow-600/70" },
-              ].map(p => (
-                <div key={p.label} className="relative rounded-2xl overflow-hidden group cursor-pointer shadow-lg">
-                  <div
-                    className="absolute inset-0 transition-transform duration-500 group-hover:scale-105"
-                    style={{
-                      backgroundImage: "url('/personas.png')",
-                      backgroundSize: "200% 200%",
-                      backgroundPosition: p.pos,
-                    }}
-                  />
-                  <div className={`absolute inset-0 bg-gradient-to-t ${p.color} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
-                  <div className="absolute top-3 left-3 text-xl bg-white/20 backdrop-blur-sm rounded-xl w-9 h-9 flex items-center justify-center">
-                    {p.badge}
-                  </div>
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <div className="font-bold text-white text-sm leading-tight">{p.label}</div>
-                  </div>
+            {/* ── Côté droit — Dashboard mockup desktop ── */}
+            <div className="hidden lg:flex flex-col justify-center gap-3">
+              <DashboardMockup />
+              <div className="flex gap-3">
+                <div className="flex-1 bg-white rounded-xl p-3 shadow-sm border border-gray-100">
+                  <div className="text-xs text-gray-400 mb-0.5">Paiement reçu</div>
+                  <div className="font-extrabold text-[#0d1b3e] text-sm">2 350,00 €</div>
+                  <div className="text-xs text-emerald-600 font-semibold">✓ SARL Océanik</div>
                 </div>
-              ))}
+                <div className="flex-1 bg-white rounded-xl p-3 shadow-sm border border-gray-100">
+                  <div className="text-xs text-gray-400 mb-0.5">Facture envoyée</div>
+                  <div className="font-extrabold text-[#0d1b3e] text-sm">1 850,00 €</div>
+                  <div className="text-xs text-blue-600 font-semibold">FAC-2024-0125</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
