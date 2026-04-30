@@ -79,6 +79,8 @@ export default function Inscription() {
             trialEndsAt: Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)),
           };
 
+      const referredBy = state.ref || null;
+
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       const user = cred.user;
 
@@ -93,6 +95,7 @@ export default function Inscription() {
         octroiDeMer,
         createdAt: serverTimestamp(),
         ...planData,
+        ...(referredBy ? { referredBy } : {}),
       });
       const entrepriseId = entrepriseRef.id;
 

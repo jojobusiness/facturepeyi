@@ -18,6 +18,18 @@ npm run lint      # ESLint sur tout le projet
 
 Les fonctions serverless (`/api/*.js`) s'exécutent via Vercel en production. En local, utiliser `vercel dev` pour les tester (nécessite Vercel CLI).
 
+## Règle obligatoire — Test des pages et vérification des routes
+
+**Après avoir créé ou modifié une page, TOUJOURS :**
+
+1. **Vérifier que la route est câblée dans `App.jsx`** — une page non enregistrée est invisible.
+2. **Lancer `npm run build`** — confirme qu'il n'y a pas d'erreur de compilation.
+3. **Démarrer `npm run dev`** et tester la route manuellement (`curl` ou navigateur) — s'assurer que la page se charge sans erreur 404 ni crash React.
+4. **Vérifier les imports** — tous les composants, hooks et librairies utilisés doivent être importés en haut du fichier.
+5. Pour les pages avec `useParams` ou `useLocation`, vérifier que le slug/param correspond exactement à la route déclarée dans `App.jsx`.
+
+Ne jamais considérer une page comme livrée sans avoir vérifié ces 5 points.
+
 ## Architecture
 
 ### Stack

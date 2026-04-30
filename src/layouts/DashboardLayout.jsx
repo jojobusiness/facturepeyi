@@ -9,6 +9,7 @@ import {
   FaReceipt, FaTag, FaBook, FaBalanceScale, FaChartBar,
   FaFilePdf, FaUserShield, FaCog, FaSignOutAlt, FaBars, FaTimes,
   FaChevronDown, FaChevronRight, FaBuilding, FaCalendarAlt,
+  FaUniversity, FaGift,
 } from "react-icons/fa";
 
 // ─── Structure du menu ────────────────────────────────────────────────────────
@@ -33,8 +34,9 @@ const nav = [
   {
     section: "Achats",
     items: [
-      { key: "depenses",    label: "Dépenses",    icon: <FaReceipt />, to: "/dashboard/depenses" },
-      { key: "categories",  label: "Catégories",  icon: <FaTag />,     to: "/dashboard/categories" },
+      { key: "depenses",       label: "Dépenses",        icon: <FaReceipt />,    to: "/dashboard/depenses" },
+      { key: "categories",     label: "Catégories",      icon: <FaTag />,        to: "/dashboard/categories" },
+      { key: "importBancaire", label: "Import bancaire", icon: <FaUniversity />, to: "/dashboard/import-bancaire" },
     ],
   },
   {
@@ -52,6 +54,7 @@ const nav = [
     section: "Équipe",
     items: [
       { key: "admin",      label: "Gestion utilisateurs", icon: <FaUserShield />, to: "/dashboard/admin" },
+      { key: "parrainage", label: "Parrainage",           icon: <FaGift />,       to: "/dashboard/parrainage" },
       { key: "parametres", label: "Paramètres",           icon: <FaCog />,        to: "/dashboard/parametres" },
     ],
   },

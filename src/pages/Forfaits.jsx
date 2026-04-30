@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { FaCheckCircle, FaArrowLeft } from "react-icons/fa";
 
 const SOLO_PRICE_ID = "price_1Rlat8Ick4iMBRE91vyvhOFc";
@@ -87,6 +87,8 @@ const plans = [
 export default function Forfaits() {
   const [loading, setLoading] = useState("");
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const refCode = searchParams.get("ref") || "";
 
   const handleStripeCheckout = async (priceId, planId) => {
     setLoading(planId);
@@ -110,7 +112,7 @@ export default function Forfaits() {
   };
 
   const handleTrial = () => {
-    navigate("/Inscription", { state: { trialOk: true } });
+    navigate("/Inscription", { state: { trialOk: true, ref: refCode || null } });
   };
 
   const handlePlanClick = (plan) => {

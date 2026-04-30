@@ -45,6 +45,8 @@ import DevisList from './pages/DevisList';
 import CreateDevis from './pages/CreateDevis';
 import EditDevis from './pages/EditDevis';
 import CalendrierFiscal from './pages/CalendrierFiscal';
+import ImportBancaire from './pages/ImportBancaire';
+import Parrainage from './pages/Parrainage';
 
 export default function App() {
   return (
@@ -139,6 +141,8 @@ export default function App() {
           </RoleRoute>
         } />
         <Route path="parametres" element={<PrivateRoute><Settings /></PrivateRoute>} />
+        <Route path="import-bancaire" element={<PrivateRoute><ImportBancaire /></PrivateRoute>} />
+        <Route path="parrainage" element={<PrivateRoute><Parrainage /></PrivateRoute>} />
       </Route>
 
       {/* Redirection inconnue */}
