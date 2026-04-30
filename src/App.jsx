@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 import Home from './pages/Home';
+import TerritoirePage from './pages/TerritoirePage';
 import Login from './pages/Login';
 import Conditions from './pages/Conditions';
 import Confidentialite from './pages/Confidentialite';
@@ -49,6 +50,20 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+
+      {/* Pages SEO par territoire DOM-TOM */}
+      <Route path="/martinique" element={<TerritoirePage />} />
+      <Route path="/guadeloupe" element={<TerritoirePage />} />
+      <Route path="/guyane" element={<TerritoirePage />} />
+      <Route path="/reunion" element={<TerritoirePage />} />
+      <Route path="/mayotte" element={<TerritoirePage />} />
+      <Route path="/nouvelle-caledonie" element={<TerritoirePage />} />
+      <Route path="/polynesie-francaise" element={<TerritoirePage />} />
+      <Route path="/saint-martin" element={<TerritoirePage />} />
+      <Route path="/saint-barthelemy" element={<TerritoirePage />} />
+      <Route path="/saint-pierre-et-miquelon" element={<TerritoirePage />} />
+      <Route path="/wallis-et-futuna" element={<TerritoirePage />} />
+
       <Route path="/login" element={<Login />} />
       <Route path="/Inscription" element={<Inscription />} />
       <Route path="/Forfaits" element={<Forfaits />} />
