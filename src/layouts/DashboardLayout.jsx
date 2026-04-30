@@ -9,7 +9,7 @@ import {
   FaReceipt, FaTag, FaBook, FaBalanceScale, FaChartBar,
   FaFilePdf, FaUserShield, FaCog, FaSignOutAlt, FaBars, FaTimes,
   FaChevronDown, FaChevronRight, FaBuilding, FaCalendarAlt,
-  FaUniversity, FaGift,
+  FaUniversity, FaGift, FaBriefcase,
 } from "react-icons/fa";
 
 // ─── Structure du menu ────────────────────────────────────────────────────────
@@ -65,8 +65,9 @@ const nav = [
 function SidebarContent({ onClose }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, entreprise } = useAuth();
+  const { user, entreprise, managedEntreprises, isCabinet, switchEntreprise } = useAuth();
   const [collapsed, setCollapsed] = useState({});
+  const [switchingId, setSwitchingId] = useState(null);
 
   const isActive = (to) => location.pathname === to;
 
@@ -93,29 +94,106 @@ function SidebarContent({ onClose }) {
         )}
       </div>
 
-      {/* Entreprise badge */}
+      {/* Entreprise badge / Cabinet switcher */}
       {entreprise?.nom && (
-        <div className="mx-3 mt-3 bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center flex-shrink-0">
-            <FaBuilding className="w-3 h-3 text-white" />
+        <div className="mx-3 mt-3 space-y-1.5">
+          <div className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center flex-shrink-0">
+              <FaBuilding className="w-3 h-3 text-white" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-xs font-bold text-white truncate">{entreprise.nom}</div>
+              <div className="text-xs text-white/40 truncate">{entreprise.territoire || "DOM-TOM"}</div>
+            </div>
+            {(() => {
+              const plan = getPlan(entreprise.plan || "decouverte");
+              return (
+                <span className={`flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${plan.badgeColor}`}>
+                  {plan.badge}
+                </span>
+              );
+            })()}
           </div>
-          <div className="min-w-0 flex-1">
-            <div className="text-xs font-bold text-white truncate">{entreprise.nom}</div>
-            <div className="text-xs text-white/40 truncate">{entreprise.territoire || "DOM-TOM"}</div>
-          </div>
-          {(() => {
-            const plan = getPlan(entreprise.plan || "decouverte");
-            return (
-              <span className={`flex-shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${plan.badgeColor}`}>
-                {plan.badge}
-              </span>
-            );
-          })()}
+
+          {/* Switcher cabinet */}
+          {isCabinet && managedEntreprises.length > 0 && (
+            <div className="bg-indigo-900/40 border border-indigo-500/20 rounded-xl px-2 py-1.5">
+              <p className="text-[10px] text-indigo-300/60 font-semibold uppercase tracking-wider px-1 mb-1">
+                Clients du cabinet
+              </p>
+              <div className="space-y-0.5 max-h-32 overflow-y-auto">
+                {managedEntreprises.map((e) => (
+                  <button
+                    key={e.id}
+                    disabled={switchingId === e.id}
+                    onClick={async () => {
+                      setSwitchingId(e.id);
+                      await switchEntreprise(e.id);
+                      setSwitchingId(null);
+                      if (onClose) onClose();
+                      navigate("/dashboard");
+                    }}
+                    className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition text-xs ${
+                      entreprise?.id === e.id
+                        ? "bg-indigo-500/30 text-white font-semibold"
+                        : "text-indigo-200/70 hover:bg-indigo-500/20 hover:text-white"
+                    }`}
+                  >
+                    <span className="truncate flex-1">{e.nom || "Sans nom"}</span>
+                    {entreprise?.id === e.id && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5">
+        {/* Section Cabinet (visible seulement pour plan cabinet) */}
+        {isCabinet && (
+          <div className="mb-1">
+            <button
+              onClick={() => toggleSection("Cabinet")}
+              className="w-full flex items-center justify-between px-2 py-1.5 mb-1 text-left"
+            >
+              <span className="text-indigo-400 text-xs font-semibold uppercase tracking-widest">Cabinet</span>
+              {collapsed["Cabinet"]
+                ? <FaChevronRight className="w-2.5 h-2.5 text-indigo-400/50" />
+                : <FaChevronDown className="w-2.5 h-2.5 text-indigo-400/50" />}
+            </button>
+            {!collapsed["Cabinet"] && (
+              <>
+                <Link
+                  to="/dashboard/cabinet"
+                  onClick={onClose}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 mb-0.5 ${
+                    isActive("/dashboard/cabinet")
+                      ? "bg-indigo-600 text-white shadow-lg"
+                      : "text-indigo-300/70 hover:bg-indigo-500/20 hover:text-white"
+                  }`}
+                >
+                  <FaBriefcase className="w-4 h-4 flex-shrink-0" />
+                  <span className="text-sm font-medium">Mon cabinet</span>
+                </Link>
+                <Link
+                  to="/dashboard/cabinet/ajouter"
+                  onClick={onClose}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 ${
+                    isActive("/dashboard/cabinet/ajouter")
+                      ? "bg-indigo-600 text-white shadow-lg"
+                      : "text-indigo-400 hover:bg-indigo-500/20 hover:text-indigo-300"
+                  }`}
+                >
+                  <FaPlus className="w-4 h-4 flex-shrink-0" />
+                  <span className="text-sm font-medium">Ajouter un client</span>
+                </Link>
+              </>
+            )}
+          </div>
+        )}
+
         {nav.map(({ section, items }) => (
           <div key={section || "home"} className="mb-1">
             {section && (

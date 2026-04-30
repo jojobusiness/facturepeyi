@@ -37,6 +37,15 @@ export const PLANS = {
     maxUsers: Infinity,
     features: ["factures", "devis", "clients", "depenses", "categories", "declaration", "calendrier", "rappels", "rapports", "multi-users", "recurrence", "import-bancaire"],
   },
+  cabinet: {
+    id: "cabinet",
+    name: "Cabinet",
+    badge: "Cabinet",
+    badgeColor: "bg-indigo-100 text-indigo-700",
+    maxFactures: Infinity,
+    maxUsers: Infinity,
+    features: ["factures", "devis", "clients", "depenses", "categories", "declaration", "calendrier", "rappels", "rapports", "multi-users", "recurrence", "import-bancaire", "multi-entreprises"],
+  },
 };
 
 export function getPlan(planId) {

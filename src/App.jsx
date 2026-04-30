@@ -47,6 +47,8 @@ import EditDevis from './pages/EditDevis';
 import CalendrierFiscal from './pages/CalendrierFiscal';
 import ImportBancaire from './pages/ImportBancaire';
 import Parrainage from './pages/Parrainage';
+import Cabinet from './pages/Cabinet';
+import AddClientEntreprise from './pages/AddClientEntreprise';
 
 export default function App() {
   return (
@@ -143,6 +145,8 @@ export default function App() {
         <Route path="parametres" element={<PrivateRoute><Settings /></PrivateRoute>} />
         <Route path="import-bancaire" element={<PrivateRoute><ImportBancaire /></PrivateRoute>} />
         <Route path="parrainage" element={<PrivateRoute><Parrainage /></PrivateRoute>} />
+        <Route path="cabinet" element={<PrivateRoute><Cabinet /></PrivateRoute>} />
+        <Route path="cabinet/ajouter" element={<PrivateRoute><AddClientEntreprise /></PrivateRoute>} />
       </Route>
 
       {/* Redirection inconnue */}
