@@ -44,11 +44,17 @@ const features = [
 ];
 
 const territories = [
-  { name: "Martinique", tva: "8,5%", note: "Octroi de mer géré", flag: "🇲🇶" },
-  { name: "Guadeloupe", tva: "8,5%", note: "Octroi de mer géré", flag: "🇬🇵" },
-  { name: "Guyane française", tva: "0%", note: "Art. 294 CGI automatique", flag: "🇬🇫" },
-  { name: "La Réunion", tva: "8,5%", note: "Octroi de mer géré", flag: "🇷🇪" },
-  { name: "Mayotte", tva: "0%", note: "Art. 294 CGI automatique", flag: "🇾🇹" },
+  { slug: "martinique",            name: "Martinique",              tva: "8,5%",  note: "Octroi de mer géré",        flag: "🇲🇶" },
+  { slug: "guadeloupe",            name: "Guadeloupe",              tva: "8,5%",  note: "Octroi de mer géré",        flag: "🇬🇵" },
+  { slug: "guyane",                name: "Guyane française",        tva: "0%",    note: "Art. 294 CGI automatique",  flag: "🇬🇫" },
+  { slug: "reunion",               name: "La Réunion",              tva: "8,5%",  note: "Octroi de mer géré",        flag: "🇷🇪" },
+  { slug: "mayotte",               name: "Mayotte",                 tva: "0%",    note: "Art. 294 CGI automatique",  flag: "🇾🇹" },
+  { slug: "nouvelle-caledonie",    name: "Nouvelle-Calédonie",      tva: "11%",   note: "TGC — taxe locale",         flag: "🇳🇨" },
+  { slug: "polynesie-francaise",   name: "Polynésie française",     tva: "16%",   note: "TVA locale",                flag: "🇵🇫" },
+  { slug: "saint-martin",          name: "Saint-Martin",            tva: "8,5%",  note: "Octroi de mer géré",        flag: "🇸🇽" },
+  { slug: "saint-barthelemy",      name: "Saint-Barthélemy",        tva: "0%",    note: "Art. 294 CGI automatique",  flag: "🇧🇱" },
+  { slug: "saint-pierre-et-miquelon", name: "Saint-Pierre-et-Miquelon", tva: "0%", note: "Art. 294 CGI automatique", flag: "🇵🇲" },
+  { slug: "wallis-et-futuna",      name: "Wallis-et-Futuna",        tva: "0%",    note: "TVA non applicable",        flag: "🇼🇫" },
 ];
 
 const plans = [
@@ -471,14 +477,18 @@ export default function Home() {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
             {territories.map(t => (
-              <div key={t.name} className="bg-white border border-gray-100 rounded-2xl p-5 flex items-start gap-4 shadow-sm hover:shadow-md transition">
+              <Link
+                key={t.slug}
+                to={`/${t.slug}`}
+                className="bg-white border border-gray-100 rounded-2xl p-5 flex items-start gap-4 shadow-sm hover:shadow-md hover:border-emerald-200 transition group"
+              >
                 <span className="text-3xl">{t.flag}</span>
                 <div>
-                  <div className="font-bold text-[#0d1b3e]">{t.name}</div>
+                  <div className="font-bold text-[#0d1b3e] group-hover:text-emerald-700 transition">{t.name}</div>
                   <div className="text-emerald-600 font-semibold text-sm mt-0.5">TVA {t.tva}</div>
                   <div className="text-gray-400 text-xs mt-1">{t.note}</div>
                 </div>
-              </div>
+              </Link>
             ))}
             <div className="bg-[#0d1b3e] rounded-2xl p-5 flex items-center justify-center text-white text-center">
               <div>
@@ -648,11 +658,13 @@ export default function Home() {
           <div>
             <h4 className="font-semibold mb-3 text-gray-300">Territoires</h4>
             <ul className="space-y-2 text-gray-500">
-              <li>🇲🇶 Martinique</li>
-              <li>🇬🇵 Guadeloupe</li>
-              <li>🇬🇫 Guyane française</li>
-              <li>🇷🇪 La Réunion</li>
-              <li>🇾🇹 Mayotte</li>
+              {territories.map(t => (
+                <li key={t.slug}>
+                  <Link to={`/${t.slug}`} className="hover:text-white transition">
+                    {t.flag} {t.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
           <div>
