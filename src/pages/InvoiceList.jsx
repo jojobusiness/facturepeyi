@@ -4,6 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { db } from "../lib/firebase";
 import { downloadInvoicePDF } from "../utils/downloadPDF";
 import { useAuth } from "../context/AuthContext";
+import { FaSync } from "react-icons/fa";
 
 const STATUS_CONFIG = {
   "en attente": { label: "En attente", classes: "bg-yellow-50 text-yellow-700" },
@@ -108,7 +109,16 @@ export default function InvoiceList() {
                 const cfg = STATUS_CONFIG[invoice.status] || STATUS_CONFIG["en attente"];
                 return (
                   <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-5 py-4 font-medium text-[#0d1b3e]">{invoice.clientNom || "—"}</td>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-[#0d1b3e]">{invoice.clientNom || "—"}</span>
+                        {invoice.recurrenceId && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-600 border border-blue-100">
+                            <FaSync className="w-2 h-2" /> Auto
+                          </span>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-5 py-4 text-gray-500 max-w-xs truncate hidden md:table-cell">{invoice.description}</td>
                     <td className="px-5 py-4 font-semibold text-[#0d1b3e]">{invoice.totalTTC?.toFixed(2)} €</td>
                     <td className="px-5 py-4 text-gray-400 hidden sm:table-cell">

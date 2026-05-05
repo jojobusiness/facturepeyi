@@ -49,6 +49,8 @@ import ImportBancaire from './pages/ImportBancaire';
 import Parrainage from './pages/Parrainage';
 import Cabinet from './pages/Cabinet';
 import AddClientEntreprise from './pages/AddClientEntreprise';
+import RecurrenceList from './pages/RecurrenceList';
+import CreateRecurrence from './pages/CreateRecurrence';
 
 export default function App() {
   return (
@@ -142,6 +144,8 @@ export default function App() {
             <AdminUserManagement />
           </RoleRoute>
         } />
+        <Route path="factures/recurrentes" element={<PrivateRoute><RecurrenceList /></PrivateRoute>} />
+        <Route path="factures/recurrentes/nouvelle" element={<PrivateRoute><CreateRecurrence /></PrivateRoute>} />
         <Route path="parametres" element={<PrivateRoute><Settings /></PrivateRoute>} />
         <Route path="import-bancaire" element={<PrivateRoute><ImportBancaire /></PrivateRoute>} />
         <Route path="parrainage" element={<PrivateRoute><Parrainage /></PrivateRoute>} />

@@ -9,7 +9,7 @@ import {
   FaReceipt, FaTag, FaBook, FaBalanceScale, FaChartBar,
   FaFilePdf, FaUserShield, FaCog, FaSignOutAlt, FaBars, FaTimes,
   FaChevronDown, FaChevronRight, FaBuilding, FaCalendarAlt,
-  FaUniversity, FaGift, FaBriefcase,
+  FaUniversity, FaGift, FaBriefcase, FaSync,
 } from "react-icons/fa";
 
 // ─── Structure du menu ────────────────────────────────────────────────────────
@@ -26,6 +26,7 @@ const nav = [
     items: [
       { key: "factures",       label: "Factures",          icon: <FaFileInvoice />, to: "/dashboard/factures" },
       { key: "nouvelleFacture",label: "Nouvelle facture",  icon: <FaPlus />,        to: "/dashboard/facture/nouvelle", accent: true },
+      { key: "recurrentes",    label: "Récurrentes",       icon: <FaSync />,        to: "/dashboard/factures/recurrentes" },
       { key: "clients",        label: "Clients",           icon: <FaUsers />,       to: "/dashboard/clients" },
       { key: "devis",       label: "Devis",         icon: <FaFileAlt />, to: "/dashboard/devis" },
       { key: "nouveauDevis",label: "Nouveau devis", icon: <FaPlus />,        to: "/dashboard/devis/nouveau", accent: true },
