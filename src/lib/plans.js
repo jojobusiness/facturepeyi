@@ -26,7 +26,7 @@ export const PLANS = {
     badgeColor: "bg-emerald-100 text-emerald-700",
     maxFactures: Infinity,
     maxUsers: Infinity,
-    features: ["factures", "devis", "clients", "depenses", "categories", "declaration", "calendrier", "rappels", "rapports", "multi-users", "recurrence"],
+    features: ["factures", "devis", "clients", "depenses", "categories", "declaration", "calendrier", "rappels", "rapports", "multi-users", "recurrence", "portail-client", "acompte"],
   },
   expert: {
     id: "expert",
@@ -35,7 +35,7 @@ export const PLANS = {
     badgeColor: "bg-purple-100 text-purple-700",
     maxFactures: Infinity,
     maxUsers: Infinity,
-    features: ["factures", "devis", "clients", "depenses", "categories", "declaration", "calendrier", "rappels", "rapports", "multi-users", "recurrence", "import-bancaire"],
+    features: ["factures", "devis", "clients", "depenses", "categories", "declaration", "calendrier", "rappels", "rapports", "multi-users", "recurrence", "import-bancaire", "portail-client", "acompte"],
   },
   cabinet: {
     id: "cabinet",
@@ -44,7 +44,7 @@ export const PLANS = {
     badgeColor: "bg-indigo-100 text-indigo-700",
     maxFactures: Infinity,
     maxUsers: Infinity,
-    features: ["factures", "devis", "clients", "depenses", "categories", "declaration", "calendrier", "rappels", "rapports", "multi-users", "recurrence", "import-bancaire", "multi-entreprises"],
+    features: ["factures", "devis", "clients", "depenses", "categories", "declaration", "calendrier", "rappels", "rapports", "multi-users", "recurrence", "import-bancaire", "multi-entreprises", "portail-client", "acompte"],
   },
 };
 

@@ -32,6 +32,14 @@ service cloud.firestore {
       allow update: if isAuth() && request.auth.uid == uid;
     }
 
+    // ── Liens de paiement (portail client) ───────────────────────────────────
+    match /paymentLinks/{token} {
+      // Seuls les utilisateurs authentifiés peuvent créer un lien
+      allow create: if isAuth();
+      // Lecture réservée au créateur (le serveur Admin SDK lit sans restriction)
+      allow read: if isAuth() && resource.data.createdBy == request.auth.uid;
+    }
+
     // ── Entreprises ───────────────────────────────────────────────────────────
     match /entreprises/{entrepriseId} {
       allow read: if isMembreEntreprise(entrepriseId);

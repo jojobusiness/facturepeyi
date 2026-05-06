@@ -47,6 +47,45 @@ export default async function handler(req, res) {
 
   try {
     switch (event.type) {
+      case "checkout.session.completed": {
+        const session = event.data.object;
+        if (session.metadata?.type !== "invoice_payment") break;
+
+        const { entrepriseId, factureId } = session.metadata;
+        if (!entrepriseId || !factureId) break;
+
+        const factureRef = db.collection("entreprises").doc(entrepriseId).collection("factures").doc(factureId);
+        const factureSnap = await factureRef.get();
+        if (!factureSnap.exists) break;
+
+        await factureRef.update({ status: "payée", paidAt: new Date() });
+
+        // Notification email au propriétaire (fire-and-forget)
+        const entrepriseSnap = await db.collection("entreprises").doc(entrepriseId).get();
+        const entrepriseData = entrepriseSnap.data();
+        if (entrepriseData?.ownerUid && process.env.RESEND_API_KEY) {
+          db.collection("utilisateurs").doc(entrepriseData.ownerUid).get().then((ownerSnap) => {
+            const ownerEmail = ownerSnap.data()?.email;
+            const facture = factureSnap.data();
+            if (!ownerEmail) return;
+            fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+              },
+              body: JSON.stringify({
+                from: "Factur'Peyi <noreply@facturepeyi.com>",
+                to: [ownerEmail],
+                subject: `Paiement reçu — ${facture.clientNom} — ${facture.totalTTC?.toFixed(2)} €`,
+                html: `<p>Bonjour,</p><p>Le paiement de <strong>${facture.totalTTC?.toFixed(2)} €</strong> de la part de <strong>${facture.clientNom}</strong> a bien été reçu via le portail client.</p><p>La facture a été automatiquement marquée comme payée dans <strong>Factur'Peyi</strong>.</p>`,
+              }),
+            }).catch(() => {});
+          }).catch(() => {});
+        }
+        break;
+      }
+
       case "customer.subscription.updated": {
         const sub = event.data.object;
         const doc = await findEntrepriseByCustomerId(sub.customer);

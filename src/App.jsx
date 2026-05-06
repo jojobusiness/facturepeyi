@@ -51,6 +51,9 @@ import Cabinet from './pages/Cabinet';
 import AddClientEntreprise from './pages/AddClientEntreprise';
 import RecurrenceList from './pages/RecurrenceList';
 import CreateRecurrence from './pages/CreateRecurrence';
+import PortailClient from './pages/PortailClient';
+import CreateAcompte from './pages/CreateAcompte';
+import CreateSolde from './pages/CreateSolde';
 
 export default function App() {
   return (
@@ -82,6 +85,7 @@ export default function App() {
       <Route path="/unauthorized" element={<Unauthorized />} />
       <Route path="/invite-complete" element={<InviteComplete />} />
       <Route path="/support" element={<Support />} />
+      <Route path="/portail/:token" element={<PortailClient />} />
 
       {/* Dashboard imbriqué dans PrivateRoute */}
       <Route
@@ -146,6 +150,8 @@ export default function App() {
         } />
         <Route path="factures/recurrentes" element={<PrivateRoute><RecurrenceList /></PrivateRoute>} />
         <Route path="factures/recurrentes/nouvelle" element={<PrivateRoute><CreateRecurrence /></PrivateRoute>} />
+        <Route path="facture/acompte/nouvelle" element={<PrivateRoute><CreateAcompte /></PrivateRoute>} />
+        <Route path="facture/solde/:acompteId" element={<PrivateRoute><CreateSolde /></PrivateRoute>} />
         <Route path="parametres" element={<PrivateRoute><Settings /></PrivateRoute>} />
         <Route path="import-bancaire" element={<PrivateRoute><ImportBancaire /></PrivateRoute>} />
         <Route path="parrainage" element={<PrivateRoute><Parrainage /></PrivateRoute>} />

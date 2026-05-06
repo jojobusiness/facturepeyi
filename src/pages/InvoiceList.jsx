@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, orderBy, deleteDoc, doc, getDoc } from "firebase/firestore";
+import {
+  collection, getDocs, query, orderBy, deleteDoc,
+  doc, getDoc, updateDoc, setDoc, serverTimestamp,
+} from "firebase/firestore";
 import { useNavigate, Link } from "react-router-dom";
 import { db } from "../lib/firebase";
 import { downloadInvoicePDF } from "../utils/downloadPDF";
 import { useAuth } from "../context/AuthContext";
-import { FaSync } from "react-icons/fa";
+import { canUseFeature } from "../lib/plans";
+import { FaSync, FaLink, FaCheck } from "react-icons/fa";
 
 const STATUS_CONFIG = {
   "en attente": { label: "En attente", classes: "bg-yellow-50 text-yellow-700" },
@@ -14,10 +18,14 @@ const STATUS_CONFIG = {
 };
 
 export default function InvoiceList() {
-  const { entrepriseId, entreprise } = useAuth();
+  const { user, entrepriseId, entreprise } = useAuth();
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [copiedId, setCopiedId] = useState(null);
   const navigate = useNavigate();
+
+  const canPortail = canUseFeature(entreprise?.plan || "decouverte", "portail-client");
+  const canAcompte = canUseFeature(entreprise?.plan || "decouverte", "acompte");
 
   useEffect(() => {
     if (!entrepriseId) return;
@@ -65,6 +73,40 @@ export default function InvoiceList() {
     }
   };
 
+  const handleCopyPaymentLink = async (invoice) => {
+    if (!canPortail) {
+      alert("Le portail client est disponible à partir du plan Pro. Mettez à jour votre abonnement.");
+      return;
+    }
+
+    let token = invoice.paymentToken;
+
+    if (!token) {
+      token = crypto.randomUUID();
+      await setDoc(doc(db, "paymentLinks", token), {
+        entrepriseId,
+        factureId: invoice.id,
+        createdBy: user.uid,
+        createdAt: serverTimestamp(),
+      });
+      await updateDoc(doc(db, "entreprises", entrepriseId, "factures", invoice.id), {
+        paymentToken: token,
+      });
+      setInvoices((prev) =>
+        prev.map((inv) => inv.id === invoice.id ? { ...inv, paymentToken: token } : inv)
+      );
+    }
+
+    const link = `${window.location.origin}/portail/${token}`;
+    try {
+      await navigator.clipboard.writeText(link);
+    } catch {
+      prompt("Copiez ce lien de paiement :", link);
+    }
+    setCopiedId(invoice.id);
+    setTimeout(() => setCopiedId(null), 2500);
+  };
+
   if (loading) return <div className="flex items-center justify-center h-64 text-gray-400 text-sm">Chargement...</div>;
 
   return (
@@ -74,12 +116,22 @@ export default function InvoiceList() {
           <h2 className="text-2xl font-bold text-[#0d1b3e]">Factures</h2>
           <p className="text-sm text-gray-400 mt-0.5">{invoices.length} facture{invoices.length !== 1 ? "s" : ""}</p>
         </div>
-        <Link
-          to="/dashboard/facture/nouvelle"
-          className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition"
-        >
-          + Nouvelle facture
-        </Link>
+        <div className="flex items-center gap-2">
+          {canAcompte && (
+            <Link
+              to="/dashboard/facture/acompte/nouvelle"
+              className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-sm px-4 py-2.5 rounded-xl transition"
+            >
+              Acompte
+            </Link>
+          )}
+          <Link
+            to="/dashboard/facture/nouvelle"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition"
+          >
+            + Nouvelle facture
+          </Link>
+        </div>
       </div>
 
       {invoices.length === 0 ? (
@@ -107,14 +159,28 @@ export default function InvoiceList() {
             <tbody className="divide-y divide-gray-50">
               {invoices.map((invoice) => {
                 const cfg = STATUS_CONFIG[invoice.status] || STATUS_CONFIG["en attente"];
+                const isPayable = invoice.status !== "payée" && invoice.status !== "annulée";
+                const isAcompte = invoice.type === "acompte";
+                const isSolde = invoice.type === "solde";
+
                 return (
                   <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-4">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="font-medium text-[#0d1b3e]">{invoice.clientNom || "—"}</span>
                         {invoice.recurrenceId && (
                           <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-600 border border-blue-100">
                             <FaSync className="w-2 h-2" /> Auto
+                          </span>
+                        )}
+                        {isAcompte && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-600 border border-amber-100">
+                            Acompte {invoice.acomptePercent}%
+                          </span>
+                        )}
+                        {isSolde && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-violet-50 text-violet-600 border border-violet-100">
+                            Solde
                           </span>
                         )}
                       </div>
@@ -143,6 +209,36 @@ export default function InvoiceList() {
                         >
                           PDF
                         </button>
+                        {isPayable && (
+                          <button
+                            onClick={() => handleCopyPaymentLink(invoice)}
+                            title={copiedId === invoice.id ? "Lien copié !" : "Copier le lien de paiement"}
+                            className={`flex items-center gap-1 text-xs font-medium transition ${
+                              copiedId === invoice.id
+                                ? "text-emerald-600"
+                                : "text-blue-500 hover:text-blue-700"
+                            }`}
+                          >
+                            {copiedId === invoice.id
+                              ? <><FaCheck className="w-3 h-3" /> Copié</>
+                              : <><FaLink className="w-3 h-3" /> Lien</>
+                            }
+                          </button>
+                        )}
+                        {isAcompte && !invoice.soldeFactureId && (
+                          <button
+                            onClick={() => {
+                              if (!canAcompte) {
+                                alert("Disponible sur plan Pro+.");
+                                return;
+                              }
+                              navigate(`/dashboard/facture/solde/${invoice.id}`);
+                            }}
+                            className="text-xs font-medium text-violet-500 hover:text-violet-700 transition"
+                          >
+                            Solde
+                          </button>
+                        )}
                         <button
                           onClick={() => handleDelete(invoice.id)}
                           className="text-xs font-medium text-red-400 hover:text-red-600 transition"
