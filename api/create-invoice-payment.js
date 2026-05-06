@@ -8,6 +8,8 @@ if (!getApps().length) {
 const db = getFirestore();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+const PLATFORM_FEE_RATE = 0.025; // 2,5%
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
@@ -30,6 +32,12 @@ export default async function handler(req, res) {
   if (facture.status === "payée") return res.status(400).json({ error: "already_paid" });
 
   const entreprise = entrepriseSnap.data() || {};
+  const connectedAccountId = entreprise.stripeConnectedAccountId;
+
+  if (!connectedAccountId) return res.status(400).json({ error: "no_stripe_connect" });
+
+  const totalCents = Math.round(facture.totalTTC * 100);
+  const feeCents = Math.round(totalCents * PLATFORM_FEE_RATE);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://facturepeyi.com";
 
   const session = await stripe.checkout.sessions.create({
@@ -45,11 +53,18 @@ export default async function handler(req, res) {
               : `Facture — ${entreprise.nom || ""}`,
             description: facture.description || undefined,
           },
-          unit_amount: Math.round(facture.totalTTC * 100),
+          unit_amount: totalCents,
         },
         quantity: 1,
       },
     ],
+    payment_intent_data: {
+      application_fee_amount: feeCents,
+      on_behalf_of: connectedAccountId,
+      transfer_data: {
+        destination: connectedAccountId,
+      },
+    },
     metadata: {
       type: "invoice_payment",
       token,

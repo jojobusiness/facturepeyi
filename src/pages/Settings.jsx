@@ -3,7 +3,7 @@ import { auth, db, storage } from "../lib/firebase";
 import { doc, setDoc, deleteDoc, writeBatch, collection, getDocs } from "firebase/firestore";
 import { EmailAuthProvider, sendPasswordResetEmail, reauthenticateWithCredential, deleteUser } from "firebase/auth";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { TERRITORIES, REGIMES, getTvaRate, getMentionLegale, hasOctroiDeMer } from "../lib/territories";
 
@@ -13,11 +13,38 @@ export default function Settings() {
   const user = auth.currentUser;
   const isAdmin = entreprise?.ownerUid === user?.uid;
 
+  const [searchParams] = useSearchParams();
+  const stripeStatus = searchParams.get("stripe");
+
   const [entrepriseForm, setEntrepriseForm] = useState({
     nom: "", siret: "", logo: "", tvaActive: true, territoire: "guyane", regime: "reel",
   });
   const [logoFile, setLogoFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
+
+  const stripeConnected = !!entreprise?.stripeConnectedAccountId;
+
+  const handleStripeConnect = () => {
+    window.location.href = `/api/stripe-connect-oauth?entrepriseId=${entrepriseId}`;
+  };
+
+  const handleStripeDisconnect = async () => {
+    if (!window.confirm("Déconnecter Stripe ? Vos clients ne pourront plus payer en ligne.")) return;
+    setDisconnecting(true);
+    try {
+      await fetch("/api/stripe-connect-disconnect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ entrepriseId }),
+      });
+      await refreshEntreprise();
+    } catch {
+      alert("Erreur lors de la déconnexion Stripe.");
+    } finally {
+      setDisconnecting(false);
+    }
+  };
 
   useEffect(() => {
     if (!entreprise) return;
@@ -189,6 +216,49 @@ export default function Settings() {
             </div>
           </section>
         </>
+      )}
+
+      {/* ── Portail paiement Stripe Connect ── */}
+      {isAdmin && (
+        <section className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 mb-5">
+          <h3 className="text-sm font-bold text-[#0d1b3e] mb-1">Portail paiement en ligne</h3>
+          <p className="text-xs text-gray-400 mb-4">
+            Vos clients paient directement depuis leur lien de facture. Factur'Peyi prélève <strong>2,5%</strong> par transaction — le reste va sur votre compte Stripe.
+          </p>
+
+          {stripeConnected ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-emerald-500 rounded-full inline-block"></span>
+                <span className="text-sm font-semibold text-emerald-700">Paiements en ligne activés</span>
+              </div>
+              <p className="text-xs text-gray-400">
+                Vos clients peuvent régler leurs factures par carte bancaire depuis le portail.
+              </p>
+              <button
+                onClick={handleStripeDisconnect}
+                disabled={disconnecting}
+                className="text-xs text-red-400 hover:text-red-600 transition font-medium disabled:opacity-60"
+              >
+                {disconnecting ? "Déconnexion..." : "Déconnecter Stripe"}
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleStripeConnect}
+              className="w-full bg-[#635bff] hover:bg-[#5048e5] text-white font-semibold py-3 rounded-xl transition text-sm"
+            >
+              Connecter mon compte Stripe
+            </button>
+          )}
+
+          {stripeStatus === "connected" && (
+            <p className="text-xs text-emerald-600 font-medium mt-3">✓ Compte Stripe connecté avec succès !</p>
+          )}
+          {stripeStatus === "error" && (
+            <p className="text-xs text-red-500 mt-3">Erreur lors de la connexion. Vérifiez votre compte Stripe et réessayez.</p>
+          )}
+        </section>
       )}
 
       {/* ── Mon compte ── */}

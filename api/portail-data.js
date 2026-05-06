@@ -48,6 +48,7 @@ export default async function handler(req, res) {
       adresse: entreprise.adresse || "",
       siret: entreprise.siret || "",
       logo: entreprise.logo || "",
+      hasStripeConnect: !!entreprise.stripeConnectedAccountId,
     },
     client: {
       nom: client.nom || facture.clientNom || "",
