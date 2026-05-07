@@ -180,7 +180,7 @@ export default function PortailClient() {
                 <p className="text-emerald-600 font-semibold text-sm">Paiement confirmé — Merci !</p>
                 <p className="text-gray-400 text-xs mt-1">Un reçu vous a été envoyé par email.</p>
               </div>
-            ) : entreprise.hasStripeConnect ? (
+            ) : (
               <div className="space-y-3">
                 <button
                   onClick={handlePay}
@@ -194,11 +194,6 @@ export default function PortailClient() {
                     {payError}
                   </p>
                 )}
-              </div>
-            ) : (
-              <div className="bg-gray-50 rounded-xl p-4 text-center text-sm text-gray-500">
-                <p className="font-medium text-[#0d1b3e]">Paiement en ligne non disponible</p>
-                <p className="text-gray-400 text-xs mt-1">Contactez directement {entreprise.nom} pour régler cette facture.</p>
               </div>
             )}
           </div>
