@@ -10,6 +10,7 @@ export default function PortailClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState(null);
 
   useEffect(() => {
     fetch(`/api/portail-data?token=${encodeURIComponent(token)}`)
@@ -27,6 +28,7 @@ export default function PortailClient() {
 
   const handlePay = async () => {
     setPaying(true);
+    setPayError(null);
     try {
       const r = await fetch("/api/create-invoice-payment", {
         method: "POST",
@@ -40,10 +42,13 @@ export default function PortailClient() {
       }
       if (d.url) {
         window.location.href = d.url;
-      } else {
-        setPaying(false);
+        return;
       }
+      // Erreur retournée par l'API
+      setPayError(d.message || d.error || "Erreur inattendue. Réessayez.");
     } catch {
+      setPayError("Impossible de contacter le serveur. Vérifiez votre connexion.");
+    } finally {
       setPaying(false);
     }
   };
@@ -176,13 +181,20 @@ export default function PortailClient() {
                 <p className="text-gray-400 text-xs mt-1">Un reçu vous a été envoyé par email.</p>
               </div>
             ) : entreprise.hasStripeConnect ? (
-              <button
-                onClick={handlePay}
-                disabled={paying}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl transition text-sm shadow-sm"
-              >
-                {paying ? "Redirection vers le paiement sécurisé..." : `Payer ${facture.totalTTC?.toFixed(2)} € maintenant`}
-              </button>
+              <div className="space-y-3">
+                <button
+                  onClick={handlePay}
+                  disabled={paying}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-xl transition text-sm shadow-sm"
+                >
+                  {paying ? "Redirection vers le paiement sécurisé..." : `Payer ${facture.totalTTC?.toFixed(2)} € maintenant`}
+                </button>
+                {payError && (
+                  <p className="text-xs text-red-500 text-center bg-red-50 rounded-xl px-4 py-3">
+                    {payError}
+                  </p>
+                )}
+              </div>
             ) : (
               <div className="bg-gray-50 rounded-xl p-4 text-center text-sm text-gray-500">
                 <p className="font-medium text-[#0d1b3e]">Paiement en ligne non disponible</p>

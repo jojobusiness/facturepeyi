@@ -40,40 +40,49 @@ export default async function handler(req, res) {
   const feeCents = Math.round(totalCents * PLATFORM_FEE_RATE);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://facturepeyi.com";
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    payment_method_types: ["card"],
-    line_items: [
-      {
-        price_data: {
-          currency: "eur",
-          product_data: {
-            name: facture.numero
-              ? `Facture ${facture.numero} — ${entreprise.nom || ""}`
-              : `Facture — ${entreprise.nom || ""}`,
-            description: facture.description || undefined,
+  let session;
+  try {
+    session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "eur",
+            product_data: {
+              name: facture.numero
+                ? `Facture ${facture.numero} — ${entreprise.nom || ""}`
+                : `Facture — ${entreprise.nom || ""}`,
+              description: facture.description || undefined,
+            },
+            unit_amount: totalCents,
           },
-          unit_amount: totalCents,
+          quantity: 1,
         },
-        quantity: 1,
+      ],
+      payment_intent_data: {
+        application_fee_amount: feeCents,
+        on_behalf_of: connectedAccountId,
+        transfer_data: {
+          destination: connectedAccountId,
+        },
       },
-    ],
-    payment_intent_data: {
-      application_fee_amount: feeCents,
-      on_behalf_of: connectedAccountId,
-      transfer_data: {
-        destination: connectedAccountId,
+      metadata: {
+        type: "invoice_payment",
+        token,
+        entrepriseId,
+        factureId,
       },
-    },
-    metadata: {
-      type: "invoice_payment",
-      token,
-      entrepriseId,
-      factureId,
-    },
-    success_url: `${siteUrl}/portail/${token}?paid=true`,
-    cancel_url: `${siteUrl}/portail/${token}`,
-  });
+      success_url: `${siteUrl}/portail/${token}?paid=true`,
+      cancel_url: `${siteUrl}/portail/${token}`,
+    });
+  } catch (err) {
+    console.error("Stripe checkout error:", err);
+    return res.status(500).json({
+      error: "stripe_error",
+      message: err?.message || "Erreur Stripe inconnue",
+    });
+  }
 
   return res.status(200).json({ url: session.url });
 }
