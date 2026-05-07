@@ -83,7 +83,7 @@ export default async function handler(req, res) {
   } catch (err) {
     // En mode test, si le compte Connect est invalide, on crée la session sans Connect
     // pour permettre de tester le flow complet. En production ce fallback n'existe pas.
-    if (isTestMode && err?.code === "resource_missing") {
+    if (isTestMode && (err?.message?.includes("on_behalf_of") || err?.message?.includes("No such") || err?.code === "resource_missing")) {
       console.warn("Test mode: compte Connect invalide, fallback sans Connect");
       try {
         session = await stripe.checkout.sessions.create(baseSessionParams);
