@@ -23,8 +23,8 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Factur'Peyi Contact <noreply@facturepeyi.com>",
-        to: ["support@facturepeyi.com"],
+        from: "Factur'Peyi Contact <noreply@neleiintuc.resend.app>",
+        to: ["contact@facturepeyi.com"],
         reply_to: email,
         subject: `Nouveau message depuis FacturPeyi — ${prenom} ${nom}`,
         html: `
