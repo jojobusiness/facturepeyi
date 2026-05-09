@@ -90,6 +90,20 @@ service cloud.firestore {
         allow read: if isMembreEntreprise(entrepriseId);
         allow write: if hasRole(entrepriseId, ['admin', 'comptable']);
       }
+
+      // Devis
+      match /devis/{devisId} {
+        allow read: if isMembreEntreprise(entrepriseId);
+        allow create: if hasRole(entrepriseId, ['admin', 'comptable', 'employe']);
+        allow update: if hasRole(entrepriseId, ['admin', 'comptable']);
+        allow delete: if hasRole(entrepriseId, ['admin']);
+      }
+
+      // Récurrences (factures automatiques)
+      match /recurrences/{recId} {
+        allow read: if isMembreEntreprise(entrepriseId);
+        allow write: if hasRole(entrepriseId, ['admin', 'comptable']);
+      }
     }
   }
 }

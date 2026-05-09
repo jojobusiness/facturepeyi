@@ -34,12 +34,15 @@ export default async function handler(req, res) {
   const sig = req.headers["stripe-signature"];
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
+  if (!webhookSecret) {
+    console.error("STRIPE_WEBHOOK_SECRET non configuré");
+    return res.status(500).json({ error: "Configuration serveur incomplète" });
+  }
+
   let event;
   try {
     const rawBody = await readRawBody(req);
-    event = webhookSecret
-      ? stripe.webhooks.constructEvent(rawBody, sig, webhookSecret)
-      : JSON.parse(rawBody.toString());
+    event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
   } catch (err) {
     console.error("Webhook signature error:", err.message);
     return res.status(400).json({ error: `Webhook Error: ${err.message}` });

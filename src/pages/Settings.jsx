@@ -33,9 +33,13 @@ export default function Settings() {
     if (!window.confirm("Déconnecter Stripe ? Vos clients ne pourront plus payer en ligne.")) return;
     setDisconnecting(true);
     try {
+      const token = await user.getIdToken();
       await fetch("/api/stripe-connect-disconnect", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ entrepriseId }),
       });
       await refreshEntreprise();
