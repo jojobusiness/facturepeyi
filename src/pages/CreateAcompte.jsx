@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
-import { addDoc, collection, getDocs, Timestamp } from "firebase/firestore";
+import { collection, doc, getDocs, setDoc, Timestamp } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { canUseFeature } from "../lib/plans";
@@ -51,7 +51,9 @@ export default function CreateAcompte() {
 
     const selectedClient = clients.find((c) => c.id === clientId);
 
-    await addDoc(collection(db, "entreprises", entrepriseId, "factures"), {
+    const facRef = doc(collection(db, "entreprises", entrepriseId, "factures"));
+    const numero = `FAC-${new Date().getFullYear()}-${facRef.id.slice(0, 6).toUpperCase()}`;
+    await setDoc(facRef, {
       clientId,
       clientNom: selectedClient?.nom || "",
       clientEmail: selectedClient?.email || "",
@@ -69,6 +71,7 @@ export default function CreateAcompte() {
       acomptePercent: percent,
       montantBase: base,
       prestationOriginale: prestation,
+      numero,
     });
 
     navigate("/dashboard/factures");

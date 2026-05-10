@@ -115,7 +115,7 @@ export default async function handler(req, res) {
         }
         if (thresholdToSend === null) continue;
 
-        const numero = `FAC-${factureDoc.id.slice(-8).toUpperCase()}`;
+        const numero = facture.numero || `FAC-${factureDoc.id.slice(-8).toUpperCase()}`;
         const montant = formatEur(facture.totalTTC);
 
         try {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
-import { addDoc, collection, doc, getDoc, updateDoc, Timestamp } from "firebase/firestore";
+import { collection, doc, getDoc, setDoc, updateDoc, Timestamp } from "firebase/firestore";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -46,7 +46,9 @@ export default function CreateSolde() {
     e.preventDefault();
     if (!ht || ht <= 0) return alert("Le montant du solde est requis.");
 
-    const soldeRef = await addDoc(collection(db, "entreprises", entrepriseId, "factures"), {
+    const soldeRef = doc(collection(db, "entreprises", entrepriseId, "factures"));
+    const numero = `FAC-${new Date().getFullYear()}-${soldeRef.id.slice(0, 6).toUpperCase()}`;
+    await setDoc(soldeRef, {
       clientId: acompte.clientId,
       clientNom: acompte.clientNom,
       clientEmail: acompte.clientEmail,
@@ -63,6 +65,7 @@ export default function CreateSolde() {
       type: "solde",
       acompteFactureId: acompteId,
       montantAcompteHT: acompte.amountHT,
+      numero,
     });
 
     await updateDoc(doc(db, "entreprises", entrepriseId, "factures", acompteId), {

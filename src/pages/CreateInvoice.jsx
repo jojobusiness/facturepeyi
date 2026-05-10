@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
-import { addDoc, collection, doc, getDoc, getDocs, Timestamp } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, setDoc, Timestamp } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { checkFacturesLimit } from "../lib/plans";
@@ -59,7 +59,9 @@ export default function CreateInvoice() {
       const tva = parseFloat(tvaAmount.toFixed(2));
       const ttc = parseFloat(totalTTC.toFixed(2));
 
-      await addDoc(collection(db, "entreprises", entrepriseId, "factures"), {
+      const facRef = doc(collection(db, "entreprises", entrepriseId, "factures"));
+      const numero = `FAC-${new Date().getFullYear()}-${facRef.id.slice(0, 6).toUpperCase()}`;
+      await setDoc(facRef, {
         clientId,
         clientNom: selectedClient?.nom || "",
         clientEmail: selectedClient?.email || "",
@@ -73,6 +75,7 @@ export default function CreateInvoice() {
         status: "en attente",
         createdAt: Timestamp.now(),
         entrepriseId,
+        numero,
       });
 
       navigate("/dashboard/factures");

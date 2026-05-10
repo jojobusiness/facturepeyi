@@ -58,10 +58,9 @@ export default async function handler(req, res) {
           const tva = parseFloat((ht * (rec.tvaRate / 100)).toFixed(2));
           const ttc = parseFloat((ht + tva).toFixed(2));
 
-          await db
-            .collection("entreprises").doc(entrepriseId)
-            .collection("factures")
-            .add({
+          const facRef = db.collection("entreprises").doc(entrepriseId).collection("factures").doc();
+          const numero = `FAC-${now.getFullYear()}-${facRef.id.slice(0, 6).toUpperCase()}`;
+          await facRef.set({
               clientId:      rec.clientId,
               clientNom:     rec.clientNom,
               clientEmail:   rec.clientEmail,
@@ -76,6 +75,7 @@ export default async function handler(req, res) {
               createdAt:     Timestamp.fromDate(now),
               entrepriseId,
               recurrenceId:  recDoc.id,
+              numero,
             });
 
           const newNext = nextDate(nextTs, rec.frequence);
