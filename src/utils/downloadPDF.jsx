@@ -1,36 +1,16 @@
 import { pdf } from "@react-pdf/renderer";
 import InvoicePDF from "../components/InvoicePDF";
 
-/**
- * Convertit une URL d'image vers un dataURL base64 utilisable dans React-PDF
- */
-function convertImageToBase64(url) {
-  return new Promise((resolve, reject) => {
-    const proxyUrl = `https://images.weserv.nl/?url=${encodeURIComponent(url.replace(/^https?:\/\//, ''))}`;
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      try {
-        const canvas = document.createElement("canvas");
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0);
-        resolve(canvas.toDataURL("image/png"));
-      } catch (e) {
-        reject(e);
-      }
-    };
-    img.onerror = reject;
-    img.src = proxyUrl;
-  });
+async function convertImageToBase64(url) {
+  const proxyUrl = `/api/logo-proxy?url=${encodeURIComponent(url)}`;
+  const res = await fetch(proxyUrl);
+  if (!res.ok) throw new Error("Logo proxy failed");
+  return await res.text(); // déjà un data URL base64
 }
-
 
 export async function downloadInvoicePDF(invoice) {
   let logoDataUrl = invoice.logoDataUrl || "";
 
-  // Si on a un champ `logo` (et pas de logoDataUrl), on tente de le convertir
   if (!logoDataUrl && invoice.logo) {
     try {
       logoDataUrl = await convertImageToBase64(invoice.logo);
@@ -39,7 +19,6 @@ export async function downloadInvoicePDF(invoice) {
     }
   }
 
-  // Injection dans le PDF
   const blob = await pdf(
     <InvoicePDF invoice={{ ...invoice, logoDataUrl }} />
   ).toBlob();

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { auth, db, storage } from "../lib/firebase";
-import { doc, setDoc, deleteDoc, writeBatch, collection, getDocs } from "firebase/firestore";
+import { doc, setDoc, deleteDoc, writeBatch, collection, getDocs, query, where } from "firebase/firestore";
 import { EmailAuthProvider, sendPasswordResetEmail, reauthenticateWithCredential, deleteUser } from "firebase/auth";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -113,10 +113,13 @@ export default function Settings() {
       await reauthenticateWithCredential(user, credential);
       if (isAdmin && entrepriseId) {
         const batch = writeBatch(db);
-        for (const col of ["factures", "depenses", "clients", "membres", "categories", "devis"]) {
+        for (const col of ["factures", "depenses", "clients", "membres", "categories", "devis", "recurrences"]) {
           const snap = await getDocs(collection(db, "entreprises", entrepriseId, col));
           snap.forEach((d) => batch.delete(d.ref));
         }
+        // Supprimer les liens de paiement publics liés à cette entreprise
+        const linksSnap = await getDocs(query(collection(db, "paymentLinks"), where("entrepriseId", "==", entrepriseId)));
+        linksSnap.forEach((d) => batch.delete(d.ref));
         batch.delete(doc(db, "entreprises", entrepriseId));
         batch.delete(doc(db, "utilisateurs", user.uid));
         await batch.commit();

@@ -46,13 +46,17 @@ export function AuthProvider({ children }) {
             if (validStored) {
               setEntreprise(validStored);
               setEntrepriseId(validStored.id);
-            } else if (managed.length > 0) {
-              setEntreprise(managed[0]);
-              setEntrepriseId(managed[0].id);
-              localStorage.setItem(`cabinet_active_${firebaseUser.uid}`, managed[0].id);
             } else {
-              setEntreprise(ownData);
-              setEntrepriseId(eid);
+              // Nettoyer le localStorage si l'entreprise stockée n'existe plus
+              if (storedId) localStorage.removeItem(`cabinet_active_${firebaseUser.uid}`);
+              if (managed.length > 0) {
+                setEntreprise(managed[0]);
+                setEntrepriseId(managed[0].id);
+                localStorage.setItem(`cabinet_active_${firebaseUser.uid}`, managed[0].id);
+              } else {
+                setEntreprise(ownData);
+                setEntrepriseId(eid);
+              }
             }
           } else {
             // ── Mode standard ─────────────────────────────────────────────────

@@ -16,9 +16,7 @@
     "@vercel/speed-insights": "^1.2.0",
     "autoprefixer": "^10.4.21",
     "file-saver": "^2.0.5",
-    "file-server": "^2.2.1",
     "firebase": "^11.9.1",
-    "firebase-admin": "^13.8.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
@@ -45,7 +43,6 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
-    "react": "^19.1.0",
     "vite": "^6.3.5"
   }
 }

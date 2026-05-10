@@ -10,6 +10,16 @@ import { useAuth } from "../context/AuthContext";
 import { canUseFeature } from "../lib/plans";
 import { FaSync, FaLink, FaCheck } from "react-icons/fa";
 
+function safeDate(d) {
+  if (!d) return "—";
+  try {
+    const date = typeof d.toDate === "function" ? d.toDate() : new Date(d);
+    return isNaN(date) ? "—" : date.toLocaleDateString("fr-FR");
+  } catch {
+    return "—";
+  }
+}
+
 const STATUS_CONFIG = {
   "en attente": { label: "En attente", classes: "bg-yellow-50 text-yellow-700" },
   "payée":      { label: "Payée",      classes: "bg-emerald-50 text-emerald-700" },
@@ -48,7 +58,7 @@ export default function InvoiceList() {
       const logoUrl = entreprise?.logo || "";
       let logoDataUrl = "";
       if (logoUrl) {
-        const proxyUrl = "https://facturepeyi.vercel.app/api/logo-proxy?url=" + encodeURIComponent(logoUrl);
+        const proxyUrl = "/api/logo-proxy?url=" + encodeURIComponent(logoUrl);
         const res = await fetch(proxyUrl);
         logoDataUrl = await res.text();
       }
@@ -188,7 +198,7 @@ export default function InvoiceList() {
                     <td className="px-5 py-4 text-gray-500 max-w-xs truncate hidden md:table-cell">{invoice.description}</td>
                     <td className="px-5 py-4 font-semibold text-[#0d1b3e]">{invoice.totalTTC?.toFixed(2)} €</td>
                     <td className="px-5 py-4 text-gray-400 hidden sm:table-cell">
-                      {invoice.date?.toDate().toLocaleDateString("fr-FR")}
+                      {safeDate(invoice.date)}
                     </td>
                     <td className="px-5 py-4">
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${cfg.classes}`}>
