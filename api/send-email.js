@@ -1,9 +1,15 @@
 import { Resend } from "resend";
+import { initializeApp, getApps, cert } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
+
+if (!getApps().length) {
+  initializeApp({ credential: cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)) });
+}
+const adminAuth = getAuth();
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = "Factur'Peyi <noreply@facturepeyi.com>";
 
-// Allowed sender types — avoids open relay abuse
 const INTERNAL_TYPES = ["welcome", "payment_received"];
 const CLIENT_TYPES = ["invoice_sent", "payment_reminder"];
 const ALL_TYPES = [...INTERNAL_TYPES, ...CLIENT_TYPES];
@@ -126,6 +132,16 @@ const templates = {
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  // Vérification du token Firebase ID
+  const idToken = req.headers.authorization?.split("Bearer ")[1];
+  if (!idToken) return res.status(401).json({ error: "Non authentifié" });
+
+  try {
+    await adminAuth.verifyIdToken(idToken);
+  } catch {
+    return res.status(401).json({ error: "Token invalide" });
   }
 
   const { type, to, data } = req.body;

@@ -1,11 +1,22 @@
-import Stripe from 'stripe';
+import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+const ALLOWED_PRICE_IDS = [
+  "price_1Rlat8Ick4iMBRE91vyvhOFc", // Solo
+  "price_1RlatdIck4iMBRE9fWyZausA", // Pro
+];
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
+
   const { priceId, planId } = req.body;
+
   if (!priceId) return res.status(400).json({ error: "priceId requis" });
+
+  if (!ALLOWED_PRICE_IDS.includes(priceId)) {
+    return res.status(400).json({ error: "Plan invalide" });
+  }
 
   try {
     const session = await stripe.checkout.sessions.create({

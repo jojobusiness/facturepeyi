@@ -33,7 +33,21 @@ export default function InviteComplete() {
     try {
       setLoading(true);
 
-      // Vérifier si l’email est déjà utilisé
+      // 1. Vérifier que l’invitation existe AVANT de créer le compte Firebase
+      const invitationQuery = query(
+        collection(db, "utilisateurs"),
+        where("email", "==", email),
+        where("entrepriseId", "==", entrepriseId)
+      );
+      const invRes = await getDocs(invitationQuery);
+      if (invRes.empty) {
+        alert("❌ Invitation introuvable ou expirée. Contactez votre administrateur.");
+        return;
+      }
+      const invitedDoc = invRes.docs[0];
+      const invitationData = invitedDoc.data();
+
+      // 2. Vérifier si l’email est déjà utilisé
       const signInMethods = await fetchSignInMethodsForEmail(auth, email);
       if (signInMethods.length > 0) {
         alert("❌ Cet email est déjà utilisé. Veuillez vous connecter.");
@@ -41,22 +55,9 @@ export default function InviteComplete() {
         return;
       }
 
-      // 🔐 Créer le compte utilisateur Firebase
+      // 3. Créer le compte Firebase (invitation validée)
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       const user = cred.user;
-
-      // 🔎 Récupérer l'invitation depuis la base
-      const invitationQuery = query(
-        collection(db, "utilisateurs"),
-        where("email", "==", email),
-        where("entrepriseId", "==", entrepriseId)
-      );
-      const res = await getDocs(invitationQuery);
-
-      if (res.empty) throw new Error("Invitation introuvable.");
-
-      const invitedDoc = res.docs[0];
-      const invitationData = invitedDoc.data();
 
       // 🎯 Enregistrement du user avec le bon UID
       const utilisateurData = {

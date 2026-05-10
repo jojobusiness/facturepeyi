@@ -9,15 +9,24 @@ const db = getFirestore();
 export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).end();
 
-  const { code, state: entrepriseId, error } = req.query;
+  const { code, state, error } = req.query;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://facturepeyi.com";
 
-  if (error || !code || !entrepriseId) {
+  if (error || !code || !state) {
+    return res.redirect(302, `${siteUrl}/dashboard/parametres?stripe=error`);
+  }
+
+  // Validation CSRF — le nonce dans le cookie doit correspondre au state Stripe
+  const cookieNonce = req.headers.cookie?.match(/oauth_nonce=([^;]+)/)?.[1];
+  const dotIdx = state.indexOf(".");
+  const stateNonce = state.substring(0, dotIdx);
+  const entrepriseId = state.substring(dotIdx + 1);
+
+  if (!cookieNonce || cookieNonce !== stateNonce || !entrepriseId) {
     return res.redirect(302, `${siteUrl}/dashboard/parametres?stripe=error`);
   }
 
   try {
-    // Échange du code contre le stripe_user_id (compte connecté de l'entrepreneur)
     const tokenRes = await fetch("https://connect.stripe.com/oauth/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },

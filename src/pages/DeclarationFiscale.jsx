@@ -56,7 +56,7 @@ export default function DeclarationFiscale() {
       const deps = filterByPeriode(depensesSnap.docs.map((d) => d.data()), periode);
 
       const rev = factures.reduce((s, f) => f.status !== "impayée" ? s + parseFloat(f.totalTTC || 0) : s, 0);
-      const tvaCol = factures.reduce((s, f) => s + parseFloat(f.tva || 0), 0);
+      const tvaCol = factures.filter((f) => f.status === "payée").reduce((s, f) => s + parseFloat(f.tva || 0), 0);
       const dep = deps.reduce((s, d) => s + parseFloat(d.montantTTC || 0), 0);
       const tvaDed = deps.reduce((s, d) => s + parseFloat(d.montantTVA || 0), 0);
       const octroi = deps.reduce((s, d) => s + parseFloat(d.montantOctroiDeMer || 0), 0);
