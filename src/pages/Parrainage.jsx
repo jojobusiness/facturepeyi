@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "../lib/firebase";
+import { auth } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
 import { FaCopy, FaWhatsapp, FaCheckCircle, FaGift, FaUsers } from "react-icons/fa";
 
@@ -18,10 +17,13 @@ export default function Parrainage() {
 
   useEffect(() => {
     if (!code || code === "—") return;
-    // Cherche les entreprises qui ont été référées par ce code
-    getDocs(query(collection(db, "entreprises"), where("referredBy", "==", code)))
-      .then((snap) => {
-        setReferrals(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    auth.currentUser?.getIdToken().then((token) =>
+      fetch(`/api/get-referrals?code=${code}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+    ).then((r) => r?.json())
+      .then((data) => {
+        if (data?.referrals) setReferrals(data.referrals);
         setLoading(false);
       })
       .catch(() => setLoading(false));

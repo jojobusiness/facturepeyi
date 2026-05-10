@@ -30,6 +30,7 @@ export default async function handler(req, res) {
 
   const facture = factureSnap.data();
   if (facture.status === "payée") return res.status(400).json({ error: "already_paid" });
+  if (facture.status === "annulée") return res.status(400).json({ error: "invoice_cancelled" });
 
   const entreprise = entrepriseSnap.data() || {};
   const connectedAccountId = entreprise.stripeConnectedAccountId;

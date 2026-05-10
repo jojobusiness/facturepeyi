@@ -66,9 +66,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // Verify Vercel Cron secret (skip check when CRON_SECRET not set — dev mode)
   const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret) {
+  if (!cronSecret) {
+    if (process.env.NODE_ENV === "production") {
+      return res.status(500).json({ error: "CRON_SECRET non configuré en production" });
+    }
+  } else {
     const authHeader = req.headers.authorization ?? "";
     if (authHeader !== `Bearer ${cronSecret}`) {
       return res.status(401).json({ error: "Unauthorized" });
