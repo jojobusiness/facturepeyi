@@ -16,6 +16,8 @@ import Unauthorized from './pages/Unauthorized';
 import Support from './pages/Support';
 import PrivateRoute from './components/PrivateRoute';
 import RoleRoute from './components/RoleRoute';
+import SuperAdminRoute from './components/SuperAdminRoute';
+import SysAdmin from './pages/SysAdmin';
 
 // Layout sidebar pour le dashboard
 import DashboardLayout from './layouts/DashboardLayout';
@@ -86,6 +88,9 @@ export default function App() {
       <Route path="/invite-complete" element={<InviteComplete />} />
       <Route path="/support" element={<Support />} />
       <Route path="/portail/:token" element={<PortailClient />} />
+
+      {/* Super-admin (au-dessus de toutes les entreprises) */}
+      <Route path="/sysadmin" element={<SuperAdminRoute><SysAdmin /></SuperAdminRoute>} />
 
       {/* Dashboard imbriqué dans PrivateRoute */}
       <Route

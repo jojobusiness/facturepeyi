@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
+import { logSysadmin } from "../lib-server/sysadmin-log.js";
 
 if (!getApps().length) {
   initializeApp({ credential: cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)) });
@@ -45,6 +46,7 @@ export default async function handler(req, res) {
     event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
   } catch (err) {
     console.error("Webhook signature error:", err.message);
+    logSysadmin(db, { severity: "error", source: "webhook-stripe", message: `Signature invalide: ${err.message}` }).catch(() => {});
     return res.status(400).json({ error: `Webhook Error: ${err.message}` });
   }
 
@@ -130,6 +132,12 @@ export default async function handler(req, res) {
     }
   } catch (err) {
     console.error("Webhook processing error:", err);
+    logSysadmin(db, {
+      severity: "critical",
+      source: "webhook-stripe",
+      message: `Erreur de traitement: ${err.message}`,
+      meta: { eventType: event?.type, eventId: event?.id },
+    }).catch(() => {});
   }
 
   return res.status(200).json({ received: true });
