@@ -36,6 +36,8 @@ export default function InvoiceList() {
 
   const canPortail = canUseFeature(entreprise?.plan || "decouverte", "portail-client");
   const canAcompte = canUseFeature(entreprise?.plan || "decouverte", "acompte");
+  const stripeConnected = !!entreprise?.stripeConnectedAccountId;
+  const canSharePaymentLink = canPortail && stripeConnected;
 
   useEffect(() => {
     if (!entrepriseId) return;
@@ -86,6 +88,10 @@ export default function InvoiceList() {
   const handleCopyPaymentLink = async (invoice) => {
     if (!canPortail) {
       alert("Le portail client est disponible à partir du plan Pro. Mettez à jour votre abonnement.");
+      return;
+    }
+    if (!stripeConnected) {
+      alert("Connectez d'abord votre compte Stripe dans Paramètres → Portail paiement pour pouvoir partager un lien de paiement.");
       return;
     }
 
@@ -219,7 +225,7 @@ export default function InvoiceList() {
                         >
                           PDF
                         </button>
-                        {isPayable && (
+                        {isPayable && canSharePaymentLink && (
                           <button
                             onClick={() => handleCopyPaymentLink(invoice)}
                             title={copiedId === invoice.id ? "Lien copié !" : "Copier le lien de paiement"}
