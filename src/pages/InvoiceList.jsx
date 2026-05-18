@@ -5,10 +5,11 @@ import {
 } from "firebase/firestore";
 import { useNavigate, Link } from "react-router-dom";
 import { db } from "../lib/firebase";
-import { downloadInvoicePDF } from "../utils/downloadPDF";
+import { downloadInvoicePDF, getInvoicePDFBase64 } from "../utils/downloadPDF";
+import { sendEmail } from "../lib/email";
 import { useAuth } from "../context/AuthContext";
 import { canUseFeature } from "../lib/plans";
-import { FaSync, FaLink, FaCheck } from "react-icons/fa";
+import { FaSync, FaLink, FaCheck, FaEnvelope } from "react-icons/fa";
 
 function safeDate(d) {
   if (!d) return "—";
@@ -32,6 +33,8 @@ export default function InvoiceList() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState(null);
+  const [sendingId, setSendingId] = useState(null);
+  const [sentId, setSentId] = useState(null);
   const navigate = useNavigate();
 
   const canPortail = canUseFeature(entreprise?.plan || "decouverte", "portail-client");
@@ -54,49 +57,49 @@ export default function InvoiceList() {
     setInvoices((prev) => prev.filter((inv) => inv.id !== id));
   };
 
-  const handleGeneratePDF = async (invoice) => {
-    if (!entrepriseId) return;
-    try {
-      const logoUrl = entreprise?.logo || "";
-      let logoDataUrl = "";
-      if (logoUrl) {
+  async function loadInvoiceContext(invoice) {
+    const logoUrl = entreprise?.logo || "";
+    let logoDataUrl = "";
+    if (logoUrl) {
+      try {
         const proxyUrl = "/api/logo-proxy?url=" + encodeURIComponent(logoUrl);
         const res = await fetch(proxyUrl);
         logoDataUrl = await res.text();
+      } catch {
+        logoDataUrl = "";
       }
-      let clientData = {};
-      if (invoice.clientId) {
-        const clientSnap = await getDoc(doc(db, "entreprises", entrepriseId, "clients", invoice.clientId));
-        if (clientSnap.exists()) clientData = clientSnap.data();
-      }
-      await downloadInvoicePDF({
-        ...invoice,
-        clientNom: clientData.nom || invoice.clientNom || "Client inconnu",
-        clientAdresse: clientData.adresse || "",
-        clientEmail: clientData.email || "",
-        entrepriseNom: entreprise?.nom || "Nom Entreprise",
-        entrepriseSiret: entreprise?.siret || "SIRET inconnu",
-        entrepriseAdresse: entreprise?.adresse || "",
-        logoDataUrl,
-      });
+    }
+    let clientData = {};
+    if (invoice.clientId) {
+      const clientSnap = await getDoc(doc(db, "entreprises", entrepriseId, "clients", invoice.clientId));
+      if (clientSnap.exists()) clientData = clientSnap.data();
+    }
+    return {
+      ...invoice,
+      clientNom: clientData.nom || invoice.clientNom || "Client inconnu",
+      clientAdresse: clientData.adresse || "",
+      clientEmail: clientData.email || invoice.clientEmail || "",
+      entrepriseNom: entreprise?.nom || "Nom Entreprise",
+      entrepriseSiret: entreprise?.siret || "SIRET inconnu",
+      entrepriseAdresse: entreprise?.adresse || "",
+      logoDataUrl,
+    };
+  }
+
+  const handleGeneratePDF = async (invoice) => {
+    if (!entrepriseId) return;
+    try {
+      const ctx = await loadInvoiceContext(invoice);
+      await downloadInvoicePDF(ctx);
     } catch (err) {
       console.error(err);
       alert("Erreur chargement des données pour le PDF.");
     }
   };
 
-  const handleCopyPaymentLink = async (invoice) => {
-    if (!canPortail) {
-      alert("Le portail client est disponible à partir du plan Pro. Mettez à jour votre abonnement.");
-      return;
-    }
-    if (!stripeConnected) {
-      alert("Connectez d'abord votre compte Stripe dans Paramètres → Portail paiement pour pouvoir partager un lien de paiement.");
-      return;
-    }
-
+  async function ensurePaymentLink(invoice) {
+    if (!canSharePaymentLink) return null;
     let token = invoice.paymentToken;
-
     if (!token) {
       token = crypto.randomUUID();
       await setDoc(doc(db, "paymentLinks", token), {
@@ -112,8 +115,20 @@ export default function InvoiceList() {
         prev.map((inv) => inv.id === invoice.id ? { ...inv, paymentToken: token } : inv)
       );
     }
+    return `${window.location.origin}/portail/${token}`;
+  }
 
-    const link = `${window.location.origin}/portail/${token}`;
+  const handleCopyPaymentLink = async (invoice) => {
+    if (!canPortail) {
+      alert("Le portail client est disponible à partir du plan Pro. Mettez à jour votre abonnement.");
+      return;
+    }
+    if (!stripeConnected) {
+      alert("Connectez d'abord votre compte Stripe dans Paramètres → Portail paiement pour pouvoir partager un lien de paiement.");
+      return;
+    }
+    const link = await ensurePaymentLink(invoice);
+    if (!link) return;
     try {
       await navigator.clipboard.writeText(link);
     } catch {
@@ -121,6 +136,64 @@ export default function InvoiceList() {
     }
     setCopiedId(invoice.id);
     setTimeout(() => setCopiedId(null), 2500);
+  };
+
+  const handleSendByEmail = async (invoice) => {
+    if (!entrepriseId) return;
+
+    const ctx = await loadInvoiceContext(invoice);
+    const defaultEmail = ctx.clientEmail || "";
+    const to = window.prompt(
+      "Envoyer la facture à l'adresse :",
+      defaultEmail
+    );
+    if (!to) return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
+      alert("Adresse email invalide.");
+      return;
+    }
+
+    setSendingId(invoice.id);
+    try {
+      const isPayable = invoice.status !== "payée" && invoice.status !== "annulée";
+      const paymentLink = isPayable ? await ensurePaymentLink(invoice) : null;
+
+      const pdfBase64 = await getInvoicePDFBase64(ctx);
+      const numeroFacture = `FAC-${invoice.id.slice(0, 8).toUpperCase()}`;
+      const montant = `${Number(invoice.totalTTC ?? 0).toFixed(2)} €`;
+
+      await sendEmail(
+        "invoice_sent",
+        to,
+        {
+          clientNom: ctx.clientNom,
+          montant,
+          numeroFacture,
+          lienFacture: paymentLink || "",
+          entrepriseNom: ctx.entrepriseNom,
+        },
+        {
+          attachments: [{ filename: `${numeroFacture}.pdf`, content: pdfBase64 }],
+          replyTo: user?.email || undefined,
+        }
+      );
+
+      await updateDoc(doc(db, "entreprises", entrepriseId, "factures", invoice.id), {
+        lastSentAt: serverTimestamp(),
+        lastSentTo: to,
+      });
+      setInvoices((prev) =>
+        prev.map((inv) => inv.id === invoice.id ? { ...inv, lastSentTo: to } : inv)
+      );
+
+      setSentId(invoice.id);
+      setTimeout(() => setSentId(null), 2500);
+    } catch (err) {
+      console.error(err);
+      alert("Erreur lors de l'envoi de l'email : " + (err?.message || "inconnue"));
+    } finally {
+      setSendingId(null);
+    }
   };
 
   if (loading) return <div className="flex items-center justify-center h-64 text-gray-400 text-sm">Chargement...</div>;
@@ -178,6 +251,8 @@ export default function InvoiceList() {
                 const isPayable = invoice.status !== "payée" && invoice.status !== "annulée";
                 const isAcompte = invoice.type === "acompte";
                 const isSolde = invoice.type === "solde";
+                const sending = sendingId === invoice.id;
+                const sent = sentId === invoice.id;
 
                 return (
                   <tr key={invoice.id} className="hover:bg-gray-50 transition-colors">
@@ -224,6 +299,23 @@ export default function InvoiceList() {
                           className="text-xs font-medium text-emerald-600 hover:text-emerald-700 transition"
                         >
                           PDF
+                        </button>
+                        <button
+                          onClick={() => handleSendByEmail(invoice)}
+                          disabled={sending}
+                          title={canSharePaymentLink ? "Envoyer la facture par email (avec lien de paiement)" : "Envoyer la facture par email"}
+                          className={`flex items-center gap-1 text-xs font-medium transition ${
+                            sent
+                              ? "text-emerald-600"
+                              : "text-[#0d1b3e] hover:text-emerald-600"
+                          } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        >
+                          {sending
+                            ? "Envoi..."
+                            : sent
+                              ? <><FaCheck className="w-3 h-3" /> Envoyé</>
+                              : <><FaEnvelope className="w-3 h-3" /> Envoyer</>
+                          }
                         </button>
                         {isPayable && canSharePaymentLink && (
                           <button

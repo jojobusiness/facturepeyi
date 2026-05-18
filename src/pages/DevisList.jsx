@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import {
   collection, getDocs, query, orderBy,
-  deleteDoc, doc, addDoc, updateDoc, Timestamp,
+  deleteDoc, doc, getDoc, addDoc, updateDoc, serverTimestamp, Timestamp,
 } from "firebase/firestore";
 import { useNavigate, Link } from "react-router-dom";
 import { db } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
+import { downloadDevisPDF, getDevisPDFBase64 } from "../utils/downloadPDF";
+import { sendEmail } from "../lib/email";
+import { FaCheck, FaEnvelope } from "react-icons/fa";
 
 const STATUS_CONFIG = {
   brouillon: { label: "Brouillon", classes: "bg-gray-100 text-gray-600" },
@@ -14,11 +17,23 @@ const STATUS_CONFIG = {
   "refusé":  { label: "Refusé",    classes: "bg-red-50 text-red-600" },
 };
 
+function safeDateStr(d) {
+  if (!d) return "";
+  try {
+    const date = typeof d.toDate === "function" ? d.toDate() : new Date(d);
+    return isNaN(date) ? "" : date.toLocaleDateString("fr-FR");
+  } catch {
+    return "";
+  }
+}
+
 export default function DevisList() {
-  const { entrepriseId } = useAuth();
+  const { user, entrepriseId, entreprise } = useAuth();
   const navigate = useNavigate();
   const [devis, setDevis] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sendingId, setSendingId] = useState(null);
+  const [sentId, setSentId] = useState(null);
 
   useEffect(() => {
     if (!entrepriseId) return;
@@ -73,6 +88,107 @@ export default function DevisList() {
     } catch (err) {
       console.error(err);
       alert("Erreur lors de la conversion.");
+    }
+  };
+
+  async function loadDevisContext(devisItem) {
+    const logoUrl = entreprise?.logo || "";
+    let logoDataUrl = "";
+    if (logoUrl) {
+      try {
+        const proxyUrl = "/api/logo-proxy?url=" + encodeURIComponent(logoUrl);
+        const res = await fetch(proxyUrl);
+        logoDataUrl = await res.text();
+      } catch {
+        logoDataUrl = "";
+      }
+    }
+    let clientData = {};
+    if (devisItem.clientId) {
+      const clientSnap = await getDoc(doc(db, "entreprises", entrepriseId, "clients", devisItem.clientId));
+      if (clientSnap.exists()) clientData = clientSnap.data();
+    }
+    return {
+      ...devisItem,
+      clientNom: clientData.nom || devisItem.clientNom || "Client inconnu",
+      clientAdresse: clientData.adresse || "",
+      clientEmail: clientData.email || devisItem.clientEmail || "",
+      entrepriseNom: entreprise?.nom || "Nom Entreprise",
+      entrepriseSiret: entreprise?.siret || "SIRET inconnu",
+      entrepriseAdresse: entreprise?.adresse || "",
+      logoDataUrl,
+    };
+  }
+
+  const handleGeneratePDF = async (devisItem) => {
+    if (!entrepriseId) return;
+    try {
+      const ctx = await loadDevisContext(devisItem);
+      await downloadDevisPDF(ctx);
+    } catch (err) {
+      console.error(err);
+      alert("Erreur chargement des données pour le PDF.");
+    }
+  };
+
+  const handleSendByEmail = async (devisItem) => {
+    if (!entrepriseId) return;
+
+    const ctx = await loadDevisContext(devisItem);
+    const defaultEmail = ctx.clientEmail || "";
+    const to = window.prompt("Envoyer le devis à l'adresse :", defaultEmail);
+    if (!to) return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
+      alert("Adresse email invalide.");
+      return;
+    }
+
+    setSendingId(devisItem.id);
+    try {
+      const pdfBase64 = await getDevisPDFBase64(ctx);
+      const numeroDevis = `DEV-${devisItem.id.slice(0, 8).toUpperCase()}`;
+      const montant = `${Number(devisItem.totalTTC ?? 0).toFixed(2)} €`;
+      const validite = safeDateStr(devisItem.dateValidite);
+
+      await sendEmail(
+        "devis_sent",
+        to,
+        {
+          clientNom: ctx.clientNom,
+          montant,
+          numeroDevis,
+          entrepriseNom: ctx.entrepriseNom,
+          validite,
+        },
+        {
+          attachments: [{ filename: `${numeroDevis}.pdf`, content: pdfBase64 }],
+          replyTo: user?.email || undefined,
+        }
+      );
+
+      const updates = {
+        lastSentAt: serverTimestamp(),
+        lastSentTo: to,
+      };
+      if (devisItem.status === "brouillon" || !devisItem.status) {
+        updates.status = "envoyé";
+      }
+      await updateDoc(doc(db, "entreprises", entrepriseId, "devis", devisItem.id), updates);
+      setDevis((prev) =>
+        prev.map((d) =>
+          d.id === devisItem.id
+            ? { ...d, lastSentTo: to, status: updates.status || d.status }
+            : d
+        )
+      );
+
+      setSentId(devisItem.id);
+      setTimeout(() => setSentId(null), 2500);
+    } catch (err) {
+      console.error(err);
+      alert("Erreur lors de l'envoi de l'email : " + (err?.message || "inconnue"));
+    } finally {
+      setSendingId(null);
     }
   };
 
@@ -131,6 +247,8 @@ export default function DevisList() {
             <tbody className="divide-y divide-gray-50">
               {devis.map((d) => {
                 const cfg = STATUS_CONFIG[d.status] || STATUS_CONFIG.brouillon;
+                const sending = sendingId === d.id;
+                const sent = sentId === d.id;
                 return (
                   <tr key={d.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-4 font-medium text-[#0d1b3e]">{d.clientNom || "—"}</td>
@@ -141,7 +259,7 @@ export default function DevisList() {
                       {d.totalTTC?.toFixed(2)} €
                     </td>
                     <td className="px-5 py-4 text-gray-400 hidden sm:table-cell">
-                      {d.date?.toDate().toLocaleDateString("fr-FR")}
+                      {safeDateStr(d.date)}
                     </td>
                     <td className="px-5 py-4">
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${cfg.classes}`}>
@@ -160,6 +278,29 @@ export default function DevisList() {
                           className="text-xs font-medium text-gray-500 hover:text-[#0d1b3e] transition"
                         >
                           Modifier
+                        </button>
+                        <button
+                          onClick={() => handleGeneratePDF(d)}
+                          className="text-xs font-medium text-emerald-600 hover:text-emerald-700 transition"
+                        >
+                          PDF
+                        </button>
+                        <button
+                          onClick={() => handleSendByEmail(d)}
+                          disabled={sending}
+                          title="Envoyer le devis par email avec PDF en pièce jointe"
+                          className={`flex items-center gap-1 text-xs font-medium transition ${
+                            sent
+                              ? "text-emerald-600"
+                              : "text-[#0d1b3e] hover:text-emerald-600"
+                          } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        >
+                          {sending
+                            ? "Envoi..."
+                            : sent
+                              ? <><FaCheck className="w-3 h-3" /> Envoyé</>
+                              : <><FaEnvelope className="w-3 h-3" /> Envoyer</>
+                          }
                         </button>
                         {!d.convertedToFacture ? (
                           <button
