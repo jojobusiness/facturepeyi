@@ -7,7 +7,7 @@
 //
 // Le helper est défensif : il ne throw jamais (loguer une erreur ne doit pas casser l'endpoint qui l'appelle).
 
-const SUPER_ADMIN_EMAIL = "edukaraib@gmail.com";
+const SUPER_ADMIN_EMAIL = "facturepeyi@gmail.com";
 
 export async function logSysadmin(db, { severity = "info", source = "unknown", message = "", meta = null } = {}) {
   try {
