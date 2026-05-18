@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Link, useLocation, Navigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { FaCheckCircle, FaFileInvoice, FaReceipt, FaChartBar, FaBell, FaMobileAlt, FaArrowRight } from "react-icons/fa";
+import { FaCheckCircle, FaFileInvoice, FaReceipt, FaChartBar, FaBell, FaMobileAlt, FaArrowRight, FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { SEO_TERRITORIES } from "../lib/seo-territories";
+import { buildFaqs, buildFaqJsonLd } from "../lib/territory-faqs";
 
 // ─── Navbar ───────────────────────────────────────────────────────────────────
 
@@ -23,6 +25,25 @@ function Navbar() {
         </div>
       </div>
     </nav>
+  );
+}
+
+// ─── FAQ Item ─────────────────────────────────────────────────────────────────
+
+function FAQItem({ q, a }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border border-gray-200 rounded-xl bg-white cursor-pointer transition" onClick={() => setOpen(!open)}>
+      <div className="flex justify-between items-start px-5 py-4 gap-4">
+        <span className="font-semibold text-[#0d1b3e] text-sm leading-snug flex-1">{q}</span>
+        {open
+          ? <FaChevronUp className="text-emerald-600 flex-shrink-0 mt-1 w-3 h-3" />
+          : <FaChevronDown className="text-gray-400 flex-shrink-0 mt-1 w-3 h-3" />}
+      </div>
+      {open && (
+        <div className="px-5 pb-4 text-gray-600 text-sm leading-relaxed border-t border-gray-50 pt-3">{a}</div>
+      )}
+    </div>
   );
 }
 
@@ -68,6 +89,8 @@ export default function TerritoirePage() {
   if (!t) return <Navigate to="/" replace />;
 
   const colors = TVA_COLORS[t.tvaColor] || TVA_COLORS.emerald;
+  const faqs = buildFaqs(t);
+  const faqJsonLd = buildFaqJsonLd(faqs);
 
   const features = [
     {
@@ -114,6 +137,9 @@ export default function TerritoirePage() {
         <meta property="og:description" content={t.description} />
         <meta property="og:type" content="website" />
         <link rel="canonical" href={`https://facturepeyi.com/${slug}`} />
+        <script type="application/ld+json">
+          {JSON.stringify(faqJsonLd)}
+        </script>
       </Helmet>
 
       <Navbar />
@@ -229,6 +255,21 @@ export default function TerritoirePage() {
                 <div className="text-xs text-gray-400">{stat.sub}</div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ ── */}
+      <section className="py-16 px-4 bg-gray-50">
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-2xl font-bold text-[#0d1b3e] text-center mb-2">
+            Questions fréquentes — {t.name}
+          </h2>
+          <p className="text-sm text-gray-500 text-center mb-10">
+            Tout ce qu'il faut savoir sur la fiscalité et la facturation en {t.name}.
+          </p>
+          <div className="space-y-3">
+            {faqs.map((faq, idx) => <FAQItem key={idx} q={faq.q} a={faq.a} />)}
           </div>
         </div>
       </section>

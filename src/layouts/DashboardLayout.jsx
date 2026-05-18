@@ -4,6 +4,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
 import { getPlan } from "../lib/plans";
+import TrialBanner from "../components/TrialBanner";
 import {
   FaHome, FaFileInvoice, FaPlus, FaUsers, FaFileAlt,
   FaReceipt, FaTag, FaBook, FaBalanceScale, FaChartBar,
@@ -310,6 +311,7 @@ export default function DashboardLayout() {
 
         {/* ── Contenu ── */}
         <main className="flex-1 p-4 md:p-8 overflow-y-auto">
+          <TrialBanner />
           <Outlet />
         </main>
       </div>
