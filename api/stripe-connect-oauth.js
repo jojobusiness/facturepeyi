@@ -6,11 +6,11 @@ export default function handler(req, res) {
   const { entrepriseId, debug } = req.query;
   if (!entrepriseId) return res.status(400).json({ error: "entrepriseId requis" });
 
-  const clientId = process.env.STRIPE_CONNECT_CLIENT_ID;
+  const clientId = (process.env.STRIPE_CONNECT_CLIENT_ID || "").trim();
   if (!clientId) return res.status(500).json({ error: "STRIPE_CONNECT_CLIENT_ID non configuré" });
 
   const nonce = randomBytes(16).toString("hex");
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://facturepeyi.com";
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://facturepeyi.com").trim().replace(/\/$/, "");
 
   const params = new URLSearchParams({
     response_type: "code",

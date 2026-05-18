@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).end();
 
   const { code, state, error } = req.query;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://facturepeyi.com";
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://facturepeyi.com").trim().replace(/\/$/, "");
 
   if (error || !code || !state) {
     return res.redirect(302, `${siteUrl}/dashboard/parametres?stripe=error`);
@@ -31,7 +31,7 @@ export default async function handler(req, res) {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
-        client_secret: process.env.STRIPE_SECRET_KEY,
+        client_secret: (process.env.STRIPE_SECRET_KEY || "").trim(),
         grant_type: "authorization_code",
         code,
       }),
