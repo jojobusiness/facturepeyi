@@ -17,9 +17,28 @@ async function verifySuperAdmin(req) {
     const userSnap = await db.collection("utilisateurs").doc(decoded.uid).get();
     if (userSnap.data()?.superAdmin !== true) return null;
     return decoded.uid;
-  } catch {
+  } catch (err) {
+    console.error("verifySuperAdmin error:", err.message);
     return null;
   }
+}
+
+function mapDocs(snap) {
+  return snap.docs.map((d) => {
+    const data = d.data();
+    let createdAtIso = null;
+    try {
+      createdAtIso = data.createdAt?.toDate?.()?.toISOString?.() ?? null;
+    } catch { /* noop */ }
+    return {
+      id: d.id,
+      severity: data.severity || "info",
+      source: data.source || "unknown",
+      message: data.message || "",
+      meta: data.meta ?? null,
+      createdAtIso,
+    };
+  });
 }
 
 export default async function handler(req, res) {
@@ -28,31 +47,41 @@ export default async function handler(req, res) {
   const uid = await verifySuperAdmin(req);
   if (!uid) return res.status(403).json({ error: "Forbidden" });
 
+  // Tentative 1 : query avec orderBy createdAt desc + limit 100
   try {
     const snap = await db
       .collection("sysadmin_logs")
       .orderBy("createdAt", "desc")
       .limit(100)
       .get();
-
-    const logs = snap.docs.map((d) => {
-      const data = d.data();
-      return {
-        id: d.id,
-        severity: data.severity || "info",
-        source: data.source || "unknown",
-        message: data.message || "",
-        meta: data.meta || null,
-        createdAtIso: data.createdAt?.toDate?.()?.toISOString?.() || null,
-      };
-    });
-
-    return res.status(200).json({ logs });
+    return res.status(200).json({ logs: mapDocs(snap) });
   } catch (err) {
-    if (err.code === 9 || /requires an index/i.test(err.message || "")) {
-      return res.status(200).json({ logs: [], indexHint: err.message });
+    console.error("sysadmin-logs orderBy failed:", err.message, err.code);
+
+    // Tentative 2 : fallback sans orderBy (collection vide / sans createdAt / besoin d'index)
+    try {
+      const snap = await db.collection("sysadmin_logs").limit(100).get();
+      const logs = mapDocs(snap);
+      // Tri client-side
+      logs.sort((a, b) => (b.createdAtIso || "").localeCompare(a.createdAtIso || ""));
+      return res.status(200).json({
+        logs,
+        fallbackUsed: true,
+        warning: err.message,
+      });
+    } catch (err2) {
+      console.error("sysadmin-logs fallback also failed:", err2.message, err2.code);
+      // Dernier recours : retourner vide + détails pour debug côté front
+      return res.status(200).json({
+        logs: [],
+        debug: {
+          stage: "all-queries-failed",
+          firstError: err.message,
+          firstCode: err.code,
+          secondError: err2.message,
+          secondCode: err2.code,
+        },
+      });
     }
-    console.error("sysadmin-logs error:", err);
-    return res.status(500).json({ error: err.message });
   }
 }

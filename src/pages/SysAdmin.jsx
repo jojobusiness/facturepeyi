@@ -71,18 +71,25 @@ export default function SysAdmin() {
     }
   };
 
+  const [logsDebug, setLogsDebug] = useState(null);
   const loadLogs = async () => {
+    setLogsDebug(null);
     try {
       const token = await getAuthToken();
       const res = await fetch("/api/sysadmin-logs", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error(`Logs: ${res.status}`);
-      const json = await res.json();
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setLogs([]);
+        setLogsDebug({ status: res.status, body: json });
+        return;
+      }
       setLogs(json.logs || []);
+      if (json.debug || json.warning) setLogsDebug({ status: 200, body: json });
     } catch (err) {
       setLogs([]);
-      console.error(err);
+      setLogsDebug({ status: "network", body: { error: err.message } });
     }
   };
 
@@ -417,6 +424,13 @@ export default function SysAdmin() {
                 <FaSync className="w-3 h-3" /> Rafraîchir
               </button>
             </div>
+
+            {logsDebug && (
+              <div className="mx-5 mt-4 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-xs">
+                <div className="font-semibold text-amber-800 mb-1">Debug ({logsDebug.status})</div>
+                <pre className="overflow-x-auto text-amber-700">{JSON.stringify(logsDebug.body, null, 2)}</pre>
+              </div>
+            )}
 
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
