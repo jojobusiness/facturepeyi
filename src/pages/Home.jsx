@@ -228,11 +228,6 @@ export default function Home() {
 
             {/* ── Côté gauche ── */}
             <div className="max-w-xl">
-              <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-full px-4 py-2 text-sm text-blue-700 font-semibold mb-6">
-                <span>🇬🇫</span>
-                <span>Conçu pour les pros d'ici · Guyane & Outre-mer</span>
-              </div>
-
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-[#0d1b3e] leading-[1.08] mb-5 tracking-tight">
                 Votre business.<br />
                 Vos factures.<br />
@@ -278,19 +273,45 @@ export default function Home() {
               </div>
             </div>
 
-            {/* ── Côté droit — Dashboard mockup desktop ── */}
-            <div className="hidden lg:flex flex-col justify-center gap-3">
-              <DashboardMockup />
-              <div className="flex gap-3">
-                <div className="flex-1 bg-white rounded-xl p-3 shadow-sm border border-gray-100">
-                  <div className="text-xs text-gray-400 mb-0.5">Paiement reçu</div>
-                  <div className="font-extrabold text-[#0d1b3e] text-sm">2 350,00 €</div>
-                  <div className="text-xs text-emerald-600 font-semibold">✓ SARL Océanik</div>
+            {/* ── Côté droit — Dashboard mockup avec cards flottantes ── */}
+            <div className="hidden lg:block relative">
+              <div className="bg-gradient-to-br from-emerald-50 via-white to-blue-50 rounded-3xl p-10 relative">
+                <DashboardMockup />
+
+                {/* Badge sombre overlay top-left */}
+                <div className="absolute top-10 -left-4 bg-[#0d1b3e] text-white rounded-2xl px-5 py-4 shadow-xl z-10 max-w-[170px]">
+                  <div className="text-sm font-bold leading-snug">
+                    Conçu pour les<br />pros d'ici
+                  </div>
+                  <div className="text-sm font-bold text-emerald-400 leading-snug mt-1">
+                    Guyane &amp; Outre-mer
+                  </div>
                 </div>
-                <div className="flex-1 bg-white rounded-xl p-3 shadow-sm border border-gray-100">
-                  <div className="text-xs text-gray-400 mb-0.5">Facture envoyée</div>
-                  <div className="font-extrabold text-[#0d1b3e] text-sm">1 850,00 €</div>
-                  <div className="text-xs text-blue-600 font-semibold">FAC-2024-0125</div>
+
+                {/* Card "Paiement reçu" — top-right overlapping */}
+                <div className="absolute top-4 -right-4 bg-white rounded-2xl shadow-xl p-4 w-60 z-10">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-gray-600">Paiement reçu</span>
+                    <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center text-white">
+                      <FaCheckCircle className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="text-2xl font-extrabold text-[#0d1b3e]">2 350,00 €</div>
+                  <div className="text-sm text-gray-600 mt-2">Client : SARL Océanik</div>
+                  <div className="text-xs text-gray-400 mt-0.5">Aujourd'hui à 10:42</div>
+                </div>
+
+                {/* Card "Facture envoyée" — bottom-right overlapping */}
+                <div className="absolute bottom-4 -right-4 bg-white rounded-2xl shadow-xl p-4 w-60 z-10">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-gray-700">Facture envoyée</span>
+                    <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                      <HiOutlineDocumentText className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="text-2xl font-extrabold text-[#0d1b3e]">1 850,00 €</div>
+                  <div className="text-sm text-gray-600 mt-2">FAC-2024-0125</div>
+                  <div className="text-xs text-gray-400 mt-0.5">Aujourd'hui à 09:15</div>
                 </div>
               </div>
             </div>
