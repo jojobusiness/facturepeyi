@@ -3,8 +3,9 @@ import Stripe from "stripe";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const ALLOWED_PRICE_IDS = [
-  "price_1Rlat8Ick4iMBRE91vyvhOFc", // Solo
-  "price_1RlatdIck4iMBRE9fWyZausA", // Pro
+  "price_1TYQZWIck4iMBRE9Ulc07a9u", // Solo
+  "price_1TYQbBIck4iMBRE9PeSRBS3R", // Pro
+  "price_1TYQcIIck4iMBRE9PMoZ4wZW", // Expert
 ];
 
 export default async function handler(req, res) {

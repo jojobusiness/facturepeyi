@@ -2,9 +2,9 @@ import { useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { FaCheckCircle, FaArrowLeft } from "react-icons/fa";
 
-const SOLO_PRICE_ID = "price_1Rlat8Ick4iMBRE91vyvhOFc";
-const PRO_PRICE_ID = "price_1RlatdIck4iMBRE9fWyZausA";
-// const EXPERT_PRICE_ID = "price_TODO";
+const SOLO_PRICE_ID = "price_1TYQZWIck4iMBRE9Ulc07a9u";
+const PRO_PRICE_ID = "price_1TYQbBIck4iMBRE9PeSRBS3R";
+const EXPERT_PRICE_ID = "price_1TYQcIIck4iMBRE9PMoZ4wZW";
 
 const plans = [
   {
@@ -67,7 +67,7 @@ const plans = [
     id: "expert",
     name: "Expert",
     tagline: "Pour les PME et artisans avancés",
-    price: null,
+    price: EXPERT_PRICE_ID,
     priceLabel: "54,99€",
     period: "/mois",
     features: [
@@ -77,10 +77,9 @@ const plans = [
       "Rapports avancés",
       "Support dédié",
     ],
-    cta: "Bientôt disponible",
+    cta: "Choisir Expert",
     highlight: false,
     trial: false,
-    comingSoon: true,
   },
 ];
 
