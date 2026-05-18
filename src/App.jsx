@@ -56,6 +56,7 @@ import CreateRecurrence from './pages/CreateRecurrence';
 import PortailClient from './pages/PortailClient';
 import CreateAcompte from './pages/CreateAcompte';
 import CreateSolde from './pages/CreateSolde';
+import MonAbonnement from './pages/MonAbonnement';
 
 export default function App() {
   return (
@@ -158,6 +159,7 @@ export default function App() {
         <Route path="facture/acompte/nouvelle" element={<PrivateRoute><CreateAcompte /></PrivateRoute>} />
         <Route path="facture/solde/:acompteId" element={<PrivateRoute><CreateSolde /></PrivateRoute>} />
         <Route path="parametres" element={<PrivateRoute><Settings /></PrivateRoute>} />
+        <Route path="mon-abonnement" element={<PrivateRoute><MonAbonnement /></PrivateRoute>} />
         <Route path="import-bancaire" element={<PrivateRoute><ImportBancaire /></PrivateRoute>} />
         <Route path="parrainage" element={<PrivateRoute><Parrainage /></PrivateRoute>} />
         <Route path="cabinet" element={<PrivateRoute><Cabinet /></PrivateRoute>} />

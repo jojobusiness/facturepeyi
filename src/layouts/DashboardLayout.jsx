@@ -9,7 +9,7 @@ import {
   FaReceipt, FaTag, FaBook, FaBalanceScale, FaChartBar,
   FaFilePdf, FaUserShield, FaCog, FaSignOutAlt, FaBars, FaTimes,
   FaChevronDown, FaChevronRight, FaBuilding, FaCalendarAlt,
-  FaUniversity, FaGift, FaBriefcase, FaSync,
+  FaUniversity, FaGift, FaBriefcase, FaSync, FaCreditCard,
 } from "react-icons/fa";
 
 // ─── Structure du menu ────────────────────────────────────────────────────────
@@ -56,6 +56,7 @@ const nav = [
     items: [
       { key: "admin",      label: "Gestion utilisateurs", icon: <FaUserShield />, to: "/dashboard/admin" },
       { key: "parrainage", label: "Parrainage",           icon: <FaGift />,       to: "/dashboard/parrainage" },
+      { key: "abonnement", label: "Mon abonnement",       icon: <FaCreditCard />, to: "/dashboard/mon-abonnement" },
       { key: "parametres", label: "Paramètres",           icon: <FaCog />,        to: "/dashboard/parametres" },
     ],
   },

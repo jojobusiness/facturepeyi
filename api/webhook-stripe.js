@@ -2,6 +2,8 @@ import Stripe from "stripe";
 import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { logSysadmin } from "../lib-server/sysadmin-log.js";
+import { planFromSubscription, PLAN_LABEL } from "../lib-server/stripe-plans.js";
+import { notifyOwner, emailShell } from "../lib-server/notify-owner.js";
 
 if (!getApps().length) {
   initializeApp({ credential: cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)) });
@@ -27,6 +29,10 @@ async function findEntrepriseByCustomerId(customerId) {
     .limit(1)
     .get();
   return snap.empty ? null : snap.docs[0];
+}
+
+function priceRank(plan) {
+  return { decouverte: 0, solo: 1, pro: 2, expert: 3, cabinet: 4 }[plan] ?? -1;
 }
 
 export default async function handler(req, res) {
@@ -101,7 +107,52 @@ export default async function handler(req, res) {
           : sub.status === "canceled" ? "canceled"
           : sub.status;
 
-        await doc.ref.update({ planStatus: status, stripeSubscriptionId: sub.id });
+        const oldPlan = doc.data().plan;
+        const newPlan = planFromSubscription(sub);
+
+        const update = {
+          planStatus: status,
+          stripeSubscriptionId: sub.id,
+          cancelAtPeriodEnd: sub.cancel_at_period_end === true,
+          currentPeriodEnd: sub.current_period_end
+            ? new Date(sub.current_period_end * 1000)
+            : null,
+        };
+        if (newPlan && newPlan !== oldPlan) update.plan = newPlan;
+
+        await doc.ref.update(update);
+
+        // Notification : changement de plan (upgrade/downgrade)
+        if (newPlan && oldPlan && newPlan !== oldPlan) {
+          const direction = priceRank(newPlan) > priceRank(oldPlan) ? "upgrade" : "downgrade";
+          notifyOwner(db, doc.id, {
+            subject: `Plan modifié : ${PLAN_LABEL[oldPlan] || oldPlan} → ${PLAN_LABEL[newPlan] || newPlan}`,
+            html: emailShell({
+              title: direction === "upgrade" ? "Bienvenue dans votre nouveau plan" : "Changement de plan confirmé",
+              intro: `Votre abonnement Factur'Peyi est passé de <strong>${PLAN_LABEL[oldPlan] || oldPlan}</strong> à <strong>${PLAN_LABEL[newPlan] || newPlan}</strong>. Les nouvelles fonctionnalités sont disponibles immédiatement.`,
+              ctaLabel: "Voir mon abonnement",
+              ctaUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/mon-abonnement`,
+              footerNote: "Le prorata est appliqué automatiquement par Stripe sur votre prochaine facture.",
+            }),
+          }).catch(() => {});
+        }
+
+        // Notification : annulation programmée
+        if (sub.cancel_at_period_end === true && doc.data().cancelAtPeriodEnd !== true) {
+          const endDate = sub.current_period_end
+            ? new Date(sub.current_period_end * 1000).toLocaleDateString("fr-FR")
+            : null;
+          notifyOwner(db, doc.id, {
+            subject: "Annulation de votre abonnement Factur'Peyi confirmée",
+            html: emailShell({
+              title: "Annulation programmée",
+              intro: `Votre demande d'annulation a bien été enregistrée. Vous gardez l'accès complet à votre plan jusqu'au <strong>${endDate || "terme de la période en cours"}</strong>. Après cette date, votre compte basculera automatiquement en plan gratuit Découverte.`,
+              ctaLabel: "Réactiver mon abonnement",
+              ctaUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/mon-abonnement`,
+              footerNote: "Vous pouvez annuler la résiliation à tout moment avant la date d'expiration.",
+            }),
+          }).catch(() => {});
+        }
         break;
       }
 
@@ -110,14 +161,39 @@ export default async function handler(req, res) {
         const doc = await findEntrepriseByCustomerId(sub.customer);
         if (!doc) break;
         // Repasser au plan gratuit
-        await doc.ref.update({ plan: "decouverte", planStatus: "canceled", stripeSubscriptionId: null });
+        await doc.ref.update({
+          plan: "decouverte",
+          planStatus: "canceled",
+          stripeSubscriptionId: null,
+          cancelAtPeriodEnd: false,
+        });
+        notifyOwner(db, doc.id, {
+          subject: "Votre abonnement Factur'Peyi a pris fin",
+          html: emailShell({
+            title: "Fin d'abonnement",
+            intro: "Votre abonnement payant a pris fin. Votre compte est désormais en plan gratuit Découverte (5 factures max). Vos données restent accessibles.",
+            ctaLabel: "Reprendre un abonnement",
+            ctaUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/Forfaits`,
+          }),
+        }).catch(() => {});
         break;
       }
 
       case "invoice.payment_failed": {
         const invoice = event.data.object;
         const doc = await findEntrepriseByCustomerId(invoice.customer);
-        if (doc) await doc.ref.update({ planStatus: "past_due" });
+        if (!doc) break;
+        await doc.ref.update({ planStatus: "past_due" });
+        notifyOwner(db, doc.id, {
+          subject: "Échec du prélèvement de votre abonnement Factur'Peyi",
+          html: emailShell({
+            title: "Paiement en échec",
+            intro: `Le prélèvement de votre abonnement n'a pas pu aboutir (montant <strong>${(invoice.amount_due / 100).toFixed(2)} €</strong>). Pour éviter la suspension de votre compte, merci de mettre à jour vos informations de paiement.`,
+            ctaLabel: "Mettre à jour ma carte",
+            ctaUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/mon-abonnement`,
+            footerNote: "Stripe retentera automatiquement le prélèvement plusieurs fois avant suspension.",
+          }),
+        }).catch(() => {});
         break;
       }
 
