@@ -144,37 +144,37 @@ function DashboardMockup() {
           <div className="w-3 h-3 rounded-full bg-yellow-400" />
           <div className="w-3 h-3 rounded-full bg-green-400" />
         </div>
-        <div className="flex-1 bg-white rounded-md text-xs text-gray-400 text-center py-0.5 mx-4 border border-gray-200">
+        <div className="flex-1 bg-white rounded-md text-xs text-gray-400 text-center py-1 mx-4 border border-gray-200">
           app.facturpeyi.com/dashboard
         </div>
       </div>
-      <div className="flex h-44">
-        <div className="w-28 bg-gray-50 border-r border-gray-100 p-2 flex-shrink-0">
-          <div className="text-xs font-bold text-emerald-700 mb-2 px-2">Factur'Peyi</div>
+      <div className="flex h-80">
+        <div className="w-36 bg-gray-50 border-r border-gray-100 p-3 flex-shrink-0">
+          <div className="text-sm font-bold text-emerald-700 mb-3 px-2">Factur'Peyi</div>
           {["Tableau de bord", "Factures", "Devis", "Clients", "Paiements", "Rapports"].map((item, i) => (
-            <div key={item} className={`px-2 py-1.5 rounded-lg text-xs mb-0.5 ${i === 0 ? "bg-emerald-600 text-white font-semibold" : "text-gray-500 hover:bg-gray-100"}`}>
+            <div key={item} className={`px-2.5 py-2 rounded-lg text-xs mb-1 ${i === 0 ? "bg-emerald-600 text-white font-semibold" : "text-gray-500"}`}>
               {item}
             </div>
           ))}
         </div>
-        <div className="flex-1 p-3 overflow-hidden">
-          <div className="text-xs font-bold text-gray-700 mb-2">Tableau de bord</div>
-          <div className="grid grid-cols-3 gap-1.5 mb-2.5">
+        <div className="flex-1 p-5 overflow-hidden">
+          <div className="text-sm font-bold text-gray-700 mb-3">Tableau de bord</div>
+          <div className="grid grid-cols-3 gap-2 mb-4">
             {[
               { label: "Chiffre d'affaires", val: "28 450 €", change: "+28%", up: true },
               { label: "Factures payées", val: "18 450 €", change: "+35%", up: true },
               { label: "En attente", val: "5 200 €", change: "-12%", up: false },
             ].map(s => (
-              <div key={s.label} className="bg-gray-50 rounded-lg p-2">
-                <div className="text-gray-400" style={{fontSize: "9px"}}>{s.label}</div>
-                <div className="font-bold text-gray-900 mt-0.5" style={{fontSize: "10px"}}>{s.val}</div>
-                <div className={`font-medium ${s.up ? "text-emerald-600" : "text-red-500"}`} style={{fontSize: "9px"}}>{s.change}</div>
+              <div key={s.label} className="bg-gray-50 rounded-lg p-2.5">
+                <div className="text-gray-400 text-[10px]">{s.label}</div>
+                <div className="font-bold text-gray-900 mt-0.5 text-xs">{s.val}</div>
+                <div className={`font-medium text-[10px] ${s.up ? "text-emerald-600" : "text-red-500"}`}>{s.change}</div>
               </div>
             ))}
           </div>
-          <div className="bg-gray-50 rounded-lg p-2">
-            <div className="text-gray-400 mb-1.5" style={{fontSize: "9px"}}>Évolution du chiffre d'affaires</div>
-            <div className="flex items-end gap-0.5 h-10">
+          <div className="bg-gray-50 rounded-lg p-3">
+            <div className="text-gray-400 mb-2 text-[10px]">Évolution du chiffre d'affaires</div>
+            <div className="flex items-end gap-1 h-24">
               {[25, 40, 30, 55, 45, 70, 80, 65, 75, 85, 70, 90].map((h, i) => (
                 <div key={i} className="flex-1 bg-emerald-500 rounded-t opacity-80" style={{ height: `${h}%` }} />
               ))}
