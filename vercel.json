@@ -10,6 +10,10 @@
     {
       "path": "/api/generate-recurrences",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/send-trial-emails",
+      "schedule": "0 10 * * *"
     }
   ],
   "headers": [

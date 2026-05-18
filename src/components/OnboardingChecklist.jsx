@@ -39,7 +39,7 @@ const steps = [
     id: "team",
     label: "Invitez votre comptable ou équipe",
     desc: "Donnez accès à votre comptable avec le rôle approprié.",
-    to: "/dashboard/equipe",
+    to: "/dashboard/admin",
     check: (_, counts) => counts.membres > 1,
   },
 ];
