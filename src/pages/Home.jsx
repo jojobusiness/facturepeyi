@@ -273,65 +273,46 @@ export default function Home() {
               </div>
             </div>
 
-            {/* ── Côté droit — Dashboard mockup avec cards flottantes ── */}
-            <div className="hidden lg:block relative">
-              <div className="bg-gradient-to-br from-emerald-50 via-white to-blue-50 rounded-3xl p-10 relative">
+            {/* ── Côté droit — Dashboard mockup avec cards flottantes (desktop + mobile identique) ── */}
+            <div className="relative mt-8 lg:mt-0">
+              <div className="bg-gradient-to-br from-emerald-50 via-white to-blue-50 rounded-3xl p-6 sm:p-8 lg:p-10 relative">
                 <DashboardMockup />
 
                 {/* Badge sombre overlay top-left */}
-                <div className="absolute top-10 -left-4 bg-[#0d1b3e] text-white rounded-2xl px-5 py-4 shadow-xl z-10 max-w-[170px]">
-                  <div className="text-sm font-bold leading-snug">
+                <div className="absolute top-8 sm:top-10 -left-2 sm:-left-4 bg-[#0d1b3e] text-white rounded-2xl px-3 sm:px-5 py-3 sm:py-4 shadow-xl z-10 max-w-[140px] sm:max-w-[170px]">
+                  <div className="text-xs sm:text-sm font-bold leading-snug">
                     Conçu pour les<br />pros d'ici
                   </div>
-                  <div className="text-sm font-bold text-emerald-400 leading-snug mt-1">
+                  <div className="text-xs sm:text-sm font-bold text-emerald-400 leading-snug mt-1">
                     Guyane &amp; Outre-mer
                   </div>
                 </div>
 
                 {/* Card "Paiement reçu" — top-right overlapping */}
-                <div className="absolute top-4 -right-4 bg-white rounded-2xl shadow-xl p-4 w-60 z-10">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-600">Paiement reçu</span>
-                    <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center text-white">
-                      <FaCheckCircle className="w-4 h-4" />
+                <div className="absolute top-2 sm:top-4 -right-2 sm:-right-4 bg-white rounded-2xl shadow-xl p-3 sm:p-4 w-44 sm:w-60 z-10">
+                  <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                    <span className="text-xs sm:text-sm text-gray-600">Paiement reçu</span>
+                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-emerald-500 flex items-center justify-center text-white">
+                      <FaCheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
                     </div>
                   </div>
-                  <div className="text-2xl font-extrabold text-[#0d1b3e]">2 350,00 €</div>
-                  <div className="text-sm text-gray-600 mt-2">Client : SARL Océanik</div>
-                  <div className="text-xs text-gray-400 mt-0.5">Aujourd'hui à 10:42</div>
+                  <div className="text-lg sm:text-2xl font-extrabold text-[#0d1b3e]">2 350,00 €</div>
+                  <div className="text-xs sm:text-sm text-gray-600 mt-1 sm:mt-2">Client : SARL Océanik</div>
+                  <div className="text-[10px] sm:text-xs text-gray-400 mt-0.5">Aujourd'hui à 10:42</div>
                 </div>
 
                 {/* Card "Facture envoyée" — bottom-right overlapping */}
-                <div className="absolute bottom-4 -right-4 bg-white rounded-2xl shadow-xl p-4 w-60 z-10">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold text-gray-700">Facture envoyée</span>
-                    <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center text-white">
-                      <HiOutlineDocumentText className="w-4 h-4" />
+                <div className="absolute bottom-2 sm:bottom-4 -right-2 sm:-right-4 bg-white rounded-2xl shadow-xl p-3 sm:p-4 w-44 sm:w-60 z-10">
+                  <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                    <span className="text-xs sm:text-sm font-semibold text-gray-700">Facture envoyée</span>
+                    <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-blue-500 flex items-center justify-center text-white">
+                      <HiOutlineDocumentText className="w-3 h-3 sm:w-4 sm:h-4" />
                     </div>
                   </div>
-                  <div className="text-2xl font-extrabold text-[#0d1b3e]">1 850,00 €</div>
-                  <div className="text-sm text-gray-600 mt-2">FAC-2024-0125</div>
-                  <div className="text-xs text-gray-400 mt-0.5">Aujourd'hui à 09:15</div>
+                  <div className="text-lg sm:text-2xl font-extrabold text-[#0d1b3e]">1 850,00 €</div>
+                  <div className="text-xs sm:text-sm text-gray-600 mt-1 sm:mt-2">FAC-2024-0125</div>
+                  <div className="text-[10px] sm:text-xs text-gray-400 mt-0.5">Aujourd'hui à 09:15</div>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Dashboard mockup — mobile uniquement ── */}
-        <div className="lg:hidden px-4 pb-8">
-          <div className="bg-gradient-to-br from-[#e8f5ef] to-[#dbeafe] rounded-2xl p-4">
-            <DashboardMockup />
-            <div className="flex gap-3 mt-3">
-              <div className="flex-1 bg-white rounded-xl p-3 shadow-sm border border-gray-100">
-                <div className="text-xs text-gray-400 mb-0.5">Paiement reçu</div>
-                <div className="font-extrabold text-[#0d1b3e] text-sm">2 350,00 €</div>
-                <div className="text-xs text-emerald-600 font-semibold">✓ SARL Océanik</div>
-              </div>
-              <div className="flex-1 bg-white rounded-xl p-3 shadow-sm border border-gray-100">
-                <div className="text-xs text-gray-400 mb-0.5">Facture envoyée</div>
-                <div className="font-extrabold text-[#0d1b3e] text-sm">1 850,00 €</div>
-                <div className="text-xs text-blue-600 font-semibold">FAC-2024-0125</div>
               </div>
             </div>
           </div>
