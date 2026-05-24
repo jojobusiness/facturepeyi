@@ -1,23 +1,48 @@
 export default function Cookies() {
   return (
-    <main className="p-6 max-w-4xl mx-auto text-gray-800">
-      <h1 className="text-2xl font-bold mb-4">Politique de Cookies</h1>
-      <p className="mb-2">Dernière mise à jour : 15 juillet 2025</p>
+    <main className="p-6 max-w-4xl mx-auto text-gray-800 leading-relaxed">
+      <h1 className="text-3xl font-bold mb-2">Politique de Cookies</h1>
+      <p className="mb-6 text-sm text-gray-500">Dernière mise à jour : 24 mai 2026</p>
 
-      <h2 className="text-xl mt-6 font-semibold">1. Qu’est-ce qu’un cookie ?</h2>
-      <p>Un cookie est un petit fichier texte déposé sur votre navigateur lors de votre visite sur notre site.</p>
+      <h2 className="text-xl font-semibold mt-8 mb-2">1. Qu'est-ce qu'un cookie&nbsp;?</h2>
+      <p>
+        Un cookie est un petit fichier texte déposé sur le terminal de l'utilisateur (ordinateur, tablette, smartphone) lors de sa visite sur un site web. Il permet au site de reconnaître l'utilisateur, de mémoriser ses préférences ou de mesurer son audience.
+      </p>
 
-      <h2 className="text-xl mt-6 font-semibold">2. Types de cookies utilisés</h2>
-      <ul className="list-disc ml-6 text-sm">
-        <li><strong>Fonctionnels :</strong> nécessaires au bon fonctionnement du site.</li>
-        <li><strong>Analytiques :</strong> pour améliorer la performance et mesurer l’audience.</li>
+      <h2 className="text-xl font-semibold mt-8 mb-2">2. Cookies utilisés par Factur'Peyi</h2>
+      <ul className="list-disc ml-6 mt-2 space-y-2">
+        <li>
+          <strong>Cookies strictement nécessaires</strong> — indispensables au fonctionnement du Service (authentification Firebase, session, sécurité CSRF). Ces cookies ne nécessitent pas de consentement (article 82 de la loi Informatique et Libertés).
+        </li>
+        <li>
+          <strong>Cookies de mesure d'audience</strong> — Vercel Analytics et Speed Insights, configurés pour ne pas collecter de données personnelles et ne pas nécessiter de consentement explicite (mode <em>privacy-friendly</em>).
+        </li>
+        <li>
+          <strong>Cookies tiers — Stripe</strong> — déposés uniquement sur la page de paiement par Stripe pour des raisons de sécurité anti-fraude. Voir la <a href="https://stripe.com/cookies-policy" className="text-emerald-700 underline" target="_blank" rel="noopener noreferrer">politique cookies de Stripe</a>.
+        </li>
       </ul>
 
-      <h2 className="text-xl mt-6 font-semibold">3. Consentement</h2>
-      <p>En continuant votre navigation, vous acceptez l’usage de cookies. Vous pouvez les désactiver dans les paramètres de votre navigateur.</p>
+      <h2 className="text-xl font-semibold mt-8 mb-2">3. Durée de conservation</h2>
+      <p>
+        Conformément aux recommandations de la CNIL, la durée de conservation des cookies n'excède pas <strong>13 mois</strong>. Au-delà, le consentement (le cas échéant) est sollicité à nouveau.
+      </p>
 
-      <h2 className="text-xl mt-6 font-semibold">4. Durée de conservation</h2>
-      <p>Les cookies sont conservés pour une durée maximale de 13 mois.</p>
+      <h2 className="text-xl font-semibold mt-8 mb-2">4. Gestion des cookies</h2>
+      <p>
+        L'utilisateur peut à tout moment configurer son navigateur pour bloquer ou supprimer les cookies déjà déposés. La désactivation des cookies strictement nécessaires peut entraîner l'impossibilité d'accéder à certaines fonctionnalités du Service (notamment l'authentification).
+      </p>
+      <p className="mt-2">Liens utiles selon le navigateur&nbsp;:</p>
+      <ul className="list-disc ml-6 mt-1 space-y-1 text-sm">
+        <li><a href="https://support.google.com/chrome/answer/95647" className="text-emerald-700 underline" target="_blank" rel="noopener noreferrer">Google Chrome</a></li>
+        <li><a href="https://support.mozilla.org/fr/kb/effacer-cookies-donnees-site-firefox" className="text-emerald-700 underline" target="_blank" rel="noopener noreferrer">Mozilla Firefox</a></li>
+        <li><a href="https://support.apple.com/fr-fr/guide/safari/sfri11471/mac" className="text-emerald-700 underline" target="_blank" rel="noopener noreferrer">Safari</a></li>
+        <li><a href="https://support.microsoft.com/fr-fr/microsoft-edge/supprimer-les-cookies-dans-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09" className="text-emerald-700 underline" target="_blank" rel="noopener noreferrer">Microsoft Edge</a></li>
+      </ul>
+
+      <h2 className="text-xl font-semibold mt-8 mb-2">5. Contact</h2>
+      <p>
+        Pour toute question relative à la présente politique : <a href="mailto:contact@facturepeyi.com" className="text-emerald-700 underline">contact@facturepeyi.com</a>
+      </p>
     </main>
   );
 }

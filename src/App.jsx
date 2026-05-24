@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import TerritoirePage from './pages/TerritoirePage';
 import Login from './pages/Login';
 import Conditions from './pages/Conditions';
+import CGV from './pages/CGV';
 import Confidentialite from './pages/Confidentialite';
 import Cookies from './pages/Cookies';
 import Forfaits from './pages/Forfaits';
@@ -83,6 +84,7 @@ export default function App() {
       <Route path="/paiement/success" element={<PaiementSuccess />} />
       <Route path="/paiement/cancel" element={<PaiementCancel />} />
       <Route path="/conditions" element={<Conditions />} />
+      <Route path="/cgv" element={<CGV />} />
       <Route path="/confidentialite" element={<Confidentialite />} />
       <Route path="/cookies" element={<Cookies />} />
       <Route path="/unauthorized" element={<Unauthorized />} />

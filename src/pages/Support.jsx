@@ -199,10 +199,10 @@ export default function Support() {
               <FaWhatsapp className="w-5 h-5" /> WhatsApp Business
             </a>
             <a
-              href="mailto:contact@facturpeyi.com"
+              href="mailto:contact@facturepeyi.com"
               className="inline-flex items-center justify-center gap-2 border border-white/30 hover:bg-white/10 text-white font-semibold px-6 py-3 rounded-xl transition"
             >
-              <FaEnvelope className="w-4 h-4" /> contact@facturpeyi.com
+              <FaEnvelope className="w-4 h-4" /> contact@facturepeyi.com
             </a>
           </div>
         </div>
@@ -251,8 +251,9 @@ export default function Support() {
         <div className="flex flex-wrap items-center justify-center gap-4">
           <Link to="/" className="hover:text-white transition">Accueil</Link>
           <Link to="/conditions" className="hover:text-white transition">CGU</Link>
+          <Link to="/cgv" className="hover:text-white transition">CGV</Link>
           <Link to="/confidentialite" className="hover:text-white transition">Confidentialité</Link>
-          <a href="mailto:contact@facturpeyi.com" className="hover:text-white transition">contact@facturpeyi.com</a>
+          <a href="mailto:contact@facturepeyi.com" className="hover:text-white transition">contact@facturepeyi.com</a>
         </div>
         <p className="mt-3 text-xs text-emerald-500">© {new Date().getFullYear()} Factur'Peyi</p>
       </footer>

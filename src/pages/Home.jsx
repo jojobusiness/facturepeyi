@@ -145,7 +145,7 @@ function DashboardMockup() {
           <div className="w-3 h-3 rounded-full bg-green-400" />
         </div>
         <div className="flex-1 bg-white rounded-md text-xs text-gray-400 text-center py-1 mx-4 border border-gray-200">
-          app.facturpeyi.com/dashboard
+          app.facturepeyi.com/dashboard
         </div>
       </div>
       <div className="flex h-80">
@@ -673,10 +673,12 @@ export default function Home() {
             <h4 className="font-semibold mb-3 text-gray-300">Aide & Légal</h4>
             <ul className="space-y-2 text-gray-500">
               <li><Link to="/support" className="hover:text-white transition">Support</Link></li>
-              <li><Link to="/conditions" className="hover:text-white transition">Conditions générales</Link></li>
+              <li><Link to="/conditions" className="hover:text-white transition">CGU</Link></li>
+              <li><Link to="/cgv" className="hover:text-white transition">CGV</Link></li>
               <li><Link to="/confidentialite" className="hover:text-white transition">Confidentialité</Link></li>
               <li><Link to="/cookies" className="hover:text-white transition">Cookies</Link></li>
-              <li><a href="mailto:contact@facturpeyi.com" className="hover:text-white transition">contact@facturpeyi.com</a></li>
+              <li><Link to="/remboursement" className="hover:text-white transition">Remboursement</Link></li>
+              <li><a href="mailto:contact@facturepeyi.com" className="hover:text-white transition">contact@facturepeyi.com</a></li>
             </ul>
           </div>
         </div>
