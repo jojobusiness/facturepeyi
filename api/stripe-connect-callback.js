@@ -1,5 +1,6 @@
 import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
+import { logSysadmin } from "../lib-server/sysadmin-log.js";
 
 if (!getApps().length) {
   initializeApp({ credential: cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)) });
@@ -10,19 +11,32 @@ export default async function handler(req, res) {
   if (req.method !== "GET") return res.status(405).end();
 
   const { code, state, error } = req.query;
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://facturepeyi.com").trim().replace(/\/$/, "");
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.facturepeyi.com").trim().replace(/\/$/, "");
 
   if (error || !code || !state) {
     return res.redirect(302, `${siteUrl}/dashboard/parametres?stripe=error`);
   }
 
-  // Validation CSRF — le nonce dans le cookie doit correspondre au state Stripe
   const cookieNonce = req.headers.cookie?.match(/oauth_nonce=([^;]+)/)?.[1];
   const dotIdx = state.indexOf(".");
-  const stateNonce = state.substring(0, dotIdx);
-  const entrepriseId = state.substring(dotIdx + 1);
+  const stateNonce = dotIdx > 0 ? state.substring(0, dotIdx) : "";
+  const entrepriseId = dotIdx > 0 ? state.substring(dotIdx + 1) : "";
 
   if (!cookieNonce || cookieNonce !== stateNonce || !entrepriseId) {
+    logSysadmin(db, {
+      severity: "error",
+      source: "stripe-connect-callback",
+      message: "Nonce CSRF invalide ou state malformé",
+      meta: { hasCookie: !!cookieNonce, hasState: !!state, entrepriseId },
+    }).catch(() => {});
+    return res.redirect(302, `${siteUrl}/dashboard/parametres?stripe=error`);
+  }
+
+  // Vérif d'existence : l'entrepriseId du state doit pointer sur un doc réel.
+  // L'auth admin est garantie par /api/stripe-connect-oauth qui n'émet le state
+  // qu'après vérification du Bearer token + rôle admin (anti-IDOR).
+  const entrepriseSnap = await db.collection("entreprises").doc(entrepriseId).get();
+  if (!entrepriseSnap.exists) {
     return res.redirect(302, `${siteUrl}/dashboard/parametres?stripe=error`);
   }
 
@@ -40,15 +54,19 @@ export default async function handler(req, res) {
     const tokenData = await tokenRes.json();
     if (tokenData.error) throw new Error(tokenData.error_description || tokenData.error);
 
-    const connectedAccountId = tokenData.stripe_user_id;
-
     await db.collection("entreprises").doc(entrepriseId).update({
-      stripeConnectedAccountId: connectedAccountId,
+      stripeConnectedAccountId: tokenData.stripe_user_id,
     });
 
     return res.redirect(302, `${siteUrl}/dashboard/parametres?stripe=connected`);
   } catch (err) {
     console.error("Stripe Connect callback error:", err);
+    logSysadmin(db, {
+      severity: "error",
+      source: "stripe-connect-callback",
+      message: err.message,
+      meta: { entrepriseId },
+    }).catch(() => {});
     return res.redirect(302, `${siteUrl}/dashboard/parametres?stripe=error`);
   }
 }

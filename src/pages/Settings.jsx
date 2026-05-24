@@ -25,8 +25,27 @@ export default function Settings() {
 
   const stripeConnected = !!entreprise?.stripeConnectedAccountId;
 
-  const handleStripeConnect = () => {
-    window.location.href = `/api/stripe-connect-oauth?entrepriseId=${entrepriseId}`;
+  const handleStripeConnect = async () => {
+    if (!user || !entrepriseId) return;
+    try {
+      const token = await user.getIdToken();
+      const r = await fetch("/api/stripe-connect-oauth", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ entrepriseId }),
+      });
+      const data = await r.json();
+      if (!r.ok || !data.url) {
+        alert(data.error || "Erreur lors de la connexion Stripe.");
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      alert("Erreur lors de la connexion Stripe.");
+    }
   };
 
   const handleStripeDisconnect = async () => {

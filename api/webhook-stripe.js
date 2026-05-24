@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { initializeApp, getApps, cert } from "firebase-admin/app";
-import { getFirestore } from "firebase-admin/firestore";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { logSysadmin } from "../lib-server/sysadmin-log.js";
 import { planFromSubscription, PLAN_LABEL } from "../lib-server/stripe-plans.js";
 import { notifyOwner, emailShell } from "../lib-server/notify-owner.js";
@@ -69,7 +69,7 @@ export default async function handler(req, res) {
         const factureSnap = await factureRef.get();
         if (!factureSnap.exists) break;
 
-        await factureRef.update({ status: "payée", paidAt: new Date() });
+        await factureRef.update({ status: "payée", paidAt: FieldValue.serverTimestamp() });
 
         // Notification email au propriétaire (fire-and-forget)
         const entrepriseSnap = await db.collection("entreprises").doc(entrepriseId).get();

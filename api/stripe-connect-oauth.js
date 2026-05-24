@@ -1,16 +1,25 @@
 import { randomBytes } from "crypto";
+import { initializeApp, getApps, cert } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
+import { verifyAdminOfEntreprise } from "../lib-server/auth.js";
 
-export default function handler(req, res) {
-  if (req.method !== "GET") return res.status(405).end();
+if (!getApps().length) {
+  initializeApp({ credential: cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)) });
+}
+const db = getFirestore();
 
-  const { entrepriseId, debug } = req.query;
-  if (!entrepriseId) return res.status(400).json({ error: "entrepriseId requis" });
+export default async function handler(req, res) {
+  if (req.method !== "POST") return res.status(405).end();
+
+  const { entrepriseId } = req.body || {};
+  const check = await verifyAdminOfEntreprise(db, req, entrepriseId);
+  if (!check.ok) return res.status(check.status).json({ error: check.error });
 
   const clientId = (process.env.STRIPE_CONNECT_CLIENT_ID || "").trim();
   if (!clientId) return res.status(500).json({ error: "STRIPE_CONNECT_CLIENT_ID non configuré" });
 
   const nonce = randomBytes(16).toString("hex");
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://facturepeyi.com").trim().replace(/\/$/, "");
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.facturepeyi.com").trim().replace(/\/$/, "");
 
   const params = new URLSearchParams({
     response_type: "code",
@@ -21,24 +30,10 @@ export default function handler(req, res) {
   });
   const redirectUrl = `https://connect.stripe.com/oauth/authorize?${params.toString()}`;
 
-  // Mode debug : retourne ce qu'on envoie à Stripe au lieu de rediriger
-  if (debug === "1") {
-    return res.status(200).json({
-      clientIdSentToStripe: clientId,
-      clientIdLength: clientId.length,
-      clientIdPrefix: clientId.slice(0, 8),
-      siteUrl,
-      redirectUri: `${siteUrl}/api/stripe-connect-callback`,
-      fullRedirectUrl: redirectUrl,
-      hint: "Si clientIdSentToStripe ≠ valeur ca_... sur Stripe Dashboard → la variable Vercel est mauvaise.",
-    });
-  }
-
-  // Cookie HttpOnly pour valider le retour Stripe (anti-CSRF)
   res.setHeader(
     "Set-Cookie",
     `oauth_nonce=${nonce}; HttpOnly; Secure; SameSite=Lax; Max-Age=900; Path=/api/stripe-connect-callback`
   );
 
-  return res.redirect(302, redirectUrl);
+  return res.status(200).json({ url: redirectUrl });
 }

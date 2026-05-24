@@ -23,11 +23,17 @@ const TRIAL_THRESHOLDS = [15, 7, 3, 1];
 
 // ─── Templates emails (urgence croissante) ───────────────────────────────────
 
+function esc(s) {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
 function tplJ15({ nom, daysLeft, factures, clients }) {
   return {
     subject: "Vous êtes à mi-parcours de votre essai Factur'Peyi",
     html: shell({
-      title: `Plus que ${daysLeft} jours, ${nom} 👋`,
+      title: `Plus que ${daysLeft} jours, ${esc(nom)} 👋`,
       intro: `Vous avez créé <strong>${factures} facture${factures > 1 ? "s" : ""}</strong> et géré <strong>${clients} client${clients > 1 ? "s" : ""}</strong> avec Factur'Peyi.<br/><br/>Vous êtes à mi-chemin de votre essai gratuit. Pour continuer à profiter de la facturation illimitée, des rappels automatiques et de la déclaration fiscale DOM-TOM, choisissez votre formule dès maintenant.`,
       ctaLabel: "Voir les formules",
       ctaUrl: `${SITE_URL}/Forfaits`,
@@ -38,7 +44,7 @@ function tplJ15({ nom, daysLeft, factures, clients }) {
 
 function tplJ7({ nom, daysLeft }) {
   return {
-    subject: `Plus qu'une semaine d'essai gratuit, ${nom}`,
+    subject: `Plus qu'une semaine d'essai gratuit, ${esc(nom)}`,
     html: shell({
       title: `${daysLeft} jours avant la fin de votre essai`,
       intro: `Votre essai gratuit Factur'Peyi se termine dans <strong>${daysLeft} jour${daysLeft > 1 ? "s" : ""}</strong>.<br/><br/>Sans formule active, vous repassez automatiquement en plan Découverte (5 factures max, fonctionnalités limitées). Pour garder tout ce que vous avez construit — factures illimitées, rappels automatiques J+7/15/30, portail client de paiement, déclaration fiscale DOM-TOM — choisissez votre formule dès maintenant.`,
@@ -51,7 +57,7 @@ function tplJ7({ nom, daysLeft }) {
 
 function tplJ3({ nom, daysLeft }) {
   return {
-    subject: `⏰ Plus que ${daysLeft} jour${daysLeft > 1 ? "s" : ""} — sécurisez votre compte ${nom}`,
+    subject: `⏰ Plus que ${daysLeft} jour${daysLeft > 1 ? "s" : ""} — sécurisez votre compte ${esc(nom)}`,
     html: shell({
       title: `Encore ${daysLeft} jour${daysLeft > 1 ? "s" : ""} avant la fin de votre essai`,
       intro: `Pour ne perdre aucun accès, choisissez votre formule maintenant. <strong>Solo à 19,99 €/mois</strong> couvre 95 % des indépendants des DOM-TOM : factures illimitées, devis, rappels automatiques, déclaration fiscale.<br/><br/>Vous pouvez upgrader vers Pro ou Expert plus tard en 1 clic depuis votre espace.`,
@@ -181,14 +187,18 @@ export default async function handler(req, res) {
       const { subject, html } = tpl({ nom: ownerNom, daysLeft, factures, clients });
 
       try {
-        await fetch("https://api.resend.com/emails", {
+        const r = await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+            Authorization: `Bearer ${process.env.RESEND_API_KEY.trim()}`,
           },
           body: JSON.stringify({ from: FROM, to: [ownerEmail], subject, html }),
         });
+        if (!r.ok) {
+          const body = await r.text().catch(() => "");
+          throw new Error(`Resend ${r.status}: ${body.slice(0, 200)}`);
+        }
         await entrepriseDoc.ref.update({
           trialEmailsSent: FieldValue.arrayUnion(candidate),
         });

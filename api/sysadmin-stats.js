@@ -77,15 +77,16 @@ export default async function handler(req, res) {
     const stripeConnected = active.filter((e) => e.stripeConnectedAccountId).length;
 
     // Calcul commissions cumulées (somme des application_fee_amount sur les factures payées via portail)
+    // Parallélisation pour éviter timeout 10s sur lambda Vercel quand nb d'entreprises grandit.
+    const factureSnaps = await Promise.all(
+      active.map((ent) =>
+        db.collection("entreprises").doc(ent.id)
+          .collection("factures").where("status", "==", "payée").get()
+      )
+    );
     let commissionsTotalCents = 0;
-    for (const ent of active) {
-      const facturesSnap = await db
-        .collection("entreprises")
-        .doc(ent.id)
-        .collection("factures")
-        .where("status", "==", "payée")
-        .get();
-      for (const f of facturesSnap.docs) {
+    for (const snap of factureSnaps) {
+      for (const f of snap.docs) {
         const fee = f.data().applicationFeeAmount;
         if (typeof fee === "number") commissionsTotalCents += fee;
       }

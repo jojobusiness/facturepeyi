@@ -38,21 +38,35 @@ export default async function handler(req, res) {
 
   const connectedAccountId = entrepriseSnap.data()?.stripeConnectedAccountId;
 
-  if (connectedAccountId && process.env.STRIPE_CONNECT_CLIENT_ID) {
+  if (connectedAccountId) {
+    if (!process.env.STRIPE_CONNECT_CLIENT_ID) {
+      return res.status(500).json({
+        error: "STRIPE_CONNECT_CLIENT_ID non configuré côté serveur — déconnexion annulée pour éviter une désynchronisation Stripe/Firestore."
+      });
+    }
     try {
-      await fetch("https://connect.stripe.com/oauth/deauthorize", {
+      const r = await fetch("https://connect.stripe.com/oauth/deauthorize", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
-          Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
+          Authorization: `Bearer ${(process.env.STRIPE_SECRET_KEY || "").trim()}`,
         },
         body: new URLSearchParams({
-          client_id: process.env.STRIPE_CONNECT_CLIENT_ID,
+          client_id: process.env.STRIPE_CONNECT_CLIENT_ID.trim(),
           stripe_user_id: connectedAccountId,
         }),
       });
+      if (!r.ok) {
+        const body = await r.text().catch(() => "");
+        // 401 "stripe_user_id" déjà déauthorisé côté Stripe = OK, on continue.
+        if (r.status !== 401) {
+          console.error("Stripe deauthorize error:", r.status, body);
+          return res.status(502).json({ error: `Stripe deauthorize failed (${r.status})` });
+        }
+      }
     } catch (err) {
-      console.error("Stripe deauthorize error:", err);
+      console.error("Stripe deauthorize network error:", err);
+      return res.status(502).json({ error: "Erreur réseau Stripe deauthorize" });
     }
   }
 

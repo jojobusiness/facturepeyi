@@ -107,14 +107,12 @@ export default async function handler(req, res) {
 
         const remindersSent = facture.remindersSent ?? [];
 
-        // Find the highest threshold that's been crossed but not yet sent
-        let thresholdToSend = null;
-        for (const threshold of REMINDER_THRESHOLDS) {
-          if (daysElapsed >= threshold && !remindersSent.includes(threshold)) {
-            thresholdToSend = threshold;
-          }
-        }
-        if (thresholdToSend === null) continue;
+        // Find the SMALLEST threshold crossed but not yet sent (avoids skipping J+7
+        // if cron failed on that day and we're now at J+16 — we still send J+7 first).
+        const thresholdToSend = REMINDER_THRESHOLDS.find(
+          (t) => daysElapsed >= t && !remindersSent.includes(t)
+        );
+        if (thresholdToSend == null) continue;
 
         const numero = facture.numero || `FAC-${factureDoc.id.slice(-8).toUpperCase()}`;
         const montant = formatEur(facture.totalTTC);

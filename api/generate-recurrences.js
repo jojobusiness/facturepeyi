@@ -1,5 +1,6 @@
 import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getFirestore, Timestamp } from "firebase-admin/firestore";
+import { logSysadmin } from "../lib-server/sysadmin-log.js";
 
 if (!getApps().length) {
   initializeApp({ credential: cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)) });
@@ -27,6 +28,16 @@ export default async function handler(req, res) {
   } else {
     const authHeader = req.headers.authorization ?? "";
     if (authHeader !== `Bearer ${cronSecret}`) {
+      // Endpoint sensible (génère des factures) — alerter sur toute tentative non autorisée.
+      logSysadmin(db, {
+        severity: "critical",
+        source: "generate-recurrences",
+        message: "Tentative d'accès non autorisée au cron de génération de factures",
+        meta: {
+          ip: req.headers["x-forwarded-for"] || req.headers["x-real-ip"] || null,
+          userAgent: req.headers["user-agent"] || null,
+        },
+      }).catch(() => {});
       return res.status(401).json({ error: "Unauthorized" });
     }
   }
