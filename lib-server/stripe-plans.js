@@ -7,9 +7,14 @@
 //   - api/stripe-checkout.js (ALLOWED_PRICE_IDS)
 
 export const PRICE_ID_TO_PLAN = {
+  // Mensuel
   "price_1TYQZWIck4iMBRE9Ulc07a9u": "solo",
   "price_1TYQbBIck4iMBRE9PeSRBS3R": "pro",
   "price_1TYQcIIck4iMBRE9PMoZ4wZW": "expert",
+  // Annuel — 2 mois offerts (à créer dans Stripe, cf TUTO_STRIPE.md)
+  "price_1TdcN9Ick4iMBRE9nFos3SwT": "solo",
+  "price_1TdcPbIck4iMBRE9J1DFhfSs": "pro",
+  "price_1TdcS5Ick4iMBRE9YaEvAwoM": "expert",
 };
 
 export const PLAN_LABEL = {

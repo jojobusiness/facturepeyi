@@ -1,18 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { FaCheckCircle, FaArrowLeft } from "react-icons/fa";
+import { FaCheckCircle, FaArrowLeft, FaCrown, FaBolt } from "react-icons/fa";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../lib/firebase";
+import { useAuth } from "../context/AuthContext";
 
+// --- Mensuel (live) ---
 const SOLO_PRICE_ID = "price_1TYQZWIck4iMBRE9Ulc07a9u";
 const PRO_PRICE_ID = "price_1TYQbBIck4iMBRE9PeSRBS3R";
 const EXPERT_PRICE_ID = "price_1TYQcIIck4iMBRE9PMoZ4wZW";
+
+// --- Annuel : 2 mois offerts (à créer dans Stripe, cf TUTO_STRIPE.md) ---
+const SOLO_ANNUAL_PRICE_ID = "price_1TdcN9Ick4iMBRE9nFos3SwT";
+const PRO_ANNUAL_PRICE_ID = "price_1TdcPbIck4iMBRE9J1DFhfSs";
+const EXPERT_ANNUAL_PRICE_ID = "price_1TdcS5Ick4iMBRE9YaEvAwoM";
+
+// --- Pionnier : paiement unique 199€, accès Solo à vie, 10 places ---
+const PIONNIER_PRICE_ID = "price_1TdcJZIck4iMBRE9KizjlK9I";
+const PIONNIER_CAP = 10;
 
 const plans = [
   {
     id: "decouverte",
     name: "Découverte",
     tagline: "Testez sans engagement",
-    price: null,
-    priceLabel: "Gratuit",
+    priceMonthly: null,
+    priceAnnual: null,
+    priceLabelMonthly: "Gratuit",
+    priceLabelAnnual: "Gratuit",
     period: "30 jours",
     features: [
       "Toutes les fonctionnalités incluses",
@@ -29,9 +44,10 @@ const plans = [
     id: "solo",
     name: "Solo",
     tagline: "Pour les indépendants",
-    price: SOLO_PRICE_ID,
-    priceLabel: "19,99€",
-    period: "/mois",
+    priceMonthly: SOLO_PRICE_ID,
+    priceAnnual: SOLO_ANNUAL_PRICE_ID,
+    priceLabelMonthly: "19,99€",
+    priceLabelAnnual: "199€",
     features: [
       "Factures illimitées",
       "Devis & rappels de paiement",
@@ -48,9 +64,10 @@ const plans = [
     id: "pro",
     name: "Pro",
     tagline: "Pour les entreprises qui grandissent",
-    price: PRO_PRICE_ID,
-    priceLabel: "34,99€",
-    period: "/mois",
+    priceMonthly: PRO_PRICE_ID,
+    priceAnnual: PRO_ANNUAL_PRICE_ID,
+    priceLabelMonthly: "34,99€",
+    priceLabelAnnual: "349€",
     features: [
       "Tout Solo inclus",
       "Multi-utilisateurs (admin, comptable, employé)",
@@ -67,9 +84,10 @@ const plans = [
     id: "expert",
     name: "Expert",
     tagline: "Pour les PME et artisans avancés",
-    price: EXPERT_PRICE_ID,
-    priceLabel: "54,99€",
-    period: "/mois",
+    priceMonthly: EXPERT_PRICE_ID,
+    priceAnnual: EXPERT_ANNUAL_PRICE_ID,
+    priceLabelMonthly: "54,99€",
+    priceLabelAnnual: "549€",
     features: [
       "Tout Pro inclus",
       "Import bancaire (CSV/OFX)",
@@ -85,23 +103,42 @@ const plans = [
 
 export default function Forfaits() {
   const [loading, setLoading] = useState("");
+  const [billing, setBilling] = useState("monthly"); // "monthly" | "annual"
+  const [placesLeft, setPlacesLeft] = useState(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const refCode = searchParams.get("ref") || "";
+  const isAnnual = billing === "annual";
 
-  const handleStripeCheckout = async (priceId, planId) => {
+  // Compteur de places Pionnier (lecture publique du doc pionniers/_meta)
+  useEffect(() => {
+    getDoc(doc(db, "pionniers", "_meta"))
+      .then((snap) => {
+        const count = snap.exists() ? snap.data().count || 0 : 0;
+        setPlacesLeft(Math.max(PIONNIER_CAP - count, 0));
+      })
+      .catch(() => setPlacesLeft(PIONNIER_CAP));
+  }, []);
+
+  const callCheckout = async (priceId, planId) => {
     setLoading(planId);
     try {
+      const headers = { "Content-Type": "application/json" };
+      if (user) {
+        const token = await user.getIdToken();
+        headers.Authorization = `Bearer ${token}`;
+      }
       const res = await fetch("/api/stripe-checkout", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ priceId, planId }),
       });
       const data = await res.json();
       if (data.url) {
         window.location = data.url;
       } else {
-        alert("Erreur lors de la redirection vers le paiement.");
+        alert(data.error || "Erreur lors de la redirection vers le paiement.");
         setLoading("");
       }
     } catch {
@@ -118,15 +155,26 @@ export default function Forfaits() {
     if (plan.comingSoon || loading) return;
     if (plan.trial) {
       handleTrial();
-    } else if (plan.price) {
-      handleStripeCheckout(plan.price, plan.id);
+      return;
     }
+    const priceId = isAnnual ? plan.priceAnnual : plan.priceMonthly;
+    if (priceId) callCheckout(priceId, plan.id);
+  };
+
+  const handlePionnier = () => {
+    if (loading) return;
+    if (placesLeft === 0) return;
+    if (!user) {
+      navigate("/Inscription", { state: { trialOk: true, ref: refCode || null, fromPionnier: true } });
+      return;
+    }
+    callCheckout(PIONNIER_PRICE_ID, "pionnier");
   };
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       {/* Header */}
-      <div className="max-w-5xl mx-auto mb-10">
+      <div className="max-w-5xl mx-auto mb-8">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-emerald-700 transition mb-6">
           <FaArrowLeft className="w-3 h-3" /> Retour à l'accueil
         </Link>
@@ -141,9 +189,68 @@ export default function Forfaits() {
         </div>
       </div>
 
+      {/* Bandeau Pionnier — offre à vie, 10 places */}
+      {placesLeft !== 0 && (
+        <div className="max-w-5xl mx-auto mb-8">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-gray-900 to-emerald-900 text-white p-6 sm:p-7 shadow-xl">
+            <div className="absolute top-0 right-0 bg-yellow-400 text-gray-900 text-xs font-extrabold px-4 py-1 rounded-bl-2xl">
+              {placesLeft === null ? "OFFRE DE LANCEMENT" : `${placesLeft}/${PIONNIER_CAP} PLACES`}
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-5">
+              <div className="flex-1">
+                <div className="inline-flex items-center gap-2 text-yellow-400 font-bold text-sm mb-2">
+                  <FaCrown /> Offre Pionnier DOM-TOM
+                </div>
+                <h2 className="text-2xl font-extrabold mb-1">
+                  199€ une seule fois · accès <span className="text-yellow-400">Solo à vie</span>
+                </h2>
+                <p className="text-emerald-100 text-sm max-w-lg">
+                  Payez une fois, utilisez Factur'Peyi pour toujours. Factures illimitées, devis, rappels —
+                  réservé aux 10 premiers clients. Aucun abonnement, jamais.
+                </p>
+              </div>
+              <button
+                onClick={handlePionnier}
+                disabled={!!loading || placesLeft === 0}
+                className="shrink-0 inline-flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-300 disabled:opacity-60 disabled:cursor-not-allowed text-gray-900 font-extrabold px-7 py-4 rounded-xl transition"
+              >
+                <FaBolt />
+                {loading === "pionnier" ? "Redirection..." : "Devenir Pionnier"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toggle mensuel / annuel */}
+      <div className="max-w-5xl mx-auto mb-8 flex items-center justify-center gap-3">
+        <button
+          onClick={() => setBilling("monthly")}
+          className={`px-5 py-2 rounded-full text-sm font-semibold transition ${
+            !isAnnual ? "bg-emerald-700 text-white shadow" : "bg-white text-gray-600 border border-gray-200"
+          }`}
+        >
+          Mensuel
+        </button>
+        <button
+          onClick={() => setBilling("annual")}
+          className={`px-5 py-2 rounded-full text-sm font-semibold transition flex items-center gap-2 ${
+            isAnnual ? "bg-emerald-700 text-white shadow" : "bg-white text-gray-600 border border-gray-200"
+          }`}
+        >
+          Annuel
+          <span className="bg-yellow-400 text-gray-900 text-[11px] font-extrabold px-2 py-0.5 rounded-full">
+            2 mois offerts
+          </span>
+        </button>
+      </div>
+
       {/* Plans */}
       <div className="max-w-5xl mx-auto grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-        {plans.map(plan => (
+        {plans.map(plan => {
+          const priceLabel = isAnnual ? plan.priceLabelAnnual : plan.priceLabelMonthly;
+          const period = plan.trial ? plan.period : isAnnual ? "/an" : "/mois";
+          return (
           <div
             key={plan.id}
             className={`relative rounded-2xl flex flex-col p-6 transition ${
@@ -167,10 +274,10 @@ export default function Forfaits() {
 
             <div className="flex items-baseline gap-1 mb-4">
               <span className={`text-3xl font-extrabold ${plan.highlight ? "text-white" : "text-gray-900"}`}>
-                {plan.priceLabel}
+                {priceLabel}
               </span>
               <span className={`text-sm ${plan.highlight ? "text-emerald-300" : "text-gray-400"}`}>
-                {plan.period}
+                {period}
               </span>
             </div>
 
@@ -199,7 +306,8 @@ export default function Forfaits() {
               {loading === plan.id ? "Redirection..." : plan.cta}
             </button>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Note fiscale */}

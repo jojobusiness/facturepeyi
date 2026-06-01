@@ -60,6 +60,47 @@ export default async function handler(req, res) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object;
+
+        // --- Offre Pionnier : paiement unique 199€ → accès Solo à vie ---
+        if (session.metadata?.planId === "pionnier") {
+          const { entrepriseId } = session.metadata;
+          if (!entrepriseId) break;
+
+          // CORRECTIF 1 : planStatus "active" + trialEndsAt neutralisé, sinon getPlanStatus()
+          // peut renvoyer "expired" et verrouiller un client qui vient pourtant de payer.
+          await db.collection("entreprises").doc(entrepriseId).update({
+            plan: "solo",
+            planStatus: "active",
+            lifetime: true,
+            lifetimeDate: FieldValue.serverTimestamp(),
+            trialEndsAt: null,
+          });
+
+          // Compteur de places (cap 10) — transaction pour éviter les races
+          const metaRef = db.collection("pionniers").doc("_meta");
+          await db.runTransaction(async (tx) => {
+            const snap = await tx.get(metaRef);
+            const count = snap.exists ? (snap.data().count || 0) : 0;
+            tx.set(metaRef, {
+              count: Math.min(count + 1, 10),
+              updatedAt: FieldValue.serverTimestamp(),
+            }, { merge: true });
+          });
+
+          notifyOwner(db, entrepriseId, {
+            subject: "Bienvenue parmi les Pionniers Factur'Peyi 🎉",
+            html: emailShell({
+              title: "Votre accès à vie est activé",
+              intro: "Merci ! Votre offre <strong>Pionnier DOM-TOM</strong> est confirmée : vous bénéficiez désormais du plan <strong>Solo à vie</strong>, sans aucun abonnement à payer. Vos factures sont illimitées.",
+              ctaLabel: "Accéder à mon tableau de bord",
+              ctaUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
+              footerNote: "Vous faites partie des 10 premiers clients de Factur'Peyi. Merci de votre confiance.",
+            }),
+          }).catch(() => {});
+          break;
+        }
+
+        // --- Paiement d'une facture via le portail client ---
         if (session.metadata?.type !== "invoice_payment") break;
 
         const { entrepriseId, factureId } = session.metadata;
