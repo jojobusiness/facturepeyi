@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
+import { saveAs } from "file-saver";
 import { db } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
+import { buildEcritures, ecrituresToFEC } from "../utils/exportFEC";
 import jsPDF from "jspdf";
 
 const euro = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
@@ -14,6 +16,8 @@ export default function JournalComptable() {
   const [totalCredit, setTotalCredit] = useState(0);
   const [mois, setMois] = useState(new Date().getMonth() + 1);
   const [annee, setAnnee] = useState(new Date().getFullYear());
+  const [rawFactures, setRawFactures] = useState([]);
+  const [rawDepenses, setRawDepenses] = useState([]);
 
   useEffect(() => {
     if (!entrepriseId) return;
@@ -25,6 +29,8 @@ export default function JournalComptable() {
         getDocs(collection(db, "entreprises", entrepriseId, "depenses")),
       ]);
       const comptes = comptesSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setRawFactures(factSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      setRawDepenses(depSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
       const lignes = [];
       let debit = 0;
       let credit = 0;
@@ -82,15 +88,39 @@ export default function JournalComptable() {
     pdf.save(`journal-${mois}-${annee}.pdf`);
   };
 
+  const handleExportFEC = (scope) => {
+    const inPeriod = scope === "annee"
+      ? (d) => d.getFullYear() === annee
+      : (d) => d.getMonth() + 1 === mois && d.getFullYear() === annee;
+    const ecritures = buildEcritures(rawFactures, rawDepenses, inPeriod);
+    if (ecritures.length === 0) {
+      alert("Aucune écriture comptable sur cette période.");
+      return;
+    }
+    const content = ecrituresToFEC(ecritures);
+    const name = scope === "annee"
+      ? `FEC_${annee}.txt`
+      : `FEC_${annee}${String(mois).padStart(2, "0")}.txt`;
+    saveAs(new Blob([content], { type: "text/plain;charset=utf-8" }), name);
+  };
+
   const selectClass = "border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500";
 
   return (
     <main>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-[#0d1b3e]">Journal comptable</h2>
-        <button onClick={generatePDF} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition">
-          PDF
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button onClick={() => handleExportFEC("mois")} className="border border-indigo-200 text-indigo-700 hover:bg-indigo-50 font-semibold text-sm px-4 py-2.5 rounded-xl transition" title="Fichier des Écritures Comptables — le mois sélectionné">
+            FEC (mois)
+          </button>
+          <button onClick={() => handleExportFEC("annee")} className="border border-indigo-200 text-indigo-700 hover:bg-indigo-50 font-semibold text-sm px-4 py-2.5 rounded-xl transition" title="Fichier des Écritures Comptables — l'exercice annuel complet">
+            FEC (année)
+          </button>
+          <button onClick={generatePDF} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition">
+            PDF
+          </button>
+        </div>
       </div>
 
       <div className="flex gap-3 mb-5">
