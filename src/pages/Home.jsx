@@ -598,6 +598,19 @@ export default function Home() {
               </div>
             ))}
           </div>
+
+          {/* Accès à la grille tarifaire complète */}
+          <div className="text-center mt-10">
+            <Link
+              to="/Forfaits"
+              className="inline-flex items-center gap-2 bg-[#0d1b3e] hover:bg-[#1a2744] text-white font-semibold px-7 py-4 rounded-xl transition text-sm shadow-lg"
+            >
+              Voir tous les tarifs <FaArrowRight className="w-3 h-3" />
+            </Link>
+            <p className="text-gray-400 text-sm mt-3">
+              Tarifs annuels <span className="font-semibold text-emerald-700">(2 mois offerts)</span> · Plan Cabinet experts-comptables · Offre Pionnier à vie
+            </p>
+          </div>
         </div>
       </section>
 

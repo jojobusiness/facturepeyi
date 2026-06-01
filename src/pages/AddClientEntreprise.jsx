@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { addDoc, collection, doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { auth } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
@@ -42,9 +42,21 @@ export default function AddClientEntreprise() {
         mentionLegale,
         regime,
         octroiDeMer,
-        plan: "decouverte",
+        // Client géré par un cabinet → plan illimité (sinon plafonné à 5 factures).
+        plan: "solo",
         planStatus: "active",
         createdAt: serverTimestamp(),
+      });
+
+      // FIX critique : sans ce sous-doc membre, les règles Firestore refusent la lecture
+      // et la facturation de l'entreprise cliente (isMembreEntreprise / hasRole).
+      await setDoc(doc(db, "entreprises", ref.id, "membres", user.uid), {
+        uid: user.uid,
+        nom: user.displayName || "Cabinet",
+        email: user.email || "",
+        role: "admin",
+        dateAjout: serverTimestamp(),
+        entrepriseId: ref.id,
       });
 
       await refreshManagedEntreprises();

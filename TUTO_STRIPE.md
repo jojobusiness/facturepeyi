@@ -63,15 +63,33 @@ Sur le produit **Expert** existant → + Ajouter un tarif :
 
 ---
 
+## 5. Produit « Cabinet » — 99,99 €/mois + 999 €/an (2 prix)
+
+Plan pour experts-comptables (multi-entreprises). Crée **un produit Cabinet** avec **deux tarifs**.
+
+1. **Produits** → **+ Ajouter un produit**.
+2. **Nom** : `Cabinet — Experts-comptables`
+3. Premier tarif :
+   - **Prix** : `99,99` EUR · **Récurrent** · **Mensuel**
+4. Enregistrer, puis sur le produit → **+ Ajouter un autre tarif** :
+   - **Prix** : `999,00` EUR · **Récurrent** · **Annuel** (2 mois offerts)
+5. Copier les **2 API ID** des deux prix.
+
+➡️ **À me redonner : `CABINET_PRICE_ID` (mensuel) + `CABINET_ANNUAL_PRICE_ID` (annuel)**
+
+---
+
 ## Récapitulatif — ce que tu me renvoies
 
 Copie-colle simplement ce bloc rempli :
 
 ```
-PIONNIER_PRICE_ID      = price_...
-SOLO_ANNUAL_PRICE_ID   = price_...
-PRO_ANNUAL_PRICE_ID    = price_...
-EXPERT_ANNUAL_PRICE_ID = price_...
+PIONNIER_PRICE_ID       = price_...   (déjà fait ✅)
+SOLO_ANNUAL_PRICE_ID    = price_...   (déjà fait ✅)
+PRO_ANNUAL_PRICE_ID     = price_...   (déjà fait ✅)
+EXPERT_ANNUAL_PRICE_ID  = price_...   (déjà fait ✅)
+CABINET_PRICE_ID        = price_...   (mensuel 99,99€ — À FAIRE)
+CABINET_ANNUAL_PRICE_ID = price_...   (annuel 999€ — À FAIRE)
 ```
 
 Dès que je les ai, je remplace les 3 fichiers concernés

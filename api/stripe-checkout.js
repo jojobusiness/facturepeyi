@@ -20,6 +20,8 @@ const ALLOWED_PRICE_IDS = [
   "price_1TdcN9Ick4iMBRE9nFos3SwT", // Solo annuel (2 mois offerts)
   "price_1TdcPbIck4iMBRE9J1DFhfSs", // Pro annuel
   "price_1TdcS5Ick4iMBRE9YaEvAwoM", // Expert annuel
+  "price_1TdcnqIck4iMBRE9ciWBYBnz", // Cabinet mensuel
+  "price_1TdcnqIck4iMBRE9muYieS04", // Cabinet annuel
   PIONNIER_PRICE_ID,                // Pionnier lifetime (paiement unique)
 ];
 

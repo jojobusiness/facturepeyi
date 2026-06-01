@@ -15,6 +15,9 @@ export const PRICE_ID_TO_PLAN = {
   "price_1TdcN9Ick4iMBRE9nFos3SwT": "solo",
   "price_1TdcPbIck4iMBRE9J1DFhfSs": "pro",
   "price_1TdcS5Ick4iMBRE9YaEvAwoM": "expert",
+  // Cabinet (à créer dans Stripe, cf TUTO_STRIPE.md)
+  "price_1TdcnqIck4iMBRE9ciWBYBnz": "cabinet",
+  "price_1TdcnqIck4iMBRE9muYieS04": "cabinet",
 };
 
 export const PLAN_LABEL = {

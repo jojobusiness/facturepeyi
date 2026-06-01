@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
-import { FaCheckCircle, FaArrowLeft, FaCrown, FaBolt } from "react-icons/fa";
+import { FaCheckCircle, FaArrowLeft, FaCrown, FaBolt, FaBuilding } from "react-icons/fa";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
@@ -18,6 +18,10 @@ const EXPERT_ANNUAL_PRICE_ID = "price_1TdcS5Ick4iMBRE9YaEvAwoM";
 // --- Pionnier : paiement unique 199€, accès Solo à vie, 10 places ---
 const PIONNIER_PRICE_ID = "price_1TdcJZIck4iMBRE9KizjlK9I";
 const PIONNIER_CAP = 10;
+
+// --- Cabinet : experts-comptables, entreprises illimitées (à créer dans Stripe) ---
+const CABINET_PRICE_ID = "price_1TdcnqIck4iMBRE9ciWBYBnz";        // 99,99€/mois
+const CABINET_ANNUAL_PRICE_ID = "price_1TdcnqIck4iMBRE9muYieS04";  // 999€/an (2 mois offerts)
 
 const plans = [
   {
@@ -308,6 +312,32 @@ export default function Forfaits() {
           </div>
           );
         })}
+      </div>
+
+      {/* Plan Cabinet — experts-comptables */}
+      <div className="max-w-5xl mx-auto mb-8">
+        <div className="rounded-2xl bg-gradient-to-r from-indigo-900 to-indigo-700 text-white p-6 sm:p-7 shadow-xl flex flex-col sm:flex-row sm:items-center gap-5">
+          <div className="flex-1">
+            <div className="inline-flex items-center gap-2 text-indigo-200 font-bold text-sm mb-2">
+              <FaBuilding /> Plan Cabinet
+            </div>
+            <h2 className="text-2xl font-extrabold mb-1">
+              {isAnnual ? "999€" : "99,99€"}
+              <span className="text-indigo-200 text-base font-semibold">{isAnnual ? "/an" : "/mois"}</span>
+            </h2>
+            <p className="text-indigo-100 text-sm max-w-lg">
+              Pour les experts-comptables : gérez la facturation de tous vos clients DOM-TOM depuis un seul compte,
+              chacun avec sa TVA et ses mentions légales. Entreprises clientes illimitées.
+            </p>
+          </div>
+          <button
+            onClick={() => callCheckout(isAnnual ? CABINET_ANNUAL_PRICE_ID : CABINET_PRICE_ID, "cabinet")}
+            disabled={!!loading}
+            className="shrink-0 bg-white hover:bg-indigo-50 disabled:opacity-60 disabled:cursor-not-allowed text-indigo-800 font-extrabold px-7 py-4 rounded-xl transition"
+          >
+            {loading === "cabinet" ? "Redirection..." : "Choisir Cabinet"}
+          </button>
+        </div>
       </div>
 
       {/* Note fiscale */}
