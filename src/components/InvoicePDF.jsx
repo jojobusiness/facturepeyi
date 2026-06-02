@@ -1,6 +1,9 @@
 import {
   Document, Page, Text, View, StyleSheet, Image,
 } from "@react-pdf/renderer";
+import { registerPdfFonts } from "../utils/pdfFonts";
+
+registerPdfFonts();
 
 const BRAND_GREEN = "#0f5c3c";
 const GRAY = "#555";
@@ -10,7 +13,7 @@ const BORDER = "#e0e0e0";
 const styles = StyleSheet.create({
   page: {
     fontSize: 10,
-    fontFamily: "Helvetica",
+    fontFamily: "Inter",
     padding: 40,
     color: "#1a1a1a",
     lineHeight: 1.5,
@@ -29,7 +32,7 @@ const styles = StyleSheet.create({
   },
   companyName: {
     fontSize: 13,
-    fontFamily: "Helvetica-Bold",
+    fontWeight: 700,
     color: BRAND_GREEN,
   },
   companyDetail: {
@@ -46,7 +49,7 @@ const styles = StyleSheet.create({
   },
   invoiceTitle: {
     fontSize: 18,
-    fontFamily: "Helvetica-Bold",
+    fontWeight: 700,
     color: BRAND_GREEN,
     marginBottom: 4,
   },
@@ -63,7 +66,7 @@ const styles = StyleSheet.create({
   },
   clientName: {
     fontSize: 11,
-    fontFamily: "Helvetica-Bold",
+    fontWeight: 700,
   },
   clientDetail: {
     fontSize: 9,
@@ -81,7 +84,7 @@ const styles = StyleSheet.create({
   tableHeaderText: {
     color: "#fff",
     fontSize: 9,
-    fontFamily: "Helvetica-Bold",
+    fontWeight: 700,
   },
   tableRow: {
     flexDirection: "row",
@@ -119,8 +122,8 @@ const styles = StyleSheet.create({
     padding: "8 12",
     marginTop: 4,
   },
-  totalTTCLabel: { fontSize: 10, fontFamily: "Helvetica-Bold", color: "#fff" },
-  totalTTCValue: { fontSize: 10, fontFamily: "Helvetica-Bold", color: "#fff" },
+  totalTTCLabel: { fontSize: 10, fontWeight: 700, color: "#fff" },
+  totalTTCValue: { fontSize: 10, fontWeight: 700, color: "#fff" },
   // ── Statut ──
   statusBadge: {
     marginTop: 16,
@@ -129,7 +132,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 4,
     fontSize: 9,
-    fontFamily: "Helvetica-Bold",
+    fontWeight: 700,
   },
   // ── Mention légale ──
   mentionLegale: {
@@ -236,7 +239,7 @@ export default function InvoicePDF({ invoice }) {
 
         {/* ── Statut ── */}
         <View style={[styles.statusBadge, { backgroundColor: badge.backgroundColor }]}>
-          <Text style={{ fontSize: 9, fontFamily: "Helvetica-Bold", color: badge.color }}>
+          <Text style={{ fontSize: 9, fontWeight: 700, color: badge.color }}>
             Statut : {invoice.status ?? "en attente"}
           </Text>
         </View>

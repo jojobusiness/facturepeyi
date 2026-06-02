@@ -10,10 +10,27 @@
 //    avec un validateur (Mustang/FNFE) avant de communiquer « certifié ». Le XML
 //    structuré, lui, est conforme EN 16931 BASIC. Voir mémoire project-reforme-einvoicing.
 
-import { PDFDocument, AFRelationship, PDFName } from "pdf-lib";
+import { PDFDocument, AFRelationship, PDFName, PDFString, PDFHexString } from "pdf-lib";
 import { buildFacturXXML } from "./facturX";
+import iccUrl from "../assets/icc/sRGB.icc?url";
 
 const FX_NS = "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#";
+
+// Cache du profil ICC sRGB (chargé une fois) — requis par l'OutputIntent PDF/A.
+let iccBytesCache = null;
+async function loadIccBytes() {
+  if (iccBytesCache) return iccBytesCache;
+  const res = await fetch(iccUrl);
+  iccBytesCache = new Uint8Array(await res.arrayBuffer());
+  return iccBytesCache;
+}
+
+/** Génère un identifiant de document hexadécimal (32 hex) pour le /ID du trailer. */
+function randomDocId() {
+  const bytes = new Uint8Array(16);
+  (globalThis.crypto || {}).getRandomValues?.(bytes);
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+}
 
 function xmpMetadata({ title, profile }) {
   const safeTitle = String(title || "Facture").replace(/[<>&]/g, " ");
@@ -105,7 +122,7 @@ export async function embedFacturX(pdfBytes, xml, opts = {}) {
   pdfDoc.setProducer("Factur'Peyi");
   pdfDoc.setCreator("Factur'Peyi");
 
-  // 3. Injecter le flux de métadonnées XMP (déclare Factur-X + PDF/A-3B)
+  // 3. Injecter le flux de métadonnées XMP (déclare Factur-X + PDF/A-3B), non compressé (exigé PDF/A)
   const xmp = xmpMetadata({ title: opts.title, profile });
   const metadataStream = pdfDoc.context.stream(xmp, {
     Type: "Metadata",
@@ -113,6 +130,28 @@ export async function embedFacturX(pdfBytes, xml, opts = {}) {
   });
   const metadataRef = pdfDoc.context.register(metadataStream);
   pdfDoc.catalog.set(PDFName.of("Metadata"), metadataRef);
+
+  // 4. OutputIntent + profil ICC sRGB — obligatoire en PDF/A pour fixer l'espace colorimétrique
+  const iccBytes = await loadIccBytes();
+  const iccStream = pdfDoc.context.flateStream(iccBytes, { N: 3 });
+  const iccRef = pdfDoc.context.register(iccStream);
+  const outputIntent = pdfDoc.context.obj({
+    Type: "OutputIntent",
+    S: "GTS_PDFA1",
+    OutputConditionIdentifier: PDFString.of("sRGB"),
+    Info: PDFString.of("sRGB IEC61966-2.1"),
+    DestOutputProfile: iccRef,
+  });
+  const outputIntentRef = pdfDoc.context.register(outputIntent);
+  pdfDoc.catalog.set(PDFName.of("OutputIntents"), pdfDoc.context.obj([outputIntentRef]));
+
+  // 5. Version PDF 1.7 (PDF/A-3 est basé sur PDF 1.7) + identifiant de document /ID
+  pdfDoc.catalog.set(PDFName.of("Version"), PDFName.of("1.7"));
+  const docId = randomDocId();
+  pdfDoc.context.trailerInfo.ID = pdfDoc.context.obj([
+    PDFHexString.of(docId),
+    PDFHexString.of(docId),
+  ]);
 
   return await pdfDoc.save();
 }

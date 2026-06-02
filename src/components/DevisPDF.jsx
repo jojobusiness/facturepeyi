@@ -1,6 +1,9 @@
 import {
   Document, Page, Text, View, StyleSheet, Image,
 } from "@react-pdf/renderer";
+import { registerPdfFonts } from "../utils/pdfFonts";
+
+registerPdfFonts();
 
 const BRAND_GREEN = "#0f5c3c";
 const GRAY = "#555";
@@ -8,19 +11,19 @@ const LIGHT_GRAY = "#f5f5f5";
 const BORDER = "#e0e0e0";
 
 const styles = StyleSheet.create({
-  page: { fontSize: 10, fontFamily: "Helvetica", padding: 40, color: "#1a1a1a", lineHeight: 1.5 },
+  page: { fontSize: 10, fontFamily: "Inter", padding: 40, color: "#1a1a1a", lineHeight: 1.5 },
   header: { flexDirection: "row", justifyContent: "space-between", marginBottom: 32 },
   logo: { width: 90, height: 50, objectFit: "contain", marginBottom: 6 },
-  companyName: { fontSize: 13, fontFamily: "Helvetica-Bold", color: BRAND_GREEN },
+  companyName: { fontSize: 13, fontWeight: 700, color: BRAND_GREEN },
   companyDetail: { fontSize: 9, color: GRAY, marginTop: 2 },
   infoBlock: { backgroundColor: LIGHT_GRAY, borderRadius: 4, padding: 12, textAlign: "right" },
-  invoiceTitle: { fontSize: 18, fontFamily: "Helvetica-Bold", color: BRAND_GREEN, marginBottom: 4 },
+  invoiceTitle: { fontSize: 18, fontWeight: 700, color: BRAND_GREEN, marginBottom: 4 },
   invoiceRef: { fontSize: 9, color: GRAY, marginBottom: 8 },
   clientLabel: { fontSize: 8, color: GRAY, textTransform: "uppercase", marginBottom: 3 },
-  clientName: { fontSize: 11, fontFamily: "Helvetica-Bold" },
+  clientName: { fontSize: 11, fontWeight: 700 },
   clientDetail: { fontSize: 9, color: GRAY, marginTop: 2 },
   tableHeader: { flexDirection: "row", backgroundColor: BRAND_GREEN, padding: "8 12", borderRadius: 4, marginBottom: 2 },
-  tableHeaderText: { color: "#fff", fontSize: 9, fontFamily: "Helvetica-Bold" },
+  tableHeaderText: { color: "#fff", fontSize: 9, fontWeight: 700 },
   tableRow: { flexDirection: "row", padding: "8 12", borderBottomWidth: 1, borderBottomColor: BORDER, borderBottomStyle: "solid" },
   colDesc: { flex: 3 },
   colQty:  { flex: 1, textAlign: "right" },
@@ -32,8 +35,8 @@ const styles = StyleSheet.create({
   totalLabel: { fontSize: 9, color: GRAY },
   totalValue: { fontSize: 9, color: "#333" },
   totalTTCRow: { flexDirection: "row", justifyContent: "space-between", backgroundColor: BRAND_GREEN, borderRadius: 4, padding: "8 12", marginTop: 4 },
-  totalTTCLabel: { fontSize: 10, fontFamily: "Helvetica-Bold", color: "#fff" },
-  totalTTCValue: { fontSize: 10, fontFamily: "Helvetica-Bold", color: "#fff" },
+  totalTTCLabel: { fontSize: 10, fontWeight: 700, color: "#fff" },
+  totalTTCValue: { fontSize: 10, fontWeight: 700, color: "#fff" },
   statusBadge: { marginTop: 16, alignSelf: "flex-start", paddingVertical: 4, paddingHorizontal: 10, borderRadius: 4 },
   validityBox: { marginTop: 12, fontSize: 9, color: "#92400e", backgroundColor: "#fef3c7", borderRadius: 4, padding: "6 10" },
   mentionLegale: { marginTop: 16, fontSize: 8, color: "#2563eb", backgroundColor: "#eff6ff", borderRadius: 4, padding: "6 10" },
@@ -130,7 +133,7 @@ export default function DevisPDF({ devis }) {
         </View>
 
         <View style={[styles.statusBadge, { backgroundColor: badge.backgroundColor }]}>
-          <Text style={{ fontSize: 9, fontFamily: "Helvetica-Bold", color: badge.color }}>
+          <Text style={{ fontSize: 9, fontWeight: 700, color: badge.color }}>
             Statut : {devis.status ?? "brouillon"}
           </Text>
         </View>
