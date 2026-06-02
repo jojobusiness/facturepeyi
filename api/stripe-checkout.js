@@ -13,6 +13,13 @@ const stripe = new Stripe((process.env.STRIPE_SECRET_KEY || "").trim());
 const PIONNIER_PRICE_ID = "price_1TdcJZIck4iMBRE9KizjlK9I";
 const PIONNIER_CAP = 10;
 
+// Plan Cabinet : offre de lancement = 2 mois offerts (essai gratuit) avant facturation.
+const CABINET_PRICE_IDS = [
+  "price_1TdcnqIck4iMBRE9ciWBYBnz", // Cabinet mensuel
+  "price_1TdcnqIck4iMBRE9muYieS04", // Cabinet annuel
+];
+const CABINET_TRIAL_DAYS = 60;
+
 const ALLOWED_PRICE_IDS = [
   "price_1TYQZWIck4iMBRE9Ulc07a9u", // Solo mensuel
   "price_1TYQbBIck4iMBRE9PeSRBS3R", // Pro mensuel
@@ -82,6 +89,9 @@ export default async function handler(req, res) {
 
   const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.facturepeyi.com").trim().replace(/\/$/, "");
 
+  // Offre de lancement : 2 mois offerts sur le plan Cabinet (essai avant facturation).
+  const isCabinet = CABINET_PRICE_IDS.includes(priceId);
+
   try {
     const session = await stripe.checkout.sessions.create({
       mode: isPionnier ? "payment" : "subscription",
@@ -89,6 +99,7 @@ export default async function handler(req, res) {
       line_items: [{ price: priceId, quantity: 1 }],
       customer_email: customerEmail || undefined,
       client_reference_id: clientReferenceId,
+      ...(isCabinet ? { subscription_data: { trial_period_days: CABINET_TRIAL_DAYS } } : {}),
       metadata: {
         planId: planId || "solo",
         uid: decoded?.uid || "",
