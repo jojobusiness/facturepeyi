@@ -194,7 +194,9 @@ La config Firebase est publique dans `src/lib/firebase.js` (normal pour Firebase
 ### Sprint 4 — Scale
 - [x] Plan Cabinet (multi-entreprises, experts-comptables)
 - [x] Programme de parrainage
-- [x] Prescription cabinet 25% (`/dashboard/prescription` + `src/lib/commission.js`)
+- [x] Prescription cabinet 25% (`/dashboard/prescription` + `src/lib/commission.js`) — réservé `isCabinet`
+- [x] Factures/devis **multi-lignes** (`src/utils/invoiceLines.js` + `InvoiceLinesEditor`) + **aperçu PDF live** (`PdfLivePreview`)
+- [x] Paramètres fiscaux complets (adresse, n° TVA, IBAN/BIC, mentions légales) dans Settings → PDF + Factur-X
 - [x] Factur-X (XML CII EN 16931 BASIC embarqué — `src/utils/facturX.js` + `pdfFacturX.js`) — 🔶 reste PDF/A-3b certifié + raccordement PDP
 - [x] Import bancaire CSV/OFX
 - [ ] Pages SEO par territoire (/martinique, /guadeloupe, etc.) — partiellement (TerritoirePage existe)
