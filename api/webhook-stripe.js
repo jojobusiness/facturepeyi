@@ -71,6 +71,7 @@ export default async function handler(req, res) {
           await db.collection("entreprises").doc(entrepriseId).update({
             plan: "solo",
             planStatus: "active",
+            planBilling: "lifetime",
             lifetime: true,
             lifetimeDate: FieldValue.serverTimestamp(),
             trialEndsAt: null,
@@ -160,6 +161,9 @@ export default async function handler(req, res) {
             : null,
         };
         if (newPlan && newPlan !== oldPlan) update.plan = newPlan;
+        // Périodicité de facturation (pour l'affichage prescription : badge annuel/mensuel)
+        const interval = sub.items?.data?.[0]?.price?.recurring?.interval;
+        if (interval) update.planBilling = interval === "year" ? "annual" : "monthly";
 
         await doc.ref.update(update);
 

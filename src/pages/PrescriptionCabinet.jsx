@@ -1,16 +1,22 @@
 import { useEffect, useState } from "react";
 import { auth } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
+import { Link } from "react-router-dom";
 import {
-  FaCopy, FaCheckCircle, FaEnvelope, FaPercent, FaUsers, FaWallet, FaChartLine,
+  FaCopy, FaCheckCircle, FaEnvelope, FaPercent, FaUsers, FaWallet, FaChartLine, FaBuilding,
 } from "react-icons/fa";
 import { monthlyCommission, aggregateCommission, COMMISSION_RATE } from "../lib/commission";
 import { getPlan } from "../lib/plans";
 
 const SITE_URL = "https://facturepeyi.com";
 
+const BILLING_BADGE = {
+  annual: { label: "annuel", cls: "bg-indigo-50 text-indigo-600" },
+  lifetime: { label: "à vie", cls: "bg-yellow-50 text-yellow-700" },
+};
+
 export default function PrescriptionCabinet() {
-  const { entreprise, entrepriseId } = useAuth();
+  const { entreprise, entrepriseId, isCabinet } = useAuth();
   const [copied, setCopied] = useState(false);
   const [referrals, setReferrals] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,6 +58,30 @@ export default function PrescriptionCabinet() {
 
   const { activeCount, monthlyTotal, annualTotal } = aggregateCommission(referrals);
   const pct = Math.round(COMMISSION_RATE * 100);
+
+  // Réservé aux cabinets dans un premier temps — le levier prescription cible les experts-comptables
+  if (!isCabinet) {
+    return (
+      <main className="max-w-lg mx-auto py-16 text-center">
+        <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-8">
+          <FaPercent className="w-9 h-9 text-indigo-400 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-[#0d1b3e] mb-2">Programme réservé aux cabinets</h2>
+          <p className="text-sm text-gray-500 mb-5">
+            Le programme prescripteur ({pct} % de commission récurrente) est destiné aux cabinets
+            d'expertise comptable. Pour parrainer un confrère et gagner des mois offerts, utilisez le parrainage.
+          </p>
+          <div className="flex gap-3 justify-center">
+            <Link to="/dashboard/parrainage" className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm px-5 py-3 rounded-xl transition">
+              Aller au parrainage
+            </Link>
+            <Link to="/Forfaits" className="bg-white border border-indigo-200 text-indigo-700 hover:border-indigo-400 font-semibold text-sm px-5 py-3 rounded-xl transition">
+              Découvrir le plan Cabinet
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="max-w-3xl mx-auto">
@@ -158,7 +188,14 @@ export default function PrescriptionCabinet() {
                   <tr key={r.id} className="hover:bg-gray-50">
                     <td className="px-5 py-3 font-medium text-[#0d1b3e]">{r.nom || "—"}</td>
                     <td className="px-5 py-3 text-gray-500 capitalize">{r.territoire || "—"}</td>
-                    <td className="px-5 py-3 text-gray-500">{r.plan ? getPlan(r.plan).name : "—"}</td>
+                    <td className="px-5 py-3 text-gray-500">
+                      {r.plan ? getPlan(r.plan).name : "—"}
+                      {BILLING_BADGE[r.planBilling] && (
+                        <span className={`ml-1.5 text-xs font-medium px-1.5 py-0.5 rounded ${BILLING_BADGE[r.planBilling].cls}`}>
+                          {BILLING_BADGE[r.planBilling].label}
+                        </span>
+                      )}
+                    </td>
                     <td className="px-5 py-3">
                       {active
                         ? <span className="inline-flex items-center gap-1 text-xs font-semibold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full"><FaCheckCircle className="w-3 h-3" /> Actif</span>

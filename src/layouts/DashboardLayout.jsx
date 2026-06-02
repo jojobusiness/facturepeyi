@@ -57,7 +57,6 @@ const nav = [
     items: [
       { key: "admin",      label: "Gestion utilisateurs", icon: <FaUserShield />, to: "/dashboard/admin" },
       { key: "parrainage", label: "Parrainage",           icon: <FaGift />,       to: "/dashboard/parrainage" },
-      { key: "prescription", label: "Prescription 25%",   icon: <FaPercent />,    to: "/dashboard/prescription" },
       { key: "abonnement", label: "Mon abonnement",       icon: <FaCreditCard />, to: "/dashboard/mon-abonnement" },
       { key: "parametres", label: "Paramètres",           icon: <FaCog />,        to: "/dashboard/parametres" },
     ],
@@ -192,6 +191,18 @@ function SidebarContent({ onClose }) {
                 >
                   <FaPlus className="w-4 h-4 flex-shrink-0" />
                   <span className="text-sm font-medium">Ajouter un client</span>
+                </Link>
+                <Link
+                  to="/dashboard/prescription"
+                  onClick={onClose}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 ${
+                    isActive("/dashboard/prescription")
+                      ? "bg-indigo-600 text-white shadow-lg"
+                      : "text-indigo-400 hover:bg-indigo-500/20 hover:text-indigo-300"
+                  }`}
+                >
+                  <FaPercent className="w-4 h-4 flex-shrink-0" />
+                  <span className="text-sm font-medium">Prescription 25%</span>
                 </Link>
               </>
             )}

@@ -34,6 +34,7 @@ export default async function handler(req, res) {
         territoire: data.territoire || null,
         planStatus: data.planStatus || null,
         plan: data.plan || null,
+        planBilling: data.planBilling || null,
       };
     });
     return res.status(200).json({ referrals });
