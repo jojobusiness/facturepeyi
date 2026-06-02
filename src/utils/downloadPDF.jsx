@@ -1,6 +1,7 @@
 import { pdf } from "@react-pdf/renderer";
 import InvoicePDF from "../components/InvoicePDF";
 import DevisPDF from "../components/DevisPDF";
+import { makeFacturXBlob } from "./pdfFacturX";
 
 async function convertImageToBase64(url) {
   const proxyUrl = `/api/logo-proxy?url=${encodeURIComponent(url)}`;
@@ -48,7 +49,15 @@ function triggerDownload(blob, filename) {
 
 export async function renderInvoicePDFBlob(invoice) {
   const logoDataUrl = await resolveLogo(invoice);
-  return await pdf(<InvoicePDF invoice={{ ...invoice, logoDataUrl }} />).toBlob();
+  const visualBlob = await pdf(<InvoicePDF invoice={{ ...invoice, logoDataUrl }} />).toBlob();
+  // Factur-X : embarque le XML CII structuré (réforme facture électronique 2026-2027).
+  // En cas d'échec d'embarquement, on retombe sur le PDF visuel pour ne jamais bloquer la génération.
+  try {
+    return await makeFacturXBlob(visualBlob, invoice);
+  } catch (err) {
+    console.error("Embarquement Factur-X échoué, PDF visuel seul :", err);
+    return visualBlob;
+  }
 }
 
 export async function downloadInvoicePDF(invoice) {

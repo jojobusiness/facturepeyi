@@ -33,6 +33,7 @@ export default async function handler(req, res) {
         nom: data.nom || null,
         territoire: data.territoire || null,
         planStatus: data.planStatus || null,
+        plan: data.plan || null,
       };
     });
     return res.status(200).json({ referrals });

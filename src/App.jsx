@@ -50,6 +50,7 @@ import EditDevis from './pages/EditDevis';
 import CalendrierFiscal from './pages/CalendrierFiscal';
 import ImportBancaire from './pages/ImportBancaire';
 import Parrainage from './pages/Parrainage';
+import PrescriptionCabinet from './pages/PrescriptionCabinet';
 import Cabinet from './pages/Cabinet';
 import AddClientEntreprise from './pages/AddClientEntreprise';
 import RecurrenceList from './pages/RecurrenceList';
@@ -164,6 +165,7 @@ export default function App() {
         <Route path="mon-abonnement" element={<PrivateRoute><MonAbonnement /></PrivateRoute>} />
         <Route path="import-bancaire" element={<PrivateRoute><ImportBancaire /></PrivateRoute>} />
         <Route path="parrainage" element={<PrivateRoute><Parrainage /></PrivateRoute>} />
+        <Route path="prescription" element={<PrivateRoute><PrescriptionCabinet /></PrivateRoute>} />
         <Route path="cabinet" element={<PrivateRoute><Cabinet /></PrivateRoute>} />
         <Route path="cabinet/ajouter" element={<PrivateRoute><AddClientEntreprise /></PrivateRoute>} />
       </Route>

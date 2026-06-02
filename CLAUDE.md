@@ -192,8 +192,15 @@ La config Firebase est publique dans `src/lib/firebase.js` (normal pour Firebase
 - [x] PWA mobile (manifest.json + meta tags Apple)
 
 ### Sprint 4 — Scale
-- [ ] Plan Cabinet (multi-entreprises, experts-comptables)
-- [ ] Programme de parrainage
-- [ ] Import bancaire CSV/OFX
-- [ ] Pages SEO par territoire (/martinique, /guadeloupe, etc.)
+- [x] Plan Cabinet (multi-entreprises, experts-comptables)
+- [x] Programme de parrainage
+- [x] Prescription cabinet 25% (`/dashboard/prescription` + `src/lib/commission.js`)
+- [x] Factur-X (XML CII EN 16931 BASIC embarqué — `src/utils/facturX.js` + `pdfFacturX.js`) — 🔶 reste PDF/A-3b certifié + raccordement PDP
+- [x] Import bancaire CSV/OFX
+- [ ] Pages SEO par territoire (/martinique, /guadeloupe, etc.) — partiellement (TerritoirePage existe)
 - [ ] Gestion SCIs + holding (Phase 3-4, voir mémoire projet)
+
+### Factur-X — réforme facture électronique 2026-2027
+- `src/utils/facturX.js` → `buildFacturXXML(invoice)` : XML CII profil **BASIC** EN 16931. Catégorie TVA S/E/Z, ExemptionReason pour 0% (art. 294 / 293 B).
+- `src/utils/pdfFacturX.js` → embarque le XML dans le PDF (pdf-lib : AFRelationship Data, XMP Factur-X + PDF/A-3B). `makeFacturXBlob()` appelé par `renderInvoicePDFBlob`.
+- ⚠️ La conformité **PDF/A-3b** octet (OutputIntent/ICC, polices) n'est pas garantie par react-pdf → valider avec Mustang/FNFE avant de communiquer « certifié ». Raccordement **PDP** = chantier séparé. Voir mémoire `project_reforme_einvoicing.md`.
