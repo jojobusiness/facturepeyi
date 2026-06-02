@@ -202,5 +202,6 @@ La config Firebase est publique dans `src/lib/firebase.js` (normal pour Firebase
 
 ### Factur-X — réforme facture électronique 2026-2027
 - `src/utils/facturX.js` → `buildFacturXXML(invoice)` : XML CII profil **BASIC** EN 16931. Catégorie TVA S/E/Z, ExemptionReason pour 0% (art. 294 / 293 B).
-- `src/utils/pdfFacturX.js` → embarque le XML dans le PDF (pdf-lib : AFRelationship Data, XMP Factur-X + PDF/A-3B). `makeFacturXBlob()` appelé par `renderInvoicePDFBlob`.
-- ⚠️ La conformité **PDF/A-3b** octet (OutputIntent/ICC, polices) n'est pas garantie par react-pdf → valider avec Mustang/FNFE avant de communiquer « certifié ». Raccordement **PDP** = chantier séparé. Voir mémoire `project_reforme_einvoicing.md`.
+- `src/utils/pdfFacturX.js` → embarque le XML dans le PDF (pdf-lib : AFRelationship Data, XMP Factur-X + PDF/A-3B, OutputIntent ICC sRGB, /ID, Version 1.7). `makeFacturXBlob()` appelé par `renderInvoicePDFBlob`.
+- `src/utils/pdfFonts.js` → enregistre **Inter TTF embarquée** (src/assets/fonts) : Helvetica non-embarquée = interdite en PDF/A, donc remplacée dans InvoicePDF + DevisPDF (`fontWeight: 700` au lieu de `Helvetica-Bold`).
+- ✅ Durcissement PDF/A-3b fait (polices embarquées, OutputIntent+ICC sRGB, /ID, version). Vérifié : FontFile2/CIDFontType2 embarqués, Helvetica absente. ⚠️ **Validation finale veraPDF/FNFE** à faire sur un PDF réel avant de communiquer « certifié ». Raccordement **PDP** = chantier séparé. Voir mémoire `project_reforme_einvoicing.md`.
