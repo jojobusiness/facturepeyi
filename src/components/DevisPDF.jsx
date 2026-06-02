@@ -2,8 +2,11 @@ import {
   Document, Page, Text, View, StyleSheet, Image,
 } from "@react-pdf/renderer";
 import { registerPdfFonts } from "../utils/pdfFonts";
+import { normalizeLines, computeTotals } from "../utils/invoiceLines";
 
 registerPdfFonts();
+
+const fmt = (n) => `${(Number(n) || 0).toFixed(2)} €`;
 
 const BRAND_GREEN = "#0f5c3c";
 const GRAY = "#555";
@@ -66,29 +69,26 @@ function fmtDate(d) {
 export default function DevisPDF({ devis }) {
   const date = fmtDate(devis.date);
   const validite = fmtDate(devis.dateValidite);
-  const ht = Number(devis.amountHT ?? 0).toFixed(2);
-  const tva = Number(devis.tva ?? 0).toFixed(2);
-  const ttc = Number(devis.totalTTC ?? 0).toFixed(2);
-  const tvaRate = devis.tvaRate ?? 0;
   const mentionLegale = devis.mentionLegale ?? "";
-  const ref = devis.id ? `DEV-${devis.id.slice(0, 8).toUpperCase()}` : "DEV-XXXXXX";
+  const ref = devis.numero || (devis.id ? `DEV-${devis.id.slice(0, 8).toUpperCase()}` : "DEV-XXXXXX");
   const badge = statusColor(devis.status);
+
+  const lines = normalizeLines(devis);
+  const { totalHT, totalTTC, taxByRate } = computeTotals(lines);
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
           <View>
-            {devis.logoDataUrl
-              ? <Image src={devis.logoDataUrl} style={styles.logo} />
-              : <Text style={styles.companyName}>{devis.entrepriseNom || "Factur'Peyi"}</Text>
-            }
-            {devis.logoDataUrl && (
-              <Text style={styles.companyName}>{devis.entrepriseNom || "Factur'Peyi"}</Text>
-            )}
+            {devis.logoDataUrl ? <Image src={devis.logoDataUrl} style={styles.logo} /> : null}
+            <Text style={styles.companyName}>{devis.entrepriseNom || "Factur'Peyi"}</Text>
             {devis.entrepriseAdresse && <Text style={styles.companyDetail}>{devis.entrepriseAdresse}</Text>}
-            {devis.entrepriseSiret  && <Text style={styles.companyDetail}>SIRET : {devis.entrepriseSiret}</Text>}
-            {devis.entrepriseTel    && <Text style={styles.companyDetail}>Tél : {devis.entrepriseTel}</Text>}
+            {(devis.entrepriseCodePostal || devis.entrepriseVille) && (
+              <Text style={styles.companyDetail}>{[devis.entrepriseCodePostal, devis.entrepriseVille].filter(Boolean).join(" ")}</Text>
+            )}
+            {devis.entrepriseTel   && <Text style={styles.companyDetail}>Tél : {devis.entrepriseTel}</Text>}
+            {devis.entrepriseEmail && <Text style={styles.companyDetail}>{devis.entrepriseEmail}</Text>}
           </View>
 
           <View style={styles.infoBlock}>
@@ -99,7 +99,10 @@ export default function DevisPDF({ devis }) {
               <Text style={styles.clientLabel}>Adressé à</Text>
               <Text style={styles.clientName}>{devis.clientNom}</Text>
               {devis.clientAdresse && <Text style={styles.clientDetail}>{devis.clientAdresse}</Text>}
-              {devis.clientEmail   && <Text style={styles.clientDetail}>{devis.clientEmail}</Text>}
+              {(devis.clientCodePostal || devis.clientVille) && (
+                <Text style={styles.clientDetail}>{[devis.clientCodePostal, devis.clientVille].filter(Boolean).join(" ")}</Text>
+              )}
+              {devis.clientEmail && <Text style={styles.clientDetail}>{devis.clientEmail}</Text>}
             </View>
           </View>
         </View>
@@ -110,25 +113,29 @@ export default function DevisPDF({ devis }) {
           <Text style={[styles.tableHeaderText, styles.colUnit]}>P.U. HT</Text>
           <Text style={[styles.tableHeaderText, styles.colTotal]}>Total HT</Text>
         </View>
-        <View style={styles.tableRow}>
-          <Text style={[styles.cellText, styles.colDesc]}>{devis.description}</Text>
-          <Text style={[styles.cellText, styles.colQty]}>1</Text>
-          <Text style={[styles.cellText, styles.colUnit]}>{ht} €</Text>
-          <Text style={[styles.cellText, styles.colTotal]}>{ht} €</Text>
-        </View>
+        {lines.map((l, i) => (
+          <View key={i} style={styles.tableRow}>
+            <Text style={[styles.cellText, styles.colDesc]}>{l.description}</Text>
+            <Text style={[styles.cellText, styles.colQty]}>{l.quantite}</Text>
+            <Text style={[styles.cellText, styles.colUnit]}>{fmt(l.prixUnitaire)}</Text>
+            <Text style={[styles.cellText, styles.colTotal]}>{fmt(l.ht)}</Text>
+          </View>
+        ))}
 
         <View style={styles.totalsBox}>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Sous-total HT</Text>
-            <Text style={styles.totalValue}>{ht} €</Text>
+            <Text style={styles.totalValue}>{fmt(totalHT)}</Text>
           </View>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>TVA ({tvaRate}%)</Text>
-            <Text style={styles.totalValue}>{tva} €</Text>
-          </View>
+          {Array.from(taxByRate.entries()).map(([rate, amount]) => (
+            <View key={rate} style={styles.totalRow}>
+              <Text style={styles.totalLabel}>TVA ({rate}%)</Text>
+              <Text style={styles.totalValue}>{fmt(amount)}</Text>
+            </View>
+          ))}
           <View style={styles.totalTTCRow}>
             <Text style={styles.totalTTCLabel}>Total TTC</Text>
-            <Text style={styles.totalTTCValue}>{ttc} €</Text>
+            <Text style={styles.totalTTCValue}>{fmt(totalTTC)}</Text>
           </View>
         </View>
 

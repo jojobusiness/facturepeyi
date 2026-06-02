@@ -18,6 +18,8 @@ export default function Settings() {
 
   const [entrepriseForm, setEntrepriseForm] = useState({
     nom: "", siret: "", logo: "", tvaActive: true, territoire: "guyane", regime: "reel",
+    adresse: "", codePostal: "", ville: "", telephone: "", emailContact: "",
+    numeroTVA: "", formeJuridique: "", capital: "", rcs: "", iban: "", bic: "",
   });
   const [logoFile, setLogoFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -78,6 +80,17 @@ export default function Settings() {
       tvaActive: entreprise.tvaActive ?? true,
       territoire: entreprise.territoire || "guyane",
       regime: entreprise.regime || "reel",
+      adresse: entreprise.adresse || "",
+      codePostal: entreprise.codePostal || "",
+      ville: entreprise.ville || "",
+      telephone: entreprise.telephone || "",
+      emailContact: entreprise.emailContact || "",
+      numeroTVA: entreprise.numeroTVA || "",
+      formeJuridique: entreprise.formeJuridique || "",
+      capital: entreprise.capital || "",
+      rcs: entreprise.rcs || "",
+      iban: entreprise.iban || "",
+      bic: entreprise.bic || "",
     });
   }, [entreprise]);
 
@@ -193,6 +206,69 @@ export default function Settings() {
                 <input type="checkbox" name="tvaActive" checked={entrepriseForm.tvaActive} onChange={handleChange} className="w-4 h-4 accent-emerald-600" />
                 <span className="text-sm text-gray-700">Activer la gestion de la TVA</span>
               </label>
+            </div>
+          </section>
+
+          {/* ── Coordonnées & mentions légales (facture + Factur-X) ── */}
+          <section className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 mb-5">
+            <h3 className="text-sm font-bold text-[#0d1b3e] mb-1">Coordonnées & mentions légales</h3>
+            <p className="text-xs text-gray-400 mb-4">Ces informations apparaissent sur vos factures et devis, et alimentent le format Factur-X.</p>
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-semibold text-gray-600 block mb-1">Adresse</label>
+                <input type="text" name="adresse" value={entrepriseForm.adresse} onChange={handleChange} placeholder="12 rue des Îles" className={inputClass} />
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-gray-600 block mb-1">Code postal</label>
+                  <input type="text" name="codePostal" value={entrepriseForm.codePostal} onChange={handleChange} placeholder="97200" className={inputClass} />
+                </div>
+                <div className="col-span-2">
+                  <label className="text-xs font-semibold text-gray-600 block mb-1">Ville</label>
+                  <input type="text" name="ville" value={entrepriseForm.ville} onChange={handleChange} placeholder="Fort-de-France" className={inputClass} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-gray-600 block mb-1">Téléphone</label>
+                  <input type="text" name="telephone" value={entrepriseForm.telephone} onChange={handleChange} placeholder="0596 00 00 00" className={inputClass} />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-600 block mb-1">Email de contact</label>
+                  <input type="email" name="emailContact" value={entrepriseForm.emailContact} onChange={handleChange} placeholder="contact@monentreprise.fr" className={inputClass} />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-600 block mb-1">N° TVA intracommunautaire <span className="text-gray-400 font-normal">(si assujetti)</span></label>
+                <input type="text" name="numeroTVA" value={entrepriseForm.numeroTVA} onChange={handleChange} placeholder="FR12345678901" className={inputClass} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-gray-600 block mb-1">Forme juridique</label>
+                  <input type="text" name="formeJuridique" value={entrepriseForm.formeJuridique} onChange={handleChange} placeholder="SARL, EI, SAS…" className={inputClass} />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-600 block mb-1">Capital social <span className="text-gray-400 font-normal">(€)</span></label>
+                  <input type="text" name="capital" value={entrepriseForm.capital} onChange={handleChange} placeholder="1 000" className={inputClass} />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-gray-600 block mb-1">RCS / RM</label>
+                <input type="text" name="rcs" value={entrepriseForm.rcs} onChange={handleChange} placeholder="RCS Fort-de-France 123 456 789" className={inputClass} />
+              </div>
+              <div className="border-t border-gray-100 pt-4">
+                <p className="text-xs font-semibold text-gray-500 mb-3">Coordonnées bancaires <span className="text-gray-400 font-normal">(affichées sur la facture si renseignées)</span></p>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="col-span-2">
+                    <label className="text-xs font-semibold text-gray-600 block mb-1">IBAN</label>
+                    <input type="text" name="iban" value={entrepriseForm.iban} onChange={handleChange} placeholder="FR76 ..." className={inputClass} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 block mb-1">BIC</label>
+                    <input type="text" name="bic" value={entrepriseForm.bic} onChange={handleChange} placeholder="XXXXXXXX" className={inputClass} />
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 

@@ -4,8 +4,8 @@
 //
 // Profil : urn:cen.eu:en16931:2017#compliant#urn:factur-x.eu:1p0:basic
 // Le BASIC inclut les lignes + la ventilation de TVA (ce qu'un expert-comptable
-// et une PDP attendent), tout en restant générable à partir du modèle mono-ligne
-// de Factur'Peyi.
+// et une PDP attendent). Supporte les factures multi-lignes (invoice.lignes[])
+// avec repli sur le modèle mono-ligne historique.
 //
 // ⚠️ Ce module produit le XML. L'embarquement dans le PDF (PDF/A-3 + XMP) est géré
 //    par embedFacturX() dans pdfFacturX.js. Le raccordement à une PDP agréée reste
@@ -56,9 +56,9 @@ function invoiceNumber(invoice) {
  */
 function vatCategory(tvaRate, mentionLegale) {
   const rate = Number(tvaRate) || 0;
-  if (rate > 0) return { code: "S", rate, reason: null };
-  if (mentionLegale && mentionLegale.trim()) return { code: "E", rate: 0, reason: mentionLegale.trim() };
-  return { code: "Z", rate: 0, reason: null };
+  if (rate > 0) return { code: "S", reason: null };
+  if (mentionLegale && mentionLegale.trim()) return { code: "E", reason: mentionLegale.trim() };
+  return { code: "Z", reason: null };
 }
 
 /**
@@ -74,38 +74,119 @@ function sellerLegalId(siret) {
 }
 
 /**
- * Construit le XML Factur-X BASIC à partir du contexte facture enrichi
- * (mêmes champs que ceux passés à InvoicePDF : entrepriseNom, entrepriseSiret,
- * entrepriseAdresse, clientNom, clientAdresse, amountHT, tva, totalTTC, tvaRate, mentionLegale).
- *
+ * Normalise les lignes de la facture. Repli sur le modèle mono-ligne historique
+ * (description + amountHT) si invoice.lignes est absent.
+ * @returns {{ description, quantite, prixUnitaire, tvaRate, ht }[]}
+ */
+function normalizeLines(invoice) {
+  const defaultRate = Number(invoice.tvaRate) || 0;
+  if (Array.isArray(invoice.lignes) && invoice.lignes.length) {
+    return invoice.lignes.map((l) => {
+      const quantite = Number(l.quantite ?? 1) || 0;
+      const prixUnitaire = Number(l.prixUnitaire ?? 0) || 0;
+      const tvaRate = l.tvaRate != null ? Number(l.tvaRate) || 0 : defaultRate;
+      return {
+        description: l.description || "Prestation",
+        quantite,
+        prixUnitaire,
+        tvaRate,
+        ht: +(quantite * prixUnitaire).toFixed(2),
+      };
+    });
+  }
+  const ht = Number(invoice.amountHT ?? 0) || 0;
+  return [{
+    description: invoice.description || "Prestation",
+    quantite: 1,
+    prixUnitaire: ht,
+    tvaRate: defaultRate,
+    ht,
+  }];
+}
+
+/**
+ * Construit le XML Factur-X BASIC à partir du contexte facture enrichi.
+ * Champs attendus : entrepriseNom, entrepriseSiret, entrepriseAdresse,
+ * entrepriseCodePostal, entrepriseVille, entrepriseTva, clientNom, clientAdresse,
+ * et soit invoice.lignes[] soit (description, amountHT). tvaRate / mentionLegale
+ * servent de valeurs par défaut au niveau ligne.
  * @returns {string} XML CII bien formé
  */
 export function buildFacturXXML(invoice) {
   const num = invoiceNumber(invoice);
   const issue = fmtDate102(invoice.date);
-  const ht = amt(invoice.amountHT);
-  const tva = amt(invoice.tva);
-  const ttc = amt(invoice.totalTTC ?? Number(invoice.amountHT || 0) + Number(invoice.tva || 0));
-  const cat = vatCategory(invoice.tvaRate, invoice.mentionLegale);
-  const rateStr = (Number(cat.rate) || 0).toFixed(2);
   const currency = invoice.currency || "EUR";
+  const mention = invoice.mentionLegale || "";
 
+  const lines = normalizeLines(invoice);
+
+  // Lignes XML + agrégation des taxes par (catégorie, taux)
+  const taxGroups = new Map(); // clé "code|rate" → { code, rate, reason, basis }
+  let lineTotal = 0;
+
+  const lineXml = lines.map((l, i) => {
+    const cat = vatCategory(l.tvaRate, mention);
+    const rate = Number(l.tvaRate) || 0;
+    lineTotal += l.ht;
+    const key = `${cat.code}|${rate}`;
+    const g = taxGroups.get(key) || { code: cat.code, rate, reason: cat.reason, basis: 0 };
+    g.basis = +(g.basis + l.ht).toFixed(2);
+    taxGroups.set(key, g);
+
+    return `    <ram:IncludedSupplyChainTradeLineItem>
+      <ram:AssociatedDocumentLineDocument>
+        <ram:LineID>${i + 1}</ram:LineID>
+      </ram:AssociatedDocumentLineDocument>
+      <ram:SpecifiedTradeProduct>
+        <ram:Name>${esc(l.description)}</ram:Name>
+      </ram:SpecifiedTradeProduct>
+      <ram:SpecifiedLineTradeAgreement>
+        <ram:NetPriceProductTradePrice>
+          <ram:ChargeAmount>${amt(l.prixUnitaire)}</ram:ChargeAmount>
+        </ram:NetPriceProductTradePrice>
+      </ram:SpecifiedLineTradeAgreement>
+      <ram:SpecifiedLineTradeDelivery>
+        <ram:BilledQuantity unitCode="C62">${amt(l.quantite)}</ram:BilledQuantity>
+      </ram:SpecifiedLineTradeDelivery>
+      <ram:SpecifiedLineTradeSettlement>
+        <ram:ApplicableTradeTax>
+          <ram:TypeCode>VAT</ram:TypeCode>
+          <ram:CategoryCode>${cat.code}</ram:CategoryCode>
+          <ram:RateApplicablePercent>${rate.toFixed(2)}</ram:RateApplicablePercent>
+        </ram:ApplicableTradeTax>
+        <ram:SpecifiedTradeSettlementLineMonetarySummation>
+          <ram:LineTotalAmount>${amt(l.ht)}</ram:LineTotalAmount>
+        </ram:SpecifiedTradeSettlementLineMonetarySummation>
+      </ram:SpecifiedLineTradeSettlement>
+    </ram:IncludedSupplyChainTradeLineItem>`;
+  }).join("\n");
+
+  // Blocs ApplicableTradeTax (en-tête) par groupe + totaux
+  let taxTotal = 0;
+  const taxXml = Array.from(taxGroups.values()).map((g) => {
+    const tva = +(g.basis * g.rate / 100).toFixed(2);
+    taxTotal += tva;
+    const exemption = g.reason
+      ? `\n        <ram:ExemptionReason>${esc(g.reason)}</ram:ExemptionReason>`
+      : "";
+    return `      <ram:ApplicableTradeTax>
+        <ram:CalculatedAmount>${amt(tva)}</ram:CalculatedAmount>
+        <ram:TypeCode>VAT</ram:TypeCode>
+        <ram:BasisAmount>${amt(g.basis)}</ram:BasisAmount>
+        <ram:CategoryCode>${g.code}</ram:CategoryCode>${exemption}
+        <ram:RateApplicablePercent>${g.rate.toFixed(2)}</ram:RateApplicablePercent>
+      </ram:ApplicableTradeTax>`;
+  }).join("\n");
+
+  lineTotal = +lineTotal.toFixed(2);
+  taxTotal = +taxTotal.toFixed(2);
+  const grandTotal = +(lineTotal + taxTotal).toFixed(2);
+
+  // Vendeur
   const sellerName = invoice.entrepriseNom || "Entreprise";
-  const sellerAddr = invoice.entrepriseAdresse || "";
   const sellerCountry = invoice.entrepriseCountryId || "FR";
   const legal = sellerLegalId(invoice.entrepriseSiret);
   const sellerVat = invoice.entrepriseTva || invoice.entrepriseNumeroTVA || "";
-
-  const buyerName = invoice.clientNom || "Client";
-  const buyerAddr = invoice.clientAdresse || "";
-  const buyerCountry = invoice.clientCountryId || "FR";
-
-  const desc = invoice.description || "Prestation";
-
-  // Bloc exonération réutilisé en ligne et en en-tête
-  const exemptionLine = cat.reason
-    ? `\n            <ram:ExemptionReason>${esc(cat.reason)}</ram:ExemptionReason>`
-    : "";
 
   const sellerLegalBlock = legal
     ? `
@@ -113,20 +194,28 @@ export function buildFacturXXML(invoice) {
             <ram:ID schemeID="${legal.scheme}">${esc(legal.id)}</ram:ID>
           </ram:SpecifiedLegalOrganization>`
     : "";
-
   const sellerVatBlock = sellerVat
     ? `
           <ram:SpecifiedTaxRegistration>
             <ram:ID schemeID="VA">${esc(sellerVat)}</ram:ID>
           </ram:SpecifiedTaxRegistration>`
     : "";
+  const sellerAddr = addressBlock({
+    line: invoice.entrepriseAdresse,
+    cp: invoice.entrepriseCodePostal,
+    ville: invoice.entrepriseVille,
+    country: sellerCountry,
+  });
 
-  const sellerAddrLine = sellerAddr
-    ? `\n            <ram:LineOne>${esc(sellerAddr)}</ram:LineOne>`
-    : "";
-  const buyerAddrLine = buyerAddr
-    ? `\n            <ram:LineOne>${esc(buyerAddr)}</ram:LineOne>`
-    : "";
+  // Acheteur
+  const buyerName = invoice.clientNom || "Client";
+  const buyerCountry = invoice.clientCountryId || "FR";
+  const buyerAddr = addressBlock({
+    line: invoice.clientAdresse,
+    cp: invoice.clientCodePostal,
+    ville: invoice.clientVille,
+    country: buyerCountry,
+  });
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <rsm:CrossIndustryInvoice
@@ -148,66 +237,42 @@ export function buildFacturXXML(invoice) {
     </ram:IssueDateTime>
   </rsm:ExchangedDocument>
   <rsm:SupplyChainTradeTransaction>
-    <ram:IncludedSupplyChainTradeLineItem>
-      <ram:AssociatedDocumentLineDocument>
-        <ram:LineID>1</ram:LineID>
-      </ram:AssociatedDocumentLineDocument>
-      <ram:SpecifiedTradeProduct>
-        <ram:Name>${esc(desc)}</ram:Name>
-      </ram:SpecifiedTradeProduct>
-      <ram:SpecifiedLineTradeAgreement>
-        <ram:NetPriceProductTradePrice>
-          <ram:ChargeAmount>${ht}</ram:ChargeAmount>
-        </ram:NetPriceProductTradePrice>
-      </ram:SpecifiedLineTradeAgreement>
-      <ram:SpecifiedLineTradeDelivery>
-        <ram:BilledQuantity unitCode="C62">1.00</ram:BilledQuantity>
-      </ram:SpecifiedLineTradeDelivery>
-      <ram:SpecifiedLineTradeSettlement>
-        <ram:ApplicableTradeTax>
-          <ram:TypeCode>VAT</ram:TypeCode>
-          <ram:CategoryCode>${cat.code}</ram:CategoryCode>
-          <ram:RateApplicablePercent>${rateStr}</ram:RateApplicablePercent>
-        </ram:ApplicableTradeTax>
-        <ram:SpecifiedTradeSettlementLineMonetarySummation>
-          <ram:LineTotalAmount>${ht}</ram:LineTotalAmount>
-        </ram:SpecifiedTradeSettlementLineMonetarySummation>
-      </ram:SpecifiedLineTradeSettlement>
-    </ram:IncludedSupplyChainTradeLineItem>
+${lineXml}
     <ram:ApplicableHeaderTradeAgreement>
       <ram:SellerTradeParty>
         <ram:Name>${esc(sellerName)}</ram:Name>${sellerLegalBlock}
-        <ram:PostalTradeAddress>${sellerAddrLine}
-          <ram:CountryID>${esc(sellerCountry)}</ram:CountryID>
-        </ram:PostalTradeAddress>${sellerVatBlock}
+${sellerAddr}${sellerVatBlock}
       </ram:SellerTradeParty>
       <ram:BuyerTradeParty>
         <ram:Name>${esc(buyerName)}</ram:Name>
-        <ram:PostalTradeAddress>${buyerAddrLine}
-          <ram:CountryID>${esc(buyerCountry)}</ram:CountryID>
-        </ram:PostalTradeAddress>
+${buyerAddr}
       </ram:BuyerTradeParty>
     </ram:ApplicableHeaderTradeAgreement>
     <ram:ApplicableHeaderTradeDelivery/>
     <ram:ApplicableHeaderTradeSettlement>
       <ram:InvoiceCurrencyCode>${esc(currency)}</ram:InvoiceCurrencyCode>
-      <ram:ApplicableTradeTax>
-        <ram:CalculatedAmount>${tva}</ram:CalculatedAmount>
-        <ram:TypeCode>VAT</ram:TypeCode>
-        <ram:BasisAmount>${ht}</ram:BasisAmount>
-        <ram:CategoryCode>${cat.code}</ram:CategoryCode>${exemptionLine}
-        <ram:RateApplicablePercent>${rateStr}</ram:RateApplicablePercent>
-      </ram:ApplicableTradeTax>
+${taxXml}
       <ram:SpecifiedTradeSettlementHeaderMonetarySummation>
-        <ram:LineTotalAmount>${ht}</ram:LineTotalAmount>
-        <ram:TaxBasisTotalAmount>${ht}</ram:TaxBasisTotalAmount>
-        <ram:TaxTotalAmount currencyID="${esc(currency)}">${tva}</ram:TaxTotalAmount>
-        <ram:GrandTotalAmount>${ttc}</ram:GrandTotalAmount>
-        <ram:DuePayableAmount>${ttc}</ram:DuePayableAmount>
+        <ram:LineTotalAmount>${amt(lineTotal)}</ram:LineTotalAmount>
+        <ram:TaxBasisTotalAmount>${amt(lineTotal)}</ram:TaxBasisTotalAmount>
+        <ram:TaxTotalAmount currencyID="${esc(currency)}">${amt(taxTotal)}</ram:TaxTotalAmount>
+        <ram:GrandTotalAmount>${amt(grandTotal)}</ram:GrandTotalAmount>
+        <ram:DuePayableAmount>${amt(grandTotal)}</ram:DuePayableAmount>
       </ram:SpecifiedTradeSettlementHeaderMonetarySummation>
     </ram:ApplicableHeaderTradeSettlement>
   </rsm:SupplyChainTradeTransaction>
 </rsm:CrossIndustryInvoice>`;
+}
+
+/** Construit un bloc PostalTradeAddress (indenté 8 espaces). */
+function addressBlock({ line, cp, ville, country }) {
+  const parts = ["        <ram:PostalTradeAddress>"];
+  if (cp) parts.push(`          <ram:PostcodeCode>${esc(cp)}</ram:PostcodeCode>`);
+  if (line) parts.push(`          <ram:LineOne>${esc(line)}</ram:LineOne>`);
+  if (ville) parts.push(`          <ram:CityName>${esc(ville)}</ram:CityName>`);
+  parts.push(`          <ram:CountryID>${esc(country)}</ram:CountryID>`);
+  parts.push("        </ram:PostalTradeAddress>");
+  return parts.join("\n");
 }
 
 export { PROFILE_ID };

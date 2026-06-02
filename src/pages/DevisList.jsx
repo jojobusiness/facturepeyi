@@ -112,10 +112,16 @@ export default function DevisList() {
       ...devisItem,
       clientNom: clientData.nom || devisItem.clientNom || "Client inconnu",
       clientAdresse: clientData.adresse || "",
+      clientCodePostal: clientData.codePostal || "",
+      clientVille: clientData.ville || "",
       clientEmail: clientData.email || devisItem.clientEmail || "",
       entrepriseNom: entreprise?.nom || "Nom Entreprise",
-      entrepriseSiret: entreprise?.siret || "SIRET inconnu",
+      entrepriseSiret: entreprise?.siret || "",
       entrepriseAdresse: entreprise?.adresse || "",
+      entrepriseCodePostal: entreprise?.codePostal || "",
+      entrepriseVille: entreprise?.ville || "",
+      entrepriseTel: entreprise?.telephone || "",
+      entrepriseEmail: entreprise?.emailContact || "",
       logoDataUrl,
     };
   }
