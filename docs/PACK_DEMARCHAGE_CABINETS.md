@@ -14,19 +14,22 @@
 |---|---|---|
 | Conformité fiscale DOM native | ✅ Livré | TVA 8,5 % / 2,1 %, octroi de mer, mentions art. 294 / 293 B, par territoire, automatiques |
 | Export comptable FEC | ✅ Livré | FEC conforme A.47 A-1 LPF (mois + année), TVA séparée, intégrable dans son logiciel |
-| Génération Factur-X | ✅ Livré | XML CII **EN 16931 profil BASIC** embarqué dans chaque PDF de facture |
-| Certification PDF/A-3b + raccordement PDP | 🔶 En cours | « Le format structuré est généré ; la validation PDP est en cours de raccordement » |
+| Génération Factur-X | ✅ Livré + **validé** | PDF **Factur-X PDF/A-3b** (XML CII EN 16931 BASIC embarqué) — **validé veraPDF : 1623 checks OK, 0 échec** |
+| Factures multi-lignes | ✅ Livré | Lignes détaillées (qté, PU, TVA par ligne), ventilation TVA par taux |
+| Export comptable FEC | ✅ Livré | FEC conforme A.47 A-1 LPF (mois + année), TVA séparée, intégrable dans son logiciel |
+| Raccordement PDP | 🔶 En cours | « Format structuré validé ; raccordement à une PDP agréée en cours via partenaire » |
 | Accès cabinet collaboratif | ✅ Livré | Vue multi-entreprises, le cabinet gère plusieurs clients depuis un compte |
 | Commission prescripteur | ✅ Livré | 25 % récurrent par client recommandé, suivi en temps réel dans l'app |
 
 **Phrase de conformité validée (à dire telle quelle) :**
-> « Factur'Peyi génère déjà les factures au format Factur-X — le XML structuré EN 16931 est embarqué dans le PDF.
-> On finalise le raccordement à une plateforme de dématérialisation partenaire pour l'échéance 2026-2027. »
+> « Factur'Peyi génère déjà des factures au format **Factur-X, validé PDF/A-3b** (la norme officielle de la
+> facture électronique) — le XML structuré EN 16931 est embarqué dans chaque PDF. On finalise le raccordement
+> à une PDP agréée pour le routage, via un partenaire, d'ici l'échéance 2026-2027. »
 
-Si on te demande « vous êtes raccordés à quelle PDP ? » → réponse honnête :
-> « Le raccordement PDP est notre chantier en cours ce trimestre. Ce qui est déjà en place, c'est la donnée
-> structurée Factur-X conforme EN 16931 — la partie la plus technique. Le raccordement, c'est de la
-> plomberie d'API par-dessus. »
+Si on te demande « vous êtes raccordés à quelle PDP ? » → réponse honnête et solide :
+> « Le format Factur-X est déjà produit et validé conforme — c'est la partie technique difficile. Le
+> raccordement PDP, on le fait via un partenaire agréé (opérateur de dématérialisation), c'est en cours ce
+> trimestre. Donc dès la bascule 2026-2027, vos clients seront prêts. »
 
 ---
 
@@ -107,6 +110,32 @@ La douleur d'un cabinet DOM : ses clients ultramarins lui envoient des **facture
 
 ---
 
+## 6 bis. L'offre cabinet (structure de closing)
+
+Deux niveaux à bien distinguer pour ne pas brouiller le message :
+
+**Niveau 1 — Prescription (toujours gratuit, le hook).**
+Le cabinet ne paie rien, recommande, touche 25 % récurrent. C'est l'entrée sans risque.
+
+**Niveau 2 — Plan Cabinet (99,99 €/mois) avec offre de lancement.**
+Pour les cabinets qui veulent gérer eux-mêmes la facturation/compta de leurs clients (mode multi-entreprises) :
+- **2 mois offerts en test** — ils essaient en conditions réelles, sans payer.
+- À l'issue des 2 mois, le plan Cabinet est facturé normalement (99,99 €/mois ou 999 €/an).
+- **Les commissions de prescription tournent dès le jour 1, y compris pendant les 2 mois gratuits** — le cabinet peut donc *déjà gagner de l'argent avant même de payer quoi que ce soit*.
+
+**Pourquoi c'est malin (et pourquoi on s'en fiche de "donner" les com des 2 mois) :**
+Le coût réel pour nous des commissions pendant 2 mois est dérisoire vs la valeur d'un cabinet activé
+(des dizaines d'abonnements clients récurrents). On prend notre part sur le volume clients ; lui voit qu'il
+gagne avant de payer → bascule psychologique. **Argument de closing :**
+> « Je vous offre 2 mois du plan Cabinet pour tester en vrai. Et pendant ces 2 mois, vos commissions sur
+> les clients que vous recommandez, vous les gardez quand même. Concrètement : vous pouvez être *bénéficiaire
+> avant d'avoir payé le premier euro*. »
+
+⚠️ Implémentation à faire côté produit : aujourd'hui le plan Cabinet n'a pas de période d'essai automatique
+de 2 mois câblée dans Stripe — à créer (coupon/trial 60 j sur le price Cabinet) avant de promettre l'offre à grande échelle.
+
+---
+
 ## 7. Cibles prioritaires
 
 - Cabinets **Martinique / Guadeloupe / Guyane / Réunion** (TVA spécifique = douleur maximale).
@@ -119,7 +148,8 @@ La douleur d'un cabinet DOM : ses clients ultramarins lui envoient des **facture
 
 ## 8. À faire avant d'industrialiser le démarchage
 
-- [ ] Finaliser le raccordement PDP (le seul vrai trou de conformité restant).
-- [ ] Valider le Factur-X généré avec un validateur tiers (Mustang / FNFE-MPE) avant de dire « certifié ».
+- [x] ~~Valider le Factur-X avec un validateur tiers~~ → **fait : veraPDF Passed, 1623/0** (02/06/2026).
+- [ ] Finaliser le raccordement PDP (dernier trou de conformité — voir `docs/PDP_SHORTLIST.md`).
+- [ ] Câbler l'essai 2 mois du plan Cabinet dans Stripe (trial 60 j / coupon).
 - [ ] Versement automatisé des commissions (aujourd'hui : suivi dans l'app, versement à organiser hors-bande).
 - [ ] One-pager PDF/print à laisser au cabinet (peut être généré depuis ce document sur demande).
