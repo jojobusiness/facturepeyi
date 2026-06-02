@@ -325,9 +325,13 @@ export default function Forfaits() {
               {isAnnual ? "999€" : "99,99€"}
               <span className="text-indigo-200 text-base font-semibold">{isAnnual ? "/an" : "/mois"}</span>
             </h2>
+            <span className="inline-block bg-emerald-400/20 text-emerald-200 text-xs font-bold px-2.5 py-1 rounded-full mb-2">
+              2 mois offerts — sans engagement
+            </span>
             <p className="text-indigo-100 text-sm max-w-lg">
               Pour les experts-comptables : gérez la facturation de tous vos clients DOM-TOM depuis un seul compte,
               chacun avec sa TVA et ses mentions légales. Entreprises clientes illimitées.
+              <span className="block mt-1 text-indigo-200">Essai gratuit 2 mois, puis {isAnnual ? "999€/an" : "99,99€/mois"}. Vos commissions de prescription comptent dès le 1ᵉʳ jour.</span>
             </p>
           </div>
           <button
