@@ -4,9 +4,9 @@
 export const TERRITORIES = {
   martinique:        { label: "Martinique",               flag: "🇲🇶", tvaRate: 8.5,  octroiDeMer: true,  mentionLegale: "" },
   guadeloupe:        { label: "Guadeloupe",               flag: "🇬🇵", tvaRate: 8.5,  octroiDeMer: true,  mentionLegale: "" },
-  guyane:            { label: "Guyane française",         flag: "🇬🇫", tvaRate: 0,    octroiDeMer: false, mentionLegale: "TVA non applicable - article 294 du CGI" },
+  guyane:            { label: "Guyane française",         flag: "🇬🇫", tvaRate: 0,    octroiDeMer: true,  mentionLegale: "TVA non applicable - article 294 du CGI" },
   reunion:           { label: "La Réunion",               flag: "🇷🇪", tvaRate: 8.5,  octroiDeMer: true,  mentionLegale: "" },
-  mayotte:           { label: "Mayotte",                  flag: "🇾🇹", tvaRate: 0,    octroiDeMer: false, mentionLegale: "TVA non applicable - article 294 du CGI" },
+  mayotte:           { label: "Mayotte",                  flag: "🇾🇹", tvaRate: 0,    octroiDeMer: true,  mentionLegale: "TVA non applicable - article 294 du CGI" },
   saintmartin:       { label: "Saint-Martin",             flag: "🇸🇽", tvaRate: 8.5,  octroiDeMer: false, mentionLegale: "" },
   saintbarth:        { label: "Saint-Barthélemy",         flag: "🇧🇱", tvaRate: 0,    octroiDeMer: false, mentionLegale: "TVA non applicable - article 294 du CGI" },
   saintpierre:       { label: "Saint-Pierre-et-Miquelon", flag: "🇵🇲", tvaRate: 0,    octroiDeMer: false, mentionLegale: "TVA non applicable - article 294 du CGI" },
