@@ -6,6 +6,9 @@ import { auth, db } from "../lib/firebase";
 import { TERRITORIES, REGIMES, getTvaRate, getMentionLegale } from "../lib/territories";
 import { FaCheckCircle, FaArrowRight, FaArrowLeft } from "react-icons/fa";
 
+// Pionnier : après l'inscription, rebond direct vers le checkout Stripe (paiement unique 199€)
+const PIONNIER_PRICE_ID = "price_1TdcJZIck4iMBRE9KizjlK9I";
+
 export default function Inscription() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -38,13 +41,14 @@ export default function Inscription() {
     }
   }, [location.state, navigate]);
 
-  // Rediriger si déjà connecté
+  // Rediriger si déjà connecté (sauf flux Pionnier : on enchaîne vers le paiement)
   useEffect(() => {
+    if (location.state?.fromPionnier) return;
     const unsub = onAuthStateChanged(auth, (user) => {
       if (user) navigate("/dashboard");
     });
     return () => unsub();
-  }, [navigate]);
+  }, [navigate, location.state]);
 
   const handleStep1 = (e) => {
     e.preventDefault();
@@ -118,6 +122,28 @@ export default function Inscription() {
         entrepriseId,
         uid: user.uid,
       });
+
+      // Flux Pionnier : enchaîner directement sur le paiement Stripe (199€ une fois)
+      if (state.fromPionnier) {
+        try {
+          const token = await user.getIdToken();
+          const res = await fetch("/api/stripe-checkout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ priceId: PIONNIER_PRICE_ID, planId: "pionnier" }),
+          });
+          const data = await res.json();
+          if (data.url) {
+            window.location = data.url;
+            return;
+          }
+        } catch (checkoutErr) {
+          console.error("Checkout Pionnier:", checkoutErr);
+        }
+        // Repli : retour aux forfaits — le bandeau Pionnier relance le paiement en 1 clic
+        navigate("/Forfaits");
+        return;
+      }
 
       navigate("/dashboard");
     } catch (err) {
