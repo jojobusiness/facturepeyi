@@ -146,7 +146,16 @@ const startTrial = () => {
 - `src/pages/PaiementSuccess.jsx` : `Purchase` avec **montant réel** (jamais hardcodé 199€), tiré une seule fois (`useRef`).
 - `src/pages/FacturationElectronique2026.jsx` : landing complète. Hero adaptatif `?angle=reforme|domtom` (chaque créa pointe sur SA promesse), capture `?ref=` (préserve la prescription 25%), `Lead` au clic CTA, barre CTA collante mobile, FAQ JSON-LD, SEO Helmet.
 - **Correction vs tuto d'origine** : Purchase = montant réel via endpoint existant `get-session-info` (pas de hardcode), et `ref` transmis depuis la landing.
-- **Reste avant de dépenser** : (1) Théo → Pixel ID + accès Business Manager ; (2) remplacer `TON_PIXEL_ID` (2 occurrences `index.html`) ; (3) CMP/consentement CNIL avant de monter le budget ; (4) vérifier le domaine Meta + moyen de paiement.
+- **Reste avant de dépenser** : (1) ✅ Pixel ID `902547262470626` posé (14/06) ; (2) ✅ CMP/consentement CNIL livré (14/06, voir ci-dessous) ; (3) Théo → vérifier pixel dans Test Events + domaine Meta vérifié + moyen de paiement actif.
+
+## ✅ Livré 14/06/2026 — Pixel ID + bandeau consentement CNIL (commit à suivre)
+- Pixel `902547262470626` intégré, puis **chargement rendu conditionnel** (conformité CNIL).
+- `src/lib/pixel.js` : `loadPixel()` injecte fbevents.js + init + PageView **uniquement après consentement** ; `getConsent/grantConsent/denyConsent/initConsent` (localStorage `fp_cookie_consent`).
+- `src/components/ConsentBanner.jsx` : bandeau « Refuser / Tout accepter » (poids égal), monté dans App.jsx. Rien n'est chargé avant « Tout accepter ».
+- `index.html` : pixel auto-déclenché **retiré** (plus aucun traceur au chargement).
+- `PixelTracker.jsx` : saute le 1er PageView (déjà envoyé par loadPixel) → pas de double comptage.
+- `src/pages/Cookies.jsx` : pixel Meta ajouté à la liste + section « Gérer mon consentement » (accepter/refuser/retirer, retrait = reload pour stopper le pixel en cours).
+- Build + lint verts.
 
 ---
 
