@@ -23,6 +23,9 @@ export default async function handler(req, res) {
       stripeSubscriptionId: typeof session.subscription === "string"
         ? session.subscription
         : session.subscription?.id,
+      // Montant réel encaissé → utilisé pour l'event Purchase du pixel Meta (pas de hardcode)
+      amountTotal: session.amount_total != null ? session.amount_total / 100 : null,
+      currency: (session.currency || "eur").toUpperCase(),
     });
   } catch (err) {
     console.error("get-session-info error:", err);

@@ -666,6 +666,7 @@ export default function Home() {
             <ul className="space-y-2 text-gray-500">
               <li><a href="#fonctionnalites" className="hover:text-white transition">Fonctionnalités</a></li>
               <li><a href="#tarifs" className="hover:text-white transition">Tarifs</a></li>
+              <li><Link to="/facturation-electronique-2026" className="hover:text-white transition">Facturation électronique 2026</Link></li>
               <li><Link to="/Forfaits" className="hover:text-white transition">Commencer</Link></li>
               <li><Link to="/login" className="hover:text-white transition">Se connecter</Link></li>
             </ul>

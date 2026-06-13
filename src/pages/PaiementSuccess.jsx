@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function PaiementSuccess() {
   const location = useLocation();
@@ -10,6 +10,7 @@ export default function PaiementSuccess() {
   const [loading, setLoading] = useState(true);
   const [sessionInfo, setSessionInfo] = useState(null);
   const [error, setError] = useState(false);
+  const purchaseFired = useRef(false);
 
   useEffect(() => {
     if (!sessionId) {
@@ -37,6 +38,22 @@ export default function PaiementSuccess() {
       return () => clearTimeout(timer);
     }
   }, [error, navigate]);
+
+  // Pixel Meta : Purchase avec le MONTANT RÉEL (jamais hardcodé), une seule fois.
+  // La page n'est atteinte que si le paiement Stripe a réussi.
+  useEffect(() => {
+    if (sessionInfo && !purchaseFired.current && typeof window !== "undefined" && typeof window.fbq === "function") {
+      purchaseFired.current = true;
+      const value = sessionInfo.amountTotal;
+      if (value != null) {
+        window.fbq("track", "Purchase", {
+          value,
+          currency: sessionInfo.currency || "EUR",
+          content_name: sessionInfo.planId || undefined,
+        });
+      }
+    }
+  }, [sessionInfo]);
 
   if (loading) {
     return (

@@ -123,6 +123,12 @@ export default function Inscription() {
         uid: user.uid,
       });
 
+      // Pixel Meta : essai gratuit créé → event d'optimisation de la pub froide.
+      // (Le flux payant/Pionnier déclenche Purchase plus loin, sur /paiement/success.)
+      if (!isPaid && typeof window !== "undefined" && typeof window.fbq === "function") {
+        window.fbq("track", "CompleteRegistration", { content_name: "trial" });
+      }
+
       // Flux Pionnier : enchaîner directement sur le paiement Stripe (199€ une fois)
       if (state.fromPionnier) {
         try {

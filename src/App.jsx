@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 
 import Home from './pages/Home';
 import TerritoirePage from './pages/TerritoirePage';
+import FacturationElectronique2026 from './pages/FacturationElectronique2026';
+import PixelTracker from './components/PixelTracker';
 import Login from './pages/Login';
 import Conditions from './pages/Conditions';
 import CGV from './pages/CGV';
@@ -62,8 +64,14 @@ import MonAbonnement from './pages/MonAbonnement';
 
 export default function App() {
   return (
-    <Routes>
+    <>
+      <PixelTracker />
+      <Routes>
       <Route path="/" element={<Home />} />
+
+      {/* Landing dédiée pub froide Meta + actif SEO (réforme 2026 + DOM-TOM) */}
+      <Route path="/facturation-electronique-2026" element={<FacturationElectronique2026 />} />
+      <Route path="/essai-gratuit" element={<FacturationElectronique2026 />} />
 
       {/* Pages SEO par territoire DOM-TOM */}
       <Route path="/martinique" element={<TerritoirePage />} />
@@ -172,6 +180,7 @@ export default function App() {
 
       {/* Redirection inconnue */}
       <Route path="*" element={<Navigate to="/" />} />
-    </Routes>
+      </Routes>
+    </>
   );
 }
