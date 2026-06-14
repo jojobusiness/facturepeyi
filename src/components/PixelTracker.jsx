@@ -1,16 +1,16 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
+import { loadPixel } from "../lib/pixel";
 
-// Suit les changements de route (SPA) pour envoyer un PageView à chaque navigation.
-// Le tout 1er PageView est déjà envoyé par loadPixel() au moment du consentement,
-// donc on saute le premier passage pour ne pas le compter deux fois.
-// Si l'utilisateur n'a pas consenti, window.fbq n'existe pas → aucun event (no-op).
+// Charge le pixel au démarrage (1er run → loadPixel envoie le 1er PageView),
+// puis envoie un PageView à chaque changement de route (SPA).
 export default function PixelTracker() {
   const location = useLocation();
   const firstRun = useRef(true);
   useEffect(() => {
     if (firstRun.current) {
       firstRun.current = false;
+      loadPixel(); // envoie le PageView initial
       return;
     }
     if (typeof window !== "undefined" && typeof window.fbq === "function") {

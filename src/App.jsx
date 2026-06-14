@@ -4,7 +4,6 @@ import Home from './pages/Home';
 import TerritoirePage from './pages/TerritoirePage';
 import FacturationElectronique2026 from './pages/FacturationElectronique2026';
 import PixelTracker from './components/PixelTracker';
-import ConsentBanner from './components/ConsentBanner';
 import Login from './pages/Login';
 import Conditions from './pages/Conditions';
 import CGV from './pages/CGV';
@@ -67,7 +66,6 @@ export default function App() {
   return (
     <>
       <PixelTracker />
-      <ConsentBanner />
       <Routes>
       <Route path="/" element={<Home />} />
 

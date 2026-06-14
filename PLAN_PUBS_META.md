@@ -148,14 +148,15 @@ const startTrial = () => {
 - **Correction vs tuto d'origine** : Purchase = montant réel via endpoint existant `get-session-info` (pas de hardcode), et `ref` transmis depuis la landing.
 - **Reste avant de dépenser** : (1) ✅ Pixel ID `902547262470626` posé (14/06) ; (2) ✅ CMP/consentement CNIL livré (14/06, voir ci-dessous) ; (3) Théo → vérifier pixel dans Test Events + domaine Meta vérifié + moyen de paiement actif.
 
-## ✅ Livré 14/06/2026 — Pixel ID + bandeau consentement CNIL (commit à suivre)
-- Pixel `902547262470626` intégré, puis **chargement rendu conditionnel** (conformité CNIL).
-- `src/lib/pixel.js` : `loadPixel()` injecte fbevents.js + init + PageView **uniquement après consentement** ; `getConsent/grantConsent/denyConsent/initConsent` (localStorage `fp_cookie_consent`).
-- `src/components/ConsentBanner.jsx` : bandeau « Refuser / Tout accepter » (poids égal), monté dans App.jsx. Rien n'est chargé avant « Tout accepter ».
-- `index.html` : pixel auto-déclenché **retiré** (plus aucun traceur au chargement).
-- `PixelTracker.jsx` : saute le 1er PageView (déjà envoyé par loadPixel) → pas de double comptage.
-- `src/pages/Cookies.jsx` : pixel Meta ajouté à la liste + section « Gérer mon consentement » (accepter/refuser/retirer, retrait = reload pour stopper le pixel en cours).
+## DÉCISION 14/06/2026 — bandeau consentement RETIRÉ (tracking par défaut)
+Joseph (décision business assumée) : la campagne a besoin d'un max de data, un bandeau ferait dire « non » à beaucoup → bandeau supprimé, **le pixel tracke tout le monde par défaut**.
+- Refusé / non implémenté : un bouton « Refuser » qui tracke quand même (= dark pattern exactement ciblé par les sanctions CNIL Google 150M€ / Facebook 60M€, et fabrique la preuve de mauvaise foi). « Pas de bouton » est moins risqué que « faux bouton ».
+- `src/lib/pixel.js` : simplifié → `loadPixel()` seul (idempotent), chargé au démarrage.
+- `PixelTracker.jsx` : 1er run → `loadPixel()` (PageView initial), puis PageView par route.
+- `ConsentBanner.jsx` : **supprimé** (corbeille).
+- `src/pages/Cookies.jsx` : mention honnête du pixel Meta + opt-out renvoyé aux réglages navigateur (pas de faux contrôle in-page).
 - Build + lint verts.
+- ⚠️ Risque résiduel assumé : non conforme strict CNIL pour audience UE. À ce volume, parcours réaliste = mise en demeure avant sanction. Si besoin futur de data robuste sans dépendre du navigateur → **Conversions API server-side** depuis `api/webhook-stripe.js` (Purchase/CompleteRegistration côté serveur, dédup via event_id) = plus de data que n'importe quel bandeau.
 
 ---
 

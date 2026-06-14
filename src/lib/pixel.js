@@ -1,23 +1,11 @@
-// Chargement CONDITIONNEL du Pixel Meta.
-// Règle CNIL : aucun traceur publicitaire n'est injecté ni déclenché avant le
-// consentement explicite de l'utilisateur. Le script fbevents.js n'est chargé
-// qu'après un "Accepter" (pas au chargement de la page).
+// Chargement du Pixel Meta. Chargé une fois au démarrage de l'app (loadPixel
+// est idempotent). Les events (Lead, CompleteRegistration, Purchase) vérifient
+// window.fbq avant de tirer, donc ils no-op tant que le pixel n'est pas prêt.
 
 const PIXEL_ID = "902547262470626";
-const STORAGE_KEY = "fp_cookie_consent"; // "granted" | "denied" | null
-
-export function getConsent() {
-  if (typeof window === "undefined") return null;
-  try {
-    return localStorage.getItem(STORAGE_KEY);
-  } catch {
-    return null;
-  }
-}
 
 let pixelLoaded = false;
 
-// Injecte le bootstrap Meta + envoie le 1er PageView. Idempotent.
 export function loadPixel() {
   if (typeof window === "undefined" || pixelLoaded) return;
   if (window.fbq) {
@@ -43,28 +31,4 @@ export function loadPixel() {
   window.fbq("init", PIXEL_ID);
   window.fbq("track", "PageView");
   pixelLoaded = true;
-}
-
-export function grantConsent() {
-  try {
-    localStorage.setItem(STORAGE_KEY, "granted");
-  } catch {
-    /* stockage indisponible : on charge quand même pour la session */
-  }
-  loadPixel();
-}
-
-export function denyConsent() {
-  try {
-    localStorage.setItem(STORAGE_KEY, "denied");
-  } catch {
-    /* no-op */
-  }
-  // Si le pixel a déjà été chargé dans la session (retrait après coup), il faut
-  // recharger la page pour réellement le stopper — géré par l'appelant (Cookies.jsx).
-}
-
-// À appeler au démarrage de l'app : recharge le pixel si l'utilisateur avait déjà accepté.
-export function initConsent() {
-  if (getConsent() === "granted") loadPixel();
 }
