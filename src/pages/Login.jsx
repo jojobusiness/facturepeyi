@@ -1,12 +1,15 @@
-import { auth } from "../lib/firebase";
+import { auth, db } from "../lib/firebase";
 import { useNavigate, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { signInWithGoogle, consumeGoogleRedirect } from "../lib/googleAuth";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -16,6 +19,40 @@ export default function Login() {
     });
     return () => unsubscribe();
   }, [navigate]);
+
+  // Aiguillage après authentification Google : si l'utilisateur a déjà une
+  // entreprise → dashboard. Sinon (premier login Google) → onboarding entreprise.
+  const routeAfterGoogle = async (user) => {
+    if (!user) return;
+    const snap = await getDoc(doc(db, "utilisateurs", user.uid));
+    if (snap.exists() && snap.data()?.entrepriseId) {
+      navigate("/dashboard", { replace: true });
+    } else {
+      // Compte Google neuf : finir l'onboarding (territoire/régime) en essai gratuit.
+      navigate("/Inscription", { replace: true, state: { trialOk: true, googleOk: true } });
+    }
+  };
+
+  // Retour d'un fallback redirect (mobile / popup bloquée)
+  useEffect(() => {
+    consumeGoogleRedirect().then((u) => { if (u) routeAfterGoogle(u); });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleGoogle = async () => {
+    setGoogleLoading(true);
+    setError("");
+    try {
+      const u = await signInWithGoogle();
+      if (u) await routeAfterGoogle(u); // null => redirect déclenché, la page va naviguer
+    } catch (e) {
+      if (e?.code !== "auth/popup-closed-by-user" && e?.code !== "auth/cancelled-popup-request") {
+        setError("Connexion Google impossible. Réessayez.");
+      }
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,6 +86,20 @@ export default function Login() {
               {error}
             </div>
           )}
+
+          <button
+            type="button"
+            onClick={handleGoogle}
+            disabled={googleLoading}
+            className="w-full flex items-center justify-center gap-2 border border-gray-200 rounded-xl py-3 font-semibold text-gray-700 hover:bg-gray-50 transition disabled:opacity-60"
+          >
+            <img src="/google-icon.svg" alt="" className="h-5 w-5" />
+            {googleLoading ? "Connexion…" : "Continuer avec Google"}
+          </button>
+
+          <div className="flex items-center gap-3 my-5 text-xs text-gray-400">
+            <span className="flex-1 h-px bg-gray-200" /> ou par email <span className="flex-1 h-px bg-gray-200" />
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>

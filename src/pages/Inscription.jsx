@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, setDoc, addDoc, collection, serverTimestamp, Timestamp } from "firebase/firestore";
 import { auth, db } from "../lib/firebase";
+import { signInWithGoogle, consumeGoogleRedirect } from "../lib/googleAuth";
 import { TERRITORIES, REGIMES, getTvaRate, getMentionLegale } from "../lib/territories";
 import { FaCheckCircle, FaArrowRight, FaArrowLeft } from "react-icons/fa";
 import { track, identifyUser, EVENTS } from "../lib/analytics";
@@ -17,7 +18,14 @@ export default function Inscription() {
   // Étape courante du formulaire
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Authentifié via Google → compte déjà créé, on saute la création email/mdp.
+  const [googleAuth, setGoogleAuth] = useState(false);
+  // Empêche le guard "déjà connecté → /dashboard" de tirer pendant le flux Google
+  // (le user Google neuf doit RESTER pour finir l'onboarding entreprise).
+  const googleFlowRef = useRef(!!location.state?.googleOk);
 
   // Étape 1 — Compte
   const [nom, setNom] = useState("");
@@ -34,18 +42,34 @@ export default function Inscription() {
   const mentionLegale = getMentionLegale(territoire, regime);
   const octroiDeMer = TERRITORIES[territoire]?.octroiDeMer ?? false;
 
-  // Bloquer l'accès direct sans paiement ou essai
+  // Bloquer l'accès direct sans paiement ou essai (googleOk = onboarding Google autorisé)
   useEffect(() => {
     const state = location.state;
-    if (!state || (!state.paymentOk && !state.trialOk)) {
+    if (!state || (!state.paymentOk && !state.trialOk && !state.googleOk)) {
       navigate("/", { replace: true });
     }
   }, [location.state, navigate]);
 
-  // Rediriger si déjà connecté (sauf flux Pionnier : on enchaîne vers le paiement)
+  // Flux Google venu du Login : compte déjà authentifié, on va directement à
+  // l'étape entreprise (préremplissage nom/email depuis le profil Google).
+  useEffect(() => {
+    if (!location.state?.googleOk) return;
+    const finishGoogle = (u) => {
+      if (!u) return;
+      setNom((n) => n || u.displayName || "");
+      setEmail((e) => e || u.email || "");
+      setGoogleAuth(true);
+      setStep(2);
+    };
+    if (auth.currentUser) finishGoogle(auth.currentUser);
+    else consumeGoogleRedirect().then(finishGoogle); // retour fallback redirect mobile
+  }, [location.state]);
+
+  // Rediriger si déjà connecté (sauf flux Pionnier ou flux Google en cours)
   useEffect(() => {
     if (location.state?.fromPionnier) return;
     const unsub = onAuthStateChanged(auth, (user) => {
+      if (googleFlowRef.current) return; // onboarding Google : ne pas couper
       if (user) navigate("/dashboard");
     });
     return () => unsub();
@@ -61,12 +85,38 @@ export default function Inscription() {
     setStep(2);
   };
 
+  // Inscription via Google : authentifie, préremplit, puis passe à l'étape entreprise.
+  const handleGoogleSignup = async () => {
+    setError("");
+    setGoogleLoading(true);
+    googleFlowRef.current = true; // bloque le guard "déjà connecté" déclenché par le login
+    try {
+      const u = await signInWithGoogle();
+      if (u) {
+        setNom((n) => n || u.displayName || "");
+        setEmail(u.email || "");
+        setGoogleAuth(true);
+        setStep(2);
+      }
+      // u === null : un redirect a été déclenché, la page reviendra et l'effet
+      // googleOk reprendra la main (state propagé ci-dessous).
+    } catch (e) {
+      googleFlowRef.current = false;
+      if (e?.code !== "auth/popup-closed-by-user" && e?.code !== "auth/cancelled-popup-request") {
+        setError("Connexion Google impossible. Réessayez.");
+      }
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
     try {
-      if (auth.currentUser) await signOut(auth);
+      // En flux Google le compte est déjà authentifié → ne pas le déconnecter.
+      if (auth.currentUser && !googleAuth) await signOut(auth);
 
       const state = location.state || {};
       const isPaid = !!state.paymentOk;
@@ -86,8 +136,18 @@ export default function Inscription() {
 
       const referredBy = state.ref || null;
 
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
-      const user = cred.user;
+      let user;
+      if (googleAuth) {
+        user = auth.currentUser;
+        if (!user) {
+          setError("Session Google expirée. Reconnectez-vous.");
+          setLoading(false);
+          return;
+        }
+      } else {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        user = cred.user;
+      }
 
       // Créer le document entreprise avec toute la config fiscale + plan
       const entrepriseRef = await addDoc(collection(db, "entreprises"), {
@@ -197,6 +257,20 @@ export default function Inscription() {
             <div>
               <h1 className="text-xl font-bold text-[#0d1b3e]">Créez votre compte</h1>
               <p className="text-sm text-gray-500 mt-1">Étape 1 sur 2 — Vos identifiants</p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGoogleSignup}
+              disabled={googleLoading}
+              className="w-full flex items-center justify-center gap-2 border border-gray-200 rounded-xl py-3 font-semibold text-gray-700 hover:bg-gray-50 transition disabled:opacity-60"
+            >
+              <img src="/google-icon.svg" alt="" className="h-5 w-5" />
+              {googleLoading ? "Connexion…" : "Continuer avec Google"}
+            </button>
+
+            <div className="flex items-center gap-3 text-xs text-gray-400">
+              <span className="flex-1 h-px bg-gray-200" /> ou par email <span className="flex-1 h-px bg-gray-200" />
             </div>
 
             <div>
