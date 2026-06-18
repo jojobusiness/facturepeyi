@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { auth, db, storage } from "../lib/firebase";
 import { doc, setDoc, deleteDoc, writeBatch, collection, getDocs, query, where } from "firebase/firestore";
-import { EmailAuthProvider, sendPasswordResetEmail, reauthenticateWithCredential, deleteUser } from "firebase/auth";
+import { EmailAuthProvider, GoogleAuthProvider, sendPasswordResetEmail, reauthenticateWithCredential, reauthenticateWithPopup, deleteUser } from "firebase/auth";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -138,11 +138,18 @@ export default function Settings() {
 
   const handleDeleteAccount = async () => {
     if (!window.confirm("Cette action est irréversible. Supprimer votre compte ?")) return;
-    const password = prompt("Entrez votre mot de passe pour confirmer :");
-    if (!password) return;
+    // Réauthentification requise par Firebase avant suppression. Selon le mode de
+    // connexion : popup Google pour les comptes Google, mot de passe sinon.
+    const isGoogle = user?.providerData?.some((p) => p.providerId === "google.com");
     try {
-      const credential = EmailAuthProvider.credential(user.email, password);
-      await reauthenticateWithCredential(user, credential);
+      if (isGoogle) {
+        await reauthenticateWithPopup(user, new GoogleAuthProvider());
+      } else {
+        const password = prompt("Entrez votre mot de passe pour confirmer :");
+        if (!password) return;
+        const credential = EmailAuthProvider.credential(user.email, password);
+        await reauthenticateWithCredential(user, credential);
+      }
       if (isAdmin && entrepriseId) {
         const batch = writeBatch(db);
         for (const col of ["factures", "depenses", "clients", "membres", "categories", "devis", "recurrences"]) {

@@ -5,6 +5,7 @@ import TerritoirePage from './pages/TerritoirePage';
 import FacturationElectronique2026 from './pages/FacturationElectronique2026';
 import PixelTracker from './components/PixelTracker';
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
 import Conditions from './pages/Conditions';
 import CGV from './pages/CGV';
 import Confidentialite from './pages/Confidentialite';
@@ -87,6 +88,7 @@ export default function App() {
       <Route path="/wallis-et-futuna" element={<TerritoirePage />} />
 
       <Route path="/login" element={<Login />} />
+      <Route path="/mot-de-passe-oublie" element={<ForgotPassword />} />
       <Route path="/Inscription" element={<Inscription />} />
       <Route path="/Forfaits" element={<Forfaits />} />
       <Route path="/remboursement" element={<Remboursement />} />

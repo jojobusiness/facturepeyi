@@ -5,7 +5,7 @@ import { doc, setDoc, addDoc, collection, serverTimestamp, Timestamp } from "fir
 import { auth, db } from "../lib/firebase";
 import { signInWithGoogle, consumeGoogleRedirect } from "../lib/googleAuth";
 import { TERRITORIES, REGIMES, getTvaRate, getMentionLegale } from "../lib/territories";
-import { FaCheckCircle, FaArrowRight, FaArrowLeft } from "react-icons/fa";
+import { FaCheckCircle, FaArrowRight, FaArrowLeft, FaEye, FaEyeSlash } from "react-icons/fa";
 import { track, identifyUser, EVENTS } from "../lib/analytics";
 
 // Pionnier : après l'inscription, rebond direct vers le checkout Stripe (paiement unique 199€)
@@ -19,6 +19,7 @@ export default function Inscription() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
   // Authentifié via Google → compte déjà créé, on saute la création email/mdp.
@@ -297,14 +298,25 @@ export default function Inscription() {
             </div>
             <div>
               <label className="text-xs font-semibold text-gray-600 block mb-1">Mot de passe</label>
-              <input
-                type="password"
-                required
-                placeholder="Minimum 6 caractères"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  placeholder="Minimum 6 caractères"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-11 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Masquer le mot de passe" : "Voir le mot de passe"}
+                >
+                  {showPassword ? <FaEyeSlash className="w-4 h-4" /> : <FaEye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
             {error && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{error}</p>}

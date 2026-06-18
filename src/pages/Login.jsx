@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { signInWithGoogle, consumeGoogleRedirect } from "../lib/googleAuth";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -116,14 +118,30 @@ export default function Login() {
 
             <div>
               <label className="text-xs font-semibold text-gray-600 block mb-1">Mot de passe</label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-11 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Masquer le mot de passe" : "Voir le mot de passe"}
+                >
+                  {showPassword ? <FaEyeSlash className="w-4 h-4" /> : <FaEye className="w-4 h-4" />}
+                </button>
+              </div>
+              <div className="mt-1.5 text-right">
+                <Link to="/mot-de-passe-oublie" className="text-xs text-emerald-600 font-semibold hover:underline">
+                  Mot de passe oublié ?
+                </Link>
+              </div>
             </div>
 
             <button
