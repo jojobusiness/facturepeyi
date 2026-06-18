@@ -5,6 +5,7 @@ import { doc, setDoc, addDoc, collection, serverTimestamp, Timestamp } from "fir
 import { auth, db } from "../lib/firebase";
 import { TERRITORIES, REGIMES, getTvaRate, getMentionLegale } from "../lib/territories";
 import { FaCheckCircle, FaArrowRight, FaArrowLeft } from "react-icons/fa";
+import { track, identifyUser, EVENTS } from "../lib/analytics";
 
 // Pionnier : après l'inscription, rebond direct vers le checkout Stripe (paiement unique 199€)
 const PIONNIER_PRICE_ID = "price_1TdcJZIck4iMBRE9KizjlK9I";
@@ -122,6 +123,10 @@ export default function Inscription() {
         entrepriseId,
         uid: user.uid,
       });
+
+      // Amplitude : signup terminé (funnel d'activation) + identification user
+      identifyUser(user.uid, { plan: state.planId || (isPaid ? "paid" : "trial"), territoire });
+      track(EVENTS.SIGNUP_COMPLETED, { paid: isPaid, plan: state.planId || null });
 
       // Pixel Meta : essai gratuit créé → event d'optimisation de la pub froide.
       // (Le flux payant/Pionnier déclenche Purchase plus loin, sur /paiement/success.)

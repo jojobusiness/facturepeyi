@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
+import { track, EVENTS } from "../lib/analytics";
 
 export default function PaiementSuccess() {
   const location = useLocation();
@@ -52,6 +53,12 @@ export default function PaiementSuccess() {
           content_name: sessionInfo.planId || undefined,
         });
       }
+      // Amplitude : conversion payante (funnel d'activation)
+      track(EVENTS.SUBSCRIPTION_STARTED, {
+        plan: sessionInfo.planId || null,
+        value: value ?? null,
+        currency: sessionInfo.currency || "EUR",
+      });
     }
   }, [sessionInfo]);
 

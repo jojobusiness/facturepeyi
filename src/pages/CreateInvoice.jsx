@@ -8,6 +8,7 @@ import PlanGate from "../components/PlanGate";
 import InvoiceLinesEditor from "../components/InvoiceLinesEditor";
 import PdfLivePreview from "../components/PdfLivePreview";
 import { computeTotals, normalizeLines, emptyLine } from "../utils/invoiceLines";
+import { track, EVENTS } from "../lib/analytics";
 
 export default function CreateInvoice() {
   const { entreprise, entrepriseId } = useAuth();
@@ -113,6 +114,8 @@ export default function CreateInvoice() {
         entrepriseId,
         numero,
       });
+
+      track(EVENTS.INVOICE_CREATED, { totalTTC, nbLignes: cleanLignes.length });
 
       navigate("/dashboard/factures");
     } catch (err) {

@@ -9,6 +9,7 @@ import { downloadInvoicePDF, getInvoicePDFBase64 } from "../utils/downloadPDF";
 import { sendEmail } from "../lib/email";
 import { useAuth } from "../context/AuthContext";
 import { canUseFeature } from "../lib/plans";
+import { track, EVENTS } from "../lib/analytics";
 import { FaSync, FaLink, FaCheck, FaEnvelope } from "react-icons/fa";
 
 function safeDate(d) {
@@ -197,6 +198,8 @@ export default function InvoiceList() {
       setInvoices((prev) =>
         prev.map((inv) => inv.id === invoice.id ? { ...inv, lastSentTo: to } : inv)
       );
+
+      track(EVENTS.INVOICE_SENT, { totalTTC: invoice.totalTTC ?? null, withPaymentLink: !!paymentLink });
 
       setSentId(invoice.id);
       setTimeout(() => setSentId(null), 2500);
