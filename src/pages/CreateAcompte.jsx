@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
-import { collection, doc, getDocs, setDoc, Timestamp } from "firebase/firestore";
+import { collection, doc, getDocs, Timestamp } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { canUseFeature } from "../lib/plans";
 import PlanGate from "../components/PlanGate";
+import { createNumberedInvoice } from "../utils/invoiceNumber";
 
 const PRESETS = [30, 40, 50, 70];
 
@@ -21,6 +22,7 @@ export default function CreateAcompte() {
   const [useCustom, setUseCustom] = useState(false);
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [tvaRate, setTvaRate] = useState(null);
+  const [saving, setSaving] = useState(false);
 
   const percent = useCustom ? parseFloat(customPercent) || 0 : acomptePercent;
   const base = parseFloat(montantBase) || 0;
@@ -51,30 +53,36 @@ export default function CreateAcompte() {
 
     const selectedClient = clients.find((c) => c.id === clientId);
 
-    const facRef = doc(collection(db, "entreprises", entrepriseId, "factures"));
-    const numero = `FAC-${new Date().getFullYear()}-${facRef.id.slice(0, 6).toUpperCase()}`;
-    await setDoc(facRef, {
-      clientId,
-      clientNom: selectedClient?.nom || "",
-      clientEmail: selectedClient?.email || "",
-      description: `Acompte ${percent}% — ${prestation}`,
-      amountHT: acompteHT,
-      tva: tvaAmount,
-      totalTTC,
-      tvaRate: tvaRate ?? 0,
-      mentionLegale,
-      date: Timestamp.fromDate(new Date(date)),
-      status: "en attente",
-      createdAt: Timestamp.now(),
-      entrepriseId,
-      type: "acompte",
-      acomptePercent: percent,
-      montantBase: base,
-      prestationOriginale: prestation,
-      numero,
-    });
+    setSaving(true);
+    try {
+      const facRef = doc(collection(db, "entreprises", entrepriseId, "factures"));
+      await createNumberedInvoice(entrepriseId, facRef, {
+        clientId,
+        clientNom: selectedClient?.nom || "",
+        clientEmail: selectedClient?.email || "",
+        description: `Acompte ${percent}% — ${prestation}`,
+        amountHT: acompteHT,
+        tva: tvaAmount,
+        totalTTC,
+        tvaRate: tvaRate ?? 0,
+        mentionLegale,
+        date: Timestamp.fromDate(new Date(date)),
+        status: "en attente",
+        createdAt: Timestamp.now(),
+        entrepriseId,
+        type: "acompte",
+        acomptePercent: percent,
+        montantBase: base,
+        prestationOriginale: prestation,
+      });
 
-    navigate("/dashboard/factures");
+      navigate("/dashboard/factures");
+    } catch (err) {
+      console.error("Erreur Firestore :", err);
+      alert("Erreur lors de l'enregistrement.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (tvaRate === null) {
@@ -256,9 +264,10 @@ export default function CreateAcompte() {
 
         <button
           type="submit"
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition"
+          disabled={saving}
+          className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition"
         >
-          Créer la facture d'acompte
+          {saving ? "Enregistrement..." : "Créer la facture d'acompte"}
         </button>
       </form>
     </main>

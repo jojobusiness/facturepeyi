@@ -12,7 +12,7 @@ const faq = [
     cat: "Facturation",
     items: [
       { q: "Comment créer ma première facture ?", a: "Connectez-vous, cliquez sur «Créer une facture» dans le menu, remplissez les infos client et les lignes de produit. La facture est générée en PDF automatiquement." },
-      { q: "Puis-je personnaliser le numéro de facture ?", a: "Oui. La numérotation suit le format FAC-AAAA-XXX et peut être configurée dans les Paramètres de votre compte." },
+      { q: "Comment fonctionne la numérotation des factures ?", a: "La numérotation est automatique et séquentielle (format FAC-AAAA-0001), sans rupture de séquence, conforme aux exigences fiscales (art. 242 nonies A du CGI). Chaque année démarre une nouvelle séquence." },
       { q: "Comment envoyer une facture à mon client ?", a: "Depuis la liste des factures, cliquez sur la facture et utilisez le bouton «Télécharger PDF». L'envoi par email direct depuis l'interface est en cours de développement." },
     ],
   },

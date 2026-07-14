@@ -107,6 +107,21 @@ service cloud.firestore {
         allow delete: if hasRole(entrepriseId, ['admin']);
       }
 
+      // Compteurs de numérotation séquentielle (factures_2026, ...)
+      // Écrit via transaction par tout membre autorisé à créer une facture.
+      // Incrément strict (+1) imposé : impossible de réinitialiser ou corrompre
+      // le compteur depuis le client (l'init manuelle se fait via la console Firebase).
+      match /compteurs/{compteurId} {
+        allow read: if isMembreEntreprise(entrepriseId);
+        allow create: if hasRole(entrepriseId, ['admin', 'comptable', 'employe'])
+                      && request.resource.data.keys().hasOnly(['next'])
+                      && request.resource.data.next == 2;
+        allow update: if hasRole(entrepriseId, ['admin', 'comptable', 'employe'])
+                      && request.resource.data.keys().hasOnly(['next'])
+                      && request.resource.data.next == resource.data.next + 1;
+        allow delete: if false;
+      }
+
       // Récurrences (factures automatiques)
       match /recurrences/{recId} {
         allow read: if isMembreEntreprise(entrepriseId);

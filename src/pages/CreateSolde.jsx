@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
-import { collection, doc, getDoc, setDoc, updateDoc, Timestamp } from "firebase/firestore";
+import { collection, doc, getDoc, Timestamp } from "firebase/firestore";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { createNumberedInvoice } from "../utils/invoiceNumber";
 
 export default function CreateSolde() {
   const { acompteId } = useParams();
@@ -17,6 +18,7 @@ export default function CreateSolde() {
   const [montantSoldeHT, setMontantSoldeHT] = useState("");
   const [tvaRate, setTvaRate] = useState(null);
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [saving, setSaving] = useState(false);
 
   const ht = parseFloat(montantSoldeHT) || 0;
   const tvaAmount = tvaRate !== null ? parseFloat((ht * (tvaRate / 100)).toFixed(2)) : 0;
@@ -46,33 +48,38 @@ export default function CreateSolde() {
     e.preventDefault();
     if (!ht || ht <= 0) return alert("Le montant du solde est requis.");
 
-    const soldeRef = doc(collection(db, "entreprises", entrepriseId, "factures"));
-    const numero = `FAC-${new Date().getFullYear()}-${soldeRef.id.slice(0, 6).toUpperCase()}`;
-    await setDoc(soldeRef, {
-      clientId: acompte.clientId,
-      clientNom: acompte.clientNom,
-      clientEmail: acompte.clientEmail,
-      description,
-      amountHT: ht,
-      tva: tvaAmount,
-      totalTTC,
-      tvaRate: tvaRate ?? 0,
-      mentionLegale,
-      date: Timestamp.fromDate(new Date(date)),
-      status: "en attente",
-      createdAt: Timestamp.now(),
-      entrepriseId,
-      type: "solde",
-      acompteFactureId: acompteId,
-      montantAcompteHT: acompte.amountHT,
-      numero,
-    });
+    setSaving(true);
+    try {
+      const soldeRef = doc(collection(db, "entreprises", entrepriseId, "factures"));
+      const acompteRef = doc(db, "entreprises", entrepriseId, "factures", acompteId);
+      await createNumberedInvoice(entrepriseId, soldeRef, {
+        clientId: acompte.clientId,
+        clientNom: acompte.clientNom,
+        clientEmail: acompte.clientEmail,
+        description,
+        amountHT: ht,
+        tva: tvaAmount,
+        totalTTC,
+        tvaRate: tvaRate ?? 0,
+        mentionLegale,
+        date: Timestamp.fromDate(new Date(date)),
+        status: "en attente",
+        createdAt: Timestamp.now(),
+        entrepriseId,
+        type: "solde",
+        acompteFactureId: acompteId,
+        montantAcompteHT: acompte.amountHT,
+      }, {
+        withTransaction: (tx) => tx.update(acompteRef, { soldeFactureId: soldeRef.id }),
+      });
 
-    await updateDoc(doc(db, "entreprises", entrepriseId, "factures", acompteId), {
-      soldeFactureId: soldeRef.id,
-    });
-
-    navigate("/dashboard/factures");
+      navigate("/dashboard/factures");
+    } catch (err) {
+      console.error("Erreur Firestore :", err);
+      alert("Erreur lors de l'enregistrement.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) {
@@ -209,9 +216,10 @@ export default function CreateSolde() {
 
         <button
           type="submit"
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition"
+          disabled={saving}
+          className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition"
         >
-          Créer la facture de solde
+          {saving ? "Enregistrement..." : "Créer la facture de solde"}
         </button>
       </form>
     </main>

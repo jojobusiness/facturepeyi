@@ -172,7 +172,7 @@ export default function InvoiceList() {
       const paymentLink = isPayable ? await ensurePaymentLink(invoice) : null;
 
       const pdfBase64 = await getInvoicePDFBase64(ctx);
-      const numeroFacture = `FAC-${invoice.id.slice(0, 8).toUpperCase()}`;
+      const numeroFacture = invoice.numero || `FAC-${invoice.id.slice(0, 8).toUpperCase()}`;
       const montant = `${Number(invoice.totalTTC ?? 0).toFixed(2)} €`;
 
       await sendEmail(

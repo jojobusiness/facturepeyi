@@ -188,6 +188,10 @@ export default function InvoicePDF({ invoice }) {
           <Text style={styles.footer}>{legalBits.join(" · ")}</Text>
         )}
         <Text style={styles.footer}>
+          En cas de retard de paiement : pénalités au taux de 3 fois le taux d'intérêt légal et indemnité
+          forfaitaire de recouvrement de 40 € (art. L441-10 C. com.). Pas d'escompte pour paiement anticipé.
+        </Text>
+        <Text style={styles.footer}>
           Merci pour votre confiance — {invoice.entrepriseNom || "Factur'Peyi"} © {new Date().getFullYear()}
         </Text>
 

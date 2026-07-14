@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { db } from "../lib/firebase";
-import { collection, doc, getDocs, setDoc, Timestamp } from "firebase/firestore";
+import { collection, doc, getDocs, Timestamp } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { checkFacturesLimit } from "../lib/plans";
@@ -8,6 +8,7 @@ import PlanGate from "../components/PlanGate";
 import InvoiceLinesEditor from "../components/InvoiceLinesEditor";
 import PdfLivePreview from "../components/PdfLivePreview";
 import { computeTotals, normalizeLines, emptyLine } from "../utils/invoiceLines";
+import { createNumberedInvoice } from "../utils/invoiceNumber";
 import { track, EVENTS } from "../lib/analytics";
 
 export default function CreateInvoice() {
@@ -96,8 +97,7 @@ export default function CreateInvoice() {
       const { totalHT, totalTVA, totalTTC } = computeTotals(norm);
 
       const facRef = doc(collection(db, "entreprises", entrepriseId, "factures"));
-      const numero = `FAC-${new Date().getFullYear()}-${facRef.id.slice(0, 6).toUpperCase()}`;
-      await setDoc(facRef, {
+      await createNumberedInvoice(entrepriseId, facRef, {
         clientId,
         clientNom: selectedClient?.nom || "",
         clientEmail: selectedClient?.email || "",
@@ -112,7 +112,6 @@ export default function CreateInvoice() {
         status: "en attente",
         createdAt: Timestamp.now(),
         entrepriseId,
-        numero,
       });
 
       track(EVENTS.INVOICE_CREATED, { totalTTC, nbLignes: cleanLignes.length });
