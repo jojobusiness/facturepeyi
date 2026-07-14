@@ -95,7 +95,10 @@ export default async function handler(req, res) {
   try {
     const session = await stripe.checkout.sessions.create({
       mode: isPionnier ? "payment" : "subscription",
-      payment_method_types: ["card"],
+      // Pionnier = paiement unique → payment_method_types omis : Stripe présente alors
+      // toutes les méthodes activées dans le Dashboard (Carte + Klarna 3x/4x une fois activé).
+      // NB : automatic_payment_methods n'existe pas sur Checkout Sessions (PaymentIntents only).
+      ...(isPionnier ? {} : { payment_method_types: ["card"] }),
       line_items: [{ price: priceId, quantity: 1 }],
       customer_email: customerEmail || undefined,
       client_reference_id: clientReferenceId,
