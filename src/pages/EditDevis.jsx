@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   doc, getDoc, updateDoc, getDocs,
-  collection, addDoc, Timestamp,
+  collection, Timestamp,
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
+import { createNumberedInvoice } from "../utils/invoiceNumber";
 import { useAuth } from "../context/AuthContext";
 import InvoiceLinesEditor from "../components/InvoiceLinesEditor";
 import PdfLivePreview from "../components/PdfLivePreview";
@@ -143,7 +144,9 @@ export default function EditDevis() {
       const { totalHT, totalTVA, totalTTC } = computeTotals(normalizeLines({ lignes: cl, tvaRate: defaultRate }));
       const selectedClient = clients.find((c) => c.id === clientId);
 
-      const ref = await addDoc(collection(db, "entreprises", entrepriseId, "factures"), {
+      const facRef = doc(collection(db, "entreprises", entrepriseId, "factures"));
+      const devisRef = doc(db, "entreprises", entrepriseId, "devis", id);
+      await createNumberedInvoice(entrepriseId, facRef, {
         clientId,
         clientNom: selectedClient?.nom || "",
         clientEmail: selectedClient?.email || "",
@@ -159,15 +162,15 @@ export default function EditDevis() {
         createdAt: Timestamp.now(),
         entrepriseId,
         sourceDevisId: id,
+      }, {
+        withTransaction: (tx) => tx.update(devisRef, {
+          convertedToFacture: true,
+          factureId: facRef.id,
+          status: "accepté",
+        }),
       });
 
-      await updateDoc(doc(db, "entreprises", entrepriseId, "devis", id), {
-        convertedToFacture: true,
-        factureId: ref.id,
-        status: "accepté",
-      });
-
-      navigate(`/dashboard/facture/modifier/${ref.id}`);
+      navigate(`/dashboard/facture/modifier/${facRef.id}`);
     } catch (err) {
       console.error(err);
       alert("Erreur lors de la conversion.");

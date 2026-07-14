@@ -168,7 +168,7 @@ export default function RecurrenceList() {
       </div>
 
       {/* Liste */}
-      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-x-auto">
         {loading ? (
           <table className="w-full text-sm">
             <tbody>{[1, 2, 3].map((i) => <SkeletonRow key={i} />)}</tbody>

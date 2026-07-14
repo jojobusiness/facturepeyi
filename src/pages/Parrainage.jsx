@@ -139,7 +139,7 @@ export default function Parrainage() {
 
       {/* Liste filleuls */}
       {!loading && referrals.length > 0 && (
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-x-auto">
           <div className="px-5 py-4 border-b border-gray-100">
             <h3 className="text-sm font-bold text-[#0d1b3e]">Vos filleuls</h3>
           </div>

@@ -70,8 +70,17 @@ export default async function handler(req, res) {
           const ttc = parseFloat((ht + tva).toFixed(2));
 
           const facRef = db.collection("entreprises").doc(entrepriseId).collection("factures").doc();
-          const numero = `FAC-${now.getFullYear()}-${facRef.id.slice(0, 6).toUpperCase()}`;
-          await facRef.set({
+          // Numérotation séquentielle légale : même compteur (et même transaction)
+          // que les factures créées côté client — voir src/utils/invoiceNumber.js.
+          const year = now.getFullYear();
+          const counterRef = db.collection("entreprises").doc(entrepriseId)
+            .collection("compteurs").doc(`factures_${year}`);
+          await db.runTransaction(async (tx) => {
+            const counterSnap = await tx.get(counterRef);
+            const current = counterSnap.exists ? counterSnap.data().next : 1;
+            const numero = `FAC-${year}-${String(current).padStart(4, "0")}`;
+            tx.set(counterRef, { next: current + 1 }, { merge: true });
+            tx.set(facRef, {
               clientId:      rec.clientId,
               clientNom:     rec.clientNom,
               clientEmail:   rec.clientEmail,
@@ -88,6 +97,7 @@ export default async function handler(req, res) {
               recurrenceId:  recDoc.id,
               numero,
             });
+          });
 
           const newNext = nextDate(nextTs, rec.frequence);
           await recDoc.ref.update({

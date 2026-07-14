@@ -41,7 +41,7 @@ function parseOFX(text) {
 function PreviewTable({ rows }) {
   if (!rows.length) return null;
   return (
-    <div className="border border-gray-100 rounded-xl overflow-hidden text-sm">
+    <div className="border border-gray-100 rounded-xl overflow-x-auto text-sm">
       <table className="w-full">
         <thead>
           <tr className="bg-gray-50 border-b border-gray-100">
@@ -193,7 +193,7 @@ export default function ImportBancaire() {
 
   return (
     <main className="max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h2 className="text-2xl font-bold text-[#0d1b3e]">Import bancaire</h2>
         <button onClick={() => navigate("/dashboard/depenses")} className="text-sm text-gray-500 hover:text-gray-700 transition">
           ← Dépenses

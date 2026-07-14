@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import {
   collection, getDocs, query, orderBy,
-  deleteDoc, doc, getDoc, addDoc, updateDoc, serverTimestamp, Timestamp,
+  deleteDoc, doc, getDoc, updateDoc, serverTimestamp, Timestamp,
 } from "firebase/firestore";
 import { useNavigate, Link } from "react-router-dom";
 import { db } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
 import { downloadDevisPDF, getDevisPDFBase64 } from "../utils/downloadPDF";
+import { createNumberedInvoice } from "../utils/invoiceNumber";
 import { sendEmail } from "../lib/email";
 import { FaCheck, FaEnvelope } from "react-icons/fa";
 
@@ -56,7 +57,9 @@ export default function DevisList() {
   const handleConvert = async (devisItem) => {
     if (!window.confirm("Convertir ce devis en facture ?")) return;
     try {
-      const ref = await addDoc(collection(db, "entreprises", entrepriseId, "factures"), {
+      const facRef = doc(collection(db, "entreprises", entrepriseId, "factures"));
+      const devisRef = doc(db, "entreprises", entrepriseId, "devis", devisItem.id);
+      await createNumberedInvoice(entrepriseId, facRef, {
         clientId: devisItem.clientId,
         clientNom: devisItem.clientNom,
         clientEmail: devisItem.clientEmail,
@@ -71,20 +74,21 @@ export default function DevisList() {
         createdAt: Timestamp.now(),
         entrepriseId,
         sourceDevisId: devisItem.id,
-      });
-      await updateDoc(doc(db, "entreprises", entrepriseId, "devis", devisItem.id), {
-        convertedToFacture: true,
-        factureId: ref.id,
-        status: "accepté",
+      }, {
+        withTransaction: (tx) => tx.update(devisRef, {
+          convertedToFacture: true,
+          factureId: facRef.id,
+          status: "accepté",
+        }),
       });
       setDevis((prev) =>
         prev.map((d) =>
           d.id === devisItem.id
-            ? { ...d, convertedToFacture: true, factureId: ref.id, status: "accepté" }
+            ? { ...d, convertedToFacture: true, factureId: facRef.id, status: "accepté" }
             : d
         )
       );
-      navigate(`/dashboard/facture/modifier/${ref.id}`);
+      navigate(`/dashboard/facture/modifier/${facRef.id}`);
     } catch (err) {
       console.error(err);
       alert("Erreur lors de la conversion.");
@@ -208,7 +212,7 @@ export default function DevisList() {
 
   return (
     <main>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h2 className="text-2xl font-bold text-[#0d1b3e]">Devis</h2>
           <p className="text-sm text-gray-400 mt-0.5">
@@ -238,7 +242,7 @@ export default function DevisList() {
           </Link>
         </div>
       ) : (
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">
@@ -278,7 +282,7 @@ export default function DevisList() {
                       )}
                     </td>
                     <td className="px-5 py-4 text-right">
-                      <div className="flex items-center justify-end gap-3">
+                      <div className="flex items-center justify-end gap-3 whitespace-nowrap">
                         <button
                           onClick={() => navigate(`/dashboard/devis/modifier/${d.id}`)}
                           className="text-xs font-medium text-gray-500 hover:text-[#0d1b3e] transition"

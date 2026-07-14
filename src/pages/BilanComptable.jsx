@@ -65,7 +65,7 @@ export default function BilanComptable() {
 
   return (
     <main>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h2 className="text-2xl font-bold text-[#0d1b3e]">Bilan comptable</h2>
         <div className="flex gap-2">
           <button onClick={exportCSV} className="border border-gray-200 text-gray-600 hover:bg-gray-50 font-medium text-sm px-4 py-2.5 rounded-xl transition">CSV</button>
@@ -100,7 +100,7 @@ export default function BilanComptable() {
       {loading ? (
         <div className="flex items-center justify-center h-40 text-gray-400 text-sm">Chargement...</div>
       ) : (
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">

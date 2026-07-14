@@ -122,7 +122,7 @@ export default function DeclarationFiscale() {
 
   return (
     <main className="max-w-2xl">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h2 className="text-2xl font-bold text-[#0d1b3e]">Déclaration fiscale</h2>
           {entreprise?.territoire && (

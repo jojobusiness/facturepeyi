@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { db } from "../lib/firebase";
 import { collection, doc, getDocs, Timestamp } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { checkFacturesLimit } from "../lib/plans";
 import PlanGate from "../components/PlanGate";
@@ -14,6 +14,7 @@ import { track, EVENTS } from "../lib/analytics";
 export default function CreateInvoice() {
   const { entreprise, entrepriseId } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [planBlock, setPlanBlock] = useState(null);
 
   const [clients, setClients] = useState([]);
@@ -46,6 +47,12 @@ export default function CreateInvoice() {
       .then((snap) => setClients(snap.docs.map((d) => ({ id: d.id, ...d.data() }))))
       .catch((err) => console.error("Erreur chargement clients :", err));
   }, [entrepriseId]);
+
+  // Client présélectionné via ?client= (bouton "+ Facture" des pages Clients)
+  useEffect(() => {
+    const preselect = searchParams.get("client");
+    if (preselect && clients.some((c) => c.id === preselect)) setClientId(preselect);
+  }, [clients, searchParams]);
 
   const selectedClient = clients.find((c) => c.id === clientId);
 

@@ -29,7 +29,7 @@ export default function DepenseList() {
 
   return (
     <main>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h2 className="text-2xl font-bold text-[#0d1b3e]">Dépenses</h2>
           <p className="text-sm text-gray-400 mt-0.5">{depenses.length} dépense{depenses.length !== 1 ? "s" : ""}</p>
@@ -60,7 +60,7 @@ export default function DepenseList() {
           </Link>
         </div>
       ) : (
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">
@@ -81,7 +81,7 @@ export default function DepenseList() {
                     {dep.date?.toDate().toLocaleDateString("fr-FR")}
                   </td>
                   <td className="px-5 py-4 text-right">
-                    <div className="flex items-center justify-end gap-3">
+                    <div className="flex items-center justify-end gap-3 whitespace-nowrap">
                       <button
                         onClick={() => navigate(`/dashboard/depenses/modifier/${dep.id}`)}
                         className="text-xs font-medium text-gray-500 hover:text-[#0d1b3e] transition"

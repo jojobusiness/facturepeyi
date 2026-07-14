@@ -39,22 +39,43 @@ export default function FacturesClient() {
 
   return (
     <main>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h2 className="text-2xl font-bold text-[#0d1b3e]">Factures du client</h2>
-        <button
-          onClick={() => navigate("/dashboard/clients")}
-          className="border border-gray-200 text-gray-600 hover:bg-gray-50 font-medium text-sm px-4 py-2.5 rounded-xl transition"
-        >
-          ← Retour
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => navigate("/dashboard/clients")}
+            className="border border-gray-200 text-gray-600 hover:bg-gray-50 font-medium text-sm px-4 py-2.5 rounded-xl transition"
+          >
+            ← Retour
+          </button>
+          <button
+            onClick={() => navigate(`/dashboard/devis/nouveau?client=${clientId}`)}
+            className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-sm px-4 py-2.5 rounded-xl transition"
+          >
+            + Devis
+          </button>
+          <button
+            onClick={() => navigate(`/dashboard/facture/nouvelle?client=${clientId}`)}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition"
+          >
+            + Nouvelle facture
+          </button>
+        </div>
       </div>
 
       {factures.length === 0 ? (
         <div className="bg-white border border-gray-100 rounded-2xl p-12 text-center">
           <p className="text-gray-500 font-medium">Aucune facture pour ce client</p>
+          <p className="text-gray-400 text-sm mt-1 mb-5">Créez-en une en quelques clics, le client est déjà pré-rempli</p>
+          <button
+            onClick={() => navigate(`/dashboard/facture/nouvelle?client=${clientId}`)}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition"
+          >
+            Créer une facture
+          </button>
         </div>
       ) : (
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">

@@ -29,7 +29,7 @@ export default function Clients() {
 
   return (
     <main>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h2 className="text-2xl font-bold text-[#0d1b3e]">Clients</h2>
           <p className="text-sm text-gray-400 mt-0.5">{clients.length} client{clients.length !== 1 ? "s" : ""}</p>
@@ -52,7 +52,7 @@ export default function Clients() {
           </Link>
         </div>
       ) : (
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">
@@ -71,18 +71,30 @@ export default function Clients() {
                   <td className="px-5 py-4 text-gray-500 hidden md:table-cell">{client.tel || "—"}</td>
                   <td className="px-5 py-4 text-gray-400 hidden lg:table-cell">{client.adresse || "—"}</td>
                   <td className="px-5 py-4 text-right">
-                    <div className="flex items-center justify-end gap-3">
+                    <div className="flex items-center justify-end gap-3 whitespace-nowrap">
+                      <button
+                        onClick={() => navigate(`/dashboard/facture/nouvelle?client=${client.id}`)}
+                        className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition"
+                      >
+                        + Facture
+                      </button>
+                      <button
+                        onClick={() => navigate(`/dashboard/devis/nouveau?client=${client.id}`)}
+                        className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition"
+                      >
+                        + Devis
+                      </button>
+                      <button
+                        onClick={() => navigate(`/dashboard/factures/client/${client.id}`)}
+                        className="text-xs font-medium text-gray-500 hover:text-[#0d1b3e] transition"
+                      >
+                        Factures
+                      </button>
                       <button
                         onClick={() => navigate(`/dashboard/clients/modifier/${client.id}`)}
                         className="text-xs font-medium text-gray-500 hover:text-[#0d1b3e] transition"
                       >
                         Modifier
-                      </button>
-                      <button
-                        onClick={() => navigate(`/dashboard/factures/client/${client.id}`)}
-                        className="text-xs font-medium text-emerald-600 hover:text-emerald-700 transition"
-                      >
-                        Factures
                       </button>
                       <button
                         onClick={() => handleDelete(client.id)}

@@ -37,7 +37,7 @@ export default function Cabinet() {
   return (
     <main>
       {/* En-tête */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h2 className="text-2xl font-bold text-[#0d1b3e]">Mon Cabinet</h2>
           <p className="text-sm text-gray-400 mt-0.5">

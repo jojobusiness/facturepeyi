@@ -108,7 +108,7 @@ export default function JournalComptable() {
 
   return (
     <main>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h2 className="text-2xl font-bold text-[#0d1b3e]">Journal comptable</h2>
         <div className="flex flex-wrap items-center gap-2">
           <button onClick={() => handleExportFEC("mois")} className="border border-indigo-200 text-indigo-700 hover:bg-indigo-50 font-semibold text-sm px-4 py-2.5 rounded-xl transition" title="Fichier des Écritures Comptables — le mois sélectionné">
@@ -137,7 +137,7 @@ export default function JournalComptable() {
       {loading ? (
         <div className="flex items-center justify-center h-40 text-gray-400 text-sm">Chargement...</div>
       ) : (
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">

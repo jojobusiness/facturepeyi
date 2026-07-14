@@ -313,7 +313,7 @@ export default function AdminUserManagement() {
           )}
 
           {/* Collaborateurs */}
-          <section className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+          <section className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-x-auto">
             <div className="px-5 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
               <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
                 Collaborateurs ({otherUsers.length})

@@ -115,7 +115,7 @@ export default function CalendrierFiscal() {
 
   return (
     <main className="max-w-2xl">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div>
           <h2 className="text-2xl font-bold text-[#0d1b3e]">Calendrier fiscal {YEAR}</h2>
           <p className="text-xs text-gray-400 mt-0.5">
