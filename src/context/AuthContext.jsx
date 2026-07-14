@@ -13,10 +13,8 @@ export function AuthProvider({ children }) {
   const [isCabinet, setIsCabinet]               = useState(false);
   const [loading, setLoading]                   = useState(true);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
-      if (firebaseUser) {
+  // Charge profil + entreprise pour un utilisateur authentifié.
+  const loadUserData = async (firebaseUser) => {
         try {
           // 1. Charger le profil utilisateur
           const userSnap = await getDoc(doc(db, "utilisateurs", firebaseUser.uid));
@@ -68,6 +66,13 @@ export function AuthProvider({ children }) {
         } catch (err) {
           console.error("Erreur chargement entreprise :", err);
         }
+  };
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser);
+      if (firebaseUser) {
+        await loadUserData(firebaseUser);
       } else {
         setEntreprise(null);
         setEntrepriseId(null);
@@ -78,6 +83,14 @@ export function AuthProvider({ children }) {
     });
     return () => unsubscribe();
   }, []);
+
+  // À appeler après l'inscription : onAuthStateChanged se déclenche dès la création
+  // du compte Auth, AVANT l'écriture des docs Firestore (utilisateurs/entreprise) —
+  // ce premier chargement tombe donc dans le vide et ne se relance jamais seul.
+  const reloadUserData = async () => {
+    if (!auth.currentUser) return;
+    await loadUserData(auth.currentUser);
+  };
 
   const refreshEntreprise = async () => {
     if (!entrepriseId) return;
@@ -124,6 +137,7 @@ export function AuthProvider({ children }) {
       isCabinet,
       loading,
       refreshEntreprise,
+      reloadUserData,
       switchEntreprise,
       refreshManagedEntreprises,
     }}>

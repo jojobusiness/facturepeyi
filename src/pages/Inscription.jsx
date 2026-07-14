@@ -7,6 +7,7 @@ import { signInWithGoogle, consumeGoogleRedirect } from "../lib/googleAuth";
 import { TERRITORIES, REGIMES, getTvaRate, getMentionLegale } from "../lib/territories";
 import { FaCheckCircle, FaArrowRight, FaArrowLeft, FaEye, FaEyeSlash } from "react-icons/fa";
 import { track, identifyUser, EVENTS } from "../lib/analytics";
+import { useAuth } from "../context/AuthContext";
 
 // Pionnier : après l'inscription, rebond direct vers le checkout Stripe (paiement unique 199€)
 const PIONNIER_PRICE_ID = "price_1TdcJZIck4iMBRE9KizjlK9I";
@@ -14,6 +15,7 @@ const PIONNIER_PRICE_ID = "price_1TdcJZIck4iMBRE9KizjlK9I";
 export default function Inscription() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { reloadUserData } = useAuth();
 
   // Étape courante du formulaire
   const [step, setStep] = useState(1);
@@ -146,6 +148,9 @@ export default function Inscription() {
           return;
         }
       } else {
+        // Bloque le guard "déjà connecté → /dashboard" : la création du compte Auth
+        // connecte immédiatement, AVANT que les docs Firestore soient écrits.
+        googleFlowRef.current = true;
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         user = cred.user;
       }
@@ -184,6 +189,11 @@ export default function Inscription() {
         entrepriseId,
         uid: user.uid,
       });
+
+      // Recharger le contexte auth : son premier chargement (déclenché à la création
+      // du compte) est tombé AVANT l'écriture des docs → entreprise serait null
+      // jusqu'au prochain F5 (dashboard gelé).
+      await reloadUserData();
 
       // Amplitude : signup terminé (funnel d'activation) + identification user
       identifyUser(user.uid, { plan: state.planId || (isPaid ? "paid" : "trial"), territoire });
