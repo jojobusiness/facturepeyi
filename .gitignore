@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Secrets (ne JAMAIS committer)
+.env
+scripts/serviceAccount.json
