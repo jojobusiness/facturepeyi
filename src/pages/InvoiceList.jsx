@@ -221,6 +221,12 @@ export default function InvoiceList() {
           <p className="text-sm text-gray-400 mt-0.5">{invoices.length} facture{invoices.length !== 1 ? "s" : ""}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <Link
+            to="/dashboard/factures/import"
+            className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-sm px-4 py-2.5 rounded-xl transition"
+          >
+            Importer
+          </Link>
           {canAcompte && (
             <Link
               to="/dashboard/facture/acompte/nouvelle"

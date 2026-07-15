@@ -1,0 +1,25 @@
+numero;client;description;montant;date;statut
+F2026-001;Boulangerie Kaz a Pain;Site vitrine + reservation en ligne;1450,00;09/01/2026;payee
+F2026-002;Garage Melkior Auto;Maintenance informatique janvier;280,00;15/01/2026;payee
+F2026-003;SARL Ti Coin Snack;Creation logo + charte graphique;650,00;22/01/2026;payee
+F2026-004;Cabinet Infirmier Soula;Installation reseau + imprimantes;420,00;30/01/2026;payee
+F2026-005;Boutique Wailele Surfwear;Boutique en ligne Shopify;1890,00;06/02/2026;payee
+F2026-006;Garage Melkior Auto;Maintenance informatique fevrier;280,00;14/02/2026;payee
+F2026-007;Ecole de danse Mouvman;Flyers rentree + affiches;390,00;20/02/2026;payee
+F2026-008;SCI Les Palmistes;Shooting photo immobilier;540,00;27/02/2026;payee
+F2026-009;Boulangerie Kaz a Pain;Campagne publicite Facebook mars;350,00;05/03/2026;payee
+F2026-010;Garage Melkior Auto;Maintenance informatique mars;280,00;13/03/2026;payee
+F2026-011;Restaurant Ti Kaz;Menu digital + QR codes tables;480,00;19/03/2026;payee
+F2026-012;Association Jeunesse 973;Site associatif + billetterie;980,00;26/03/2026;payee
+F2026-013;Boutique Wailele Surfwear;Photos produits collection avril;620,00;03/04/2026;payee
+F2026-014;Garage Melkior Auto;Maintenance informatique avril;280,00;15/04/2026;payee
+F2026-015;Cabinet Infirmier Soula;Depannage poste + sauvegarde cloud;190,00;21/04/2026;payee
+F2026-016;SARL Ti Coin Snack;Refonte carte + impression;310,00;29/04/2026;payee
+F2026-017;SCI Les Palmistes;Visite virtuelle appartement Kourou;450,00;07/05/2026;payee
+F2026-018;Garage Melkior Auto;Maintenance informatique mai;280,00;15/05/2026;payee
+F2026-019;Ecole de danse Mouvman;Video promo gala fin d annee;750,00;22/05/2026;payee
+F2026-020;Boulangerie Kaz a Pain;Campagne publicite fete des meres;280,00;28/05/2026;payee
+F2026-021;Restaurant Ti Kaz;Campagne Instagram juin;350,00;04/06/2026;payee
+F2026-022;Garage Melkior Auto;Maintenance informatique juin;280,00;12/06/2026;en attente
+F2026-023;Association Jeunesse 973;Affiches evenement juillet;220,00;18/06/2026;en attente
+F2026-024;Boutique Wailele Surfwear;Newsletter + emailing soldes;340,00;25/06/2026;en attente

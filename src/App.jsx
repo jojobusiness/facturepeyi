@@ -39,6 +39,7 @@ import ClientDetails from './pages/ClientDetails';
 import DepenseList from './pages/DepenseList';
 import DepenseForm from './pages/DepenseForm';
 import ImportDepenses from './pages/ImportDepenses';
+import ImportFactures from './pages/ImportFactures';
 import Categories from './pages/Categories';
 import DeclarationFiscale from './pages/DeclarationFiscale';
 import Settings from './pages/Settings';
@@ -120,6 +121,7 @@ export default function App() {
         <Route path="facture/nouvelle" element={<PrivateRoute><CreateInvoice /></PrivateRoute>} />
         <Route path="facture/modifier/:id" element={<PrivateRoute><EditInvoice /></PrivateRoute>} />
         <Route path="factures/client/:clientId" element={<PrivateRoute><FacturesClient /></PrivateRoute>} />
+        <Route path="factures/import" element={<PrivateRoute><ImportFactures /></PrivateRoute>} />
         <Route path="devis" element={<PrivateRoute><DevisList /></PrivateRoute>} />
         <Route path="devis/nouveau" element={<PrivateRoute><CreateDevis /></PrivateRoute>} />
         <Route path="devis/modifier/:id" element={<PrivateRoute><EditDevis /></PrivateRoute>} />
