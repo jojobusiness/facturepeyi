@@ -75,6 +75,20 @@ export function detectCategorie(texte) {
   return null;
 }
 
+// Normalise un statut de devis importé → brouillon / envoyé / accepté / refusé
+export function normalizeStatutDevis(raw) {
+  const s = String(raw || "")
+    .toLowerCase()
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .trim();
+  if (!s) return "envoyé";
+  if (s.includes("brouillon") || s.includes("draft")) return "brouillon";
+  if (s.includes("accept") || s.includes("valid") || s.includes("signe") || s.includes("gagne")) return "accepté";
+  if (s.includes("refus") || s.includes("perdu") || s.includes("rejet")) return "refusé";
+  if (s.includes("envoy") || s.includes("cours") || s.includes("attente")) return "envoyé";
+  return "envoyé";
+}
+
 // Normalise un statut de facture importée → statuts internes de l'app
 export function normalizeStatut(raw) {
   const s = String(raw || "")

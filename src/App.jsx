@@ -40,6 +40,7 @@ import DepenseList from './pages/DepenseList';
 import DepenseForm from './pages/DepenseForm';
 import ImportDepenses from './pages/ImportDepenses';
 import ImportFactures from './pages/ImportFactures';
+import ImportDevis from './pages/ImportDevis';
 import Categories from './pages/Categories';
 import DeclarationFiscale from './pages/DeclarationFiscale';
 import Settings from './pages/Settings';
@@ -124,6 +125,7 @@ export default function App() {
         <Route path="factures/import" element={<PrivateRoute><ImportFactures /></PrivateRoute>} />
         <Route path="devis" element={<PrivateRoute><DevisList /></PrivateRoute>} />
         <Route path="devis/nouveau" element={<PrivateRoute><CreateDevis /></PrivateRoute>} />
+        <Route path="devis/import" element={<PrivateRoute><ImportDevis /></PrivateRoute>} />
         <Route path="devis/modifier/:id" element={<PrivateRoute><EditDevis /></PrivateRoute>} />
         <Route path="clients" element={<PrivateRoute><Clients /></PrivateRoute>} />
         <Route path="clients/ajouter" element={<PrivateRoute><AddClient /></PrivateRoute>} />

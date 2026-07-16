@@ -219,12 +219,20 @@ export default function DevisList() {
             {devis.length} devis enregistré{devis.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <Link
-          to="/dashboard/devis/nouveau"
-          className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition"
-        >
-          + Nouveau devis
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            to="/dashboard/devis/import"
+            className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-sm px-4 py-2.5 rounded-xl transition"
+          >
+            Importer
+          </Link>
+          <Link
+            to="/dashboard/devis/nouveau"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition"
+          >
+            + Nouveau devis
+          </Link>
+        </div>
       </div>
 
       {devis.length === 0 ? (
