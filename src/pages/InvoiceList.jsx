@@ -9,6 +9,7 @@ import { downloadInvoicePDF, getInvoicePDFBase64 } from "../utils/downloadPDF";
 import { sendEmail } from "../lib/email";
 import { useAuth } from "../context/AuthContext";
 import { canUseFeature } from "../lib/plans";
+import { IA_IMPORT_ENABLED } from "../lib/features";
 import { track, EVENTS } from "../lib/analytics";
 import { FaSync, FaLink, FaCheck, FaEnvelope } from "react-icons/fa";
 
@@ -221,12 +222,14 @@ export default function InvoiceList() {
           <p className="text-sm text-gray-400 mt-0.5">{invoices.length} facture{invoices.length !== 1 ? "s" : ""}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Link
-            to="/dashboard/import-documents"
-            className="bg-violet-50 hover:bg-violet-100 text-violet-700 font-semibold text-sm px-4 py-2.5 rounded-xl transition"
-          >
-            ✨ Import IA
-          </Link>
+          {IA_IMPORT_ENABLED && (
+            <Link
+              to="/dashboard/import-documents"
+              className="bg-violet-50 hover:bg-violet-100 text-violet-700 font-semibold text-sm px-4 py-2.5 rounded-xl transition"
+            >
+              ✨ Import IA
+            </Link>
+          )}
           <Link
             to="/dashboard/factures/import"
             className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-sm px-4 py-2.5 rounded-xl transition"
