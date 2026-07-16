@@ -21,7 +21,7 @@ C'est l'offre à vie. **Paiement unique**, surtout pas récurrent.
 
 1. Menu **Produits** (Product catalog) → **+ Ajouter un produit**.
 2. **Nom** : `Pionnier DOM-TOM — Accès Solo à vie`
-3. **Description** (optionnel) : `Accès Solo à vie, paiement unique. 10 places.`
+3. **Description** (optionnel) : `Accès Solo à vie, paiement unique. 50 places.`
 4. Section **Tarif** :
    - **Modèle de tarification** : `Forfaitaire` (standard)
    - **Prix** : `199,00` EUR

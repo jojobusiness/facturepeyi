@@ -15,9 +15,9 @@ const SOLO_ANNUAL_PRICE_ID = "price_1TdcN9Ick4iMBRE9nFos3SwT";
 const PRO_ANNUAL_PRICE_ID = "price_1TdcPbIck4iMBRE9J1DFhfSs";
 const EXPERT_ANNUAL_PRICE_ID = "price_1TdcS5Ick4iMBRE9YaEvAwoM";
 
-// --- Pionnier : paiement unique 199€, accès Solo à vie, 10 places ---
+// --- Pionnier : paiement unique 199€, accès Solo à vie, 50 places ---
 const PIONNIER_PRICE_ID = "price_1TdcJZIck4iMBRE9KizjlK9I";
-const PIONNIER_CAP = 10;
+const PIONNIER_CAP = 50;
 
 // --- Cabinet : experts-comptables, entreprises illimitées (à créer dans Stripe) ---
 const CABINET_PRICE_ID = "price_1TdcnqIck4iMBRE9ciWBYBnz";        // 99,99€/mois
@@ -193,7 +193,7 @@ export default function Forfaits() {
         </div>
       </div>
 
-      {/* Bandeau Pionnier — offre à vie, 10 places */}
+      {/* Bandeau Pionnier — offre à vie, 50 places */}
       {placesLeft !== 0 && (
         <div className="max-w-5xl mx-auto mb-8">
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-gray-900 to-emerald-900 text-white p-6 sm:p-7 shadow-xl">

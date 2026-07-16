@@ -29,7 +29,7 @@
 ### Campagne 2 — RETARGETING (semaine 2, quand il y a du trafic à recibler)
 - **Objectif Meta** : Conversions → `Purchase`.
 - **Audience** : visiteurs site 30j + `CompleteRegistration` **sans** `Purchase`.
-- **Créa** : Pionnier 199€ rareté — « Tu as testé ? Deviens Pionnier : accès à vie, 199€ une fois, jamais d'abonnement. 10 places. »
+- **Créa** : Pionnier 199€ rareté — « Tu as testé ? Deviens Pionnier : accès à vie, 199€ une fois, jamais d'abonnement. 50 places. »
 
 ## Audiences
 - **Froide** : géo Guyane + Martinique + Guadeloupe + Réunion ; 25-55 ans ; intérêts auto-entrepreneur / TPE / artisan / comptabilité. Large — on laisse l'algo trouver (advantage+ OK).

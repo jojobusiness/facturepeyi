@@ -72,7 +72,7 @@ Portail client `/portail/:token` (paiement sans compte) · Stripe Connect 2,5% �
 | Pro | 34,99 €/mois · **349 €/an** | Multi-users, récurrences, portail client |
 | Expert | 54,99 €/mois · **549 €/an** | Import bancaire, multi-projets |
 | **Cabinet** | **99,99 €/mois · 999 €/an** | Multi-entreprises, 2 mois offerts (trial 60j) |
-| **Pionnier (Lifetime)** | **199 € one-shot** | Accès Solo à vie, **cap 10 places** |
+| **Pionnier (Lifetime)** | **199 € one-shot** | Accès Solo à vie, **cap 50 places** |
 
 > Décision tranchée : annuel = **2 mois offerts** (~17%), pas -30% (protège la marge, format standard SaaS).
 > Price IDs réels en prod (commit b77e344) : Pionnier `price_1TdcJZIck4iMBRE9KizjlK9I`, Solo annuel `price_1TdcN9...`, Pro annuel `price_1TdcPb...`, Expert annuel `price_1TdcS5...`.

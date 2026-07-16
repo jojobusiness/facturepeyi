@@ -91,16 +91,16 @@
 
 ### Texte principal — variante R1
 > Tu as testé FacturPeyi ? 👀
-> Deviens **Pionnier** : accès à vie au plan Solo pour **199 € une seule fois**. Jamais d'abonnement. Seulement **10 places**.
+> Deviens **Pionnier** : accès à vie au plan Solo pour **199 € une seule fois**. Jamais d'abonnement. Seulement **50 places**.
 > Les premiers entrepreneurs d'Outre-mer qui nous font confiance. Il en reste quelques-unes.
 
 ### Texte principal — variante R2 (rareté)
-> ⏳ Offre Pionnier — 10 places, pas une de plus.
+> ⏳ Offre Pionnier — 50 places, pas une de plus.
 > 199 € une fois = FacturPeyi à vie. Pas d'abonnement mensuel, jamais. Pour ceux qui veulent verrouiller le prix maintenant.
 
 ### Titres
 - Pionnier : FacturPeyi à vie pour 199 €
-- 10 places. Accès à vie. 199 € une fois.
+- 50 places. Accès à vie. 199 € une fois.
 
 ---
 

@@ -77,13 +77,13 @@ export default async function handler(req, res) {
             trialEndsAt: null,
           });
 
-          // Compteur de places (cap 10) — transaction pour éviter les races
+          // Compteur de places (cap 50) — transaction pour éviter les races
           const metaRef = db.collection("pionniers").doc("_meta");
           await db.runTransaction(async (tx) => {
             const snap = await tx.get(metaRef);
             const count = snap.exists ? (snap.data().count || 0) : 0;
             tx.set(metaRef, {
-              count: Math.min(count + 1, 10),
+              count: Math.min(count + 1, 50),
               updatedAt: FieldValue.serverTimestamp(),
             }, { merge: true });
           });
@@ -95,7 +95,7 @@ export default async function handler(req, res) {
               intro: "Merci ! Votre offre <strong>Pionnier DOM-TOM</strong> est confirmée : vous bénéficiez désormais du plan <strong>Solo à vie</strong>, sans aucun abonnement à payer. Vos factures sont illimitées.",
               ctaLabel: "Accéder à mon tableau de bord",
               ctaUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
-              footerNote: "Vous faites partie des 10 premiers clients de Factur'Peyi. Merci de votre confiance.",
+              footerNote: "Vous faites partie des 50 premiers clients de Factur'Peyi. Merci de votre confiance.",
             }),
           }).catch(() => {});
           break;
