@@ -221,6 +221,12 @@ export default function DevisList() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Link
+            to="/dashboard/import-documents"
+            className="bg-violet-50 hover:bg-violet-100 text-violet-700 font-semibold text-sm px-4 py-2.5 rounded-xl transition"
+          >
+            ✨ Import IA
+          </Link>
+          <Link
             to="/dashboard/devis/import"
             className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-sm px-4 py-2.5 rounded-xl transition"
           >
