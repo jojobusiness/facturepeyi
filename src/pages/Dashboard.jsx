@@ -13,6 +13,7 @@ import {
   FaExclamationTriangle, FaArrowUp, FaArrowDown, FaUsers,
 } from 'react-icons/fa';
 import OnboardingChecklist from '../components/OnboardingChecklist';
+import InsightsWidget from '../components/InsightsWidget';
 
 const MOIS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
 const COLORS = ['#059669','#2563eb','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#84cc16','#f97316'];
@@ -299,6 +300,9 @@ export default function Dashboard() {
 
       {/* ── Alerte factures en retard ── */}
       <AlerteRetard factures={facEnRetard} />
+
+      {/* ── Conseiller IA (Pro+, teaser pour les autres) ── */}
+      <InsightsWidget />
 
       {/* ── KPIs ligne 1 ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

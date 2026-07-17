@@ -3,7 +3,8 @@
     { "source": "/(.*)", "destination": "/" }
   ],
   "functions": {
-    "api/extract-document.js": { "maxDuration": 60 }
+    "api/extract-document.js": { "maxDuration": 60 },
+    "api/generate-insights.js": { "maxDuration": 60 }
   },
   "crons": [
     {
