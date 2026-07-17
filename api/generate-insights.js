@@ -120,7 +120,9 @@ export default async function handler(req, res) {
 
     const entSnap = await db.collection("entreprises").doc(entrepriseId).get();
     const entreprise = entSnap.data() || {};
-    if (!PLANS_AUTORISES.includes(entreprise.plan)) {
+    // Pionniers (lifetime) : toutes les fonctionnalités incluses, dont le Conseiller IA
+    const isPionnier = entreprise.lifetime === true;
+    if (!PLANS_AUTORISES.includes(entreprise.plan) && !isPionnier) {
       return res.status(403).json({ error: "Le Conseiller IA est disponible à partir du plan Pro.", upgradeRequired: true });
     }
 

@@ -4,6 +4,7 @@ import { FaCheckCircle, FaArrowLeft, FaCrown, FaBolt, FaBuilding } from "react-i
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { useAuth } from "../context/AuthContext";
+import { IA_INSIGHTS_ENABLED } from "../lib/features";
 
 // --- Mensuel (live) ---
 const SOLO_PRICE_ID = "price_1TYQZWIck4iMBRE9Ulc07a9u";
@@ -209,8 +210,9 @@ export default function Forfaits() {
                   199€ une seule fois · accès <span className="text-yellow-400">Solo à vie</span>
                 </h2>
                 <p className="text-emerald-100 text-sm max-w-lg">
-                  Payez une fois, utilisez Factur'Peyi pour toujours. Factures illimitées, devis, rappels —
-                  réservé aux 10 premiers clients. Aucun abonnement, jamais.
+                  Payez une fois, utilisez Factur'Peyi pour toujours. Factures illimitées, devis, rappels
+                  {IA_INSIGHTS_ENABLED ? ", Conseiller IA inclus" : ""} — réservé aux 50 premiers clients.
+                  Aucun abonnement, jamais.
                 </p>
               </div>
               <button

@@ -28,7 +28,9 @@ export default function InsightsWidget() {
   const [state, setState] = useState({ loading: true, suggestions: null, refreshRestants: 0, error: null });
   const [refreshing, setRefreshing] = useState(false);
 
-  const allowed = canUseFeature(entreprise?.plan || "decouverte", "ia-insights");
+  // Pionniers (lifetime) : toutes les fonctionnalités incluses, dont le Conseiller IA
+  const allowed = canUseFeature(entreprise?.plan || "decouverte", "ia-insights")
+    || entreprise?.lifetime === true;
 
   const fetchInsights = async (refresh = false) => {
     try {

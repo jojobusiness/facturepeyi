@@ -75,7 +75,10 @@ export default async function handler(req, res) {
 
     const entSnap = await db.collection("entreprises").doc(entrepriseId).get();
     const entreprise = entSnap.data() || {};
-    const quota = QUOTAS[entreprise.plan] ?? QUOTAS.decouverte;
+    // Pionniers (lifetime) : quota niveau Pro (« toutes les fonctionnalités »)
+    const quota = entreprise.lifetime === true
+      ? QUOTAS.pro
+      : (QUOTAS[entreprise.plan] ?? QUOTAS.decouverte);
 
     // Quota mensuel — transaction (même pattern que la numérotation séquentielle)
     const now = new Date();
