@@ -107,6 +107,48 @@ l'acquisition, le coût est négligeable — mais voir « garde-fous » ci-desso
 - Archivage du fichier source dans Firebase Storage lié au doc Firestore (= « archivage légal »
   affiché dans FP5). Attention coût Storage : activer seulement à partir du plan Pro.
 
+## Phase 4 — « Conseiller IA » : suggestions sur les dépenses & la gestion (idée Joseph 17/07/2026)
+
+**Positionnement décidé : feature PREMIUM (Pro et +)** — l'extraction de documents fait entrer les
+données, le Conseiller les fait parler. C'est l'upsell naturel : « l'IA lit tes documents » (tous
+plans, quota) → « l'IA te conseille » (Pro+).
+
+### Pourquoi c'est encore plus simple que l'extraction
+On n'envoie AUCUN document : on agrège les données Firestore déjà là (dépenses par catégorie sur
+6 mois, CA, impayés par client, récurrences) en un JSON compact (~2-3 k tokens) → 1 appel Haiku
+→ 3 à 5 suggestions structurées. **Coût : ~0,3 centime par génération.** Même clé API, même pattern
+que `extract-document.js`.
+
+### Ce qui rend les suggestions VENDABLES (pas gadget)
+Bannir le générique (« réduisez vos dépenses »). Chaque suggestion doit citer un chiffre du compte :
+- « Carburant : 389 € en juin, +42 % vs moyenne — 3 pleins hors chantiers identifiables »
+- « Le client X paie en retard 3 fois sur 4 — proposez l'acompte 30 % (déjà dans votre plan) »
+- « TVA collectée non provisionnée : ~612 € à mettre de côté avant l'échéance du calendrier fiscal »
+- « CA à 28 400 € : à ce rythme vous franchissez le seuil micro en octobre — anticiper le passage au réel »
+Les angles DOM-TOM (seuils, TVA territoriale, octroi de mer sur les achats importés) = le différenciateur
+qu'aucun outil métropolitain ne fera.
+
+### Architecture
+- `api/generate-insights.js` : auth + vérif plan (Pro/Expert/Cabinet — `canUseFeature`) →
+  agrégats calculés côté serveur (Admin SDK) → Haiku + structured outputs
+  (`[{titre, constat_chiffre, action, impact_estime, priorite}]`) → **résultat stocké dans
+  `entreprises/{id}/insights/{AAAA-MM}`** (on ne régénère pas à chaque visite : 1 génération/mois
+  incluse + bouton « Actualiser » limité, ex. 4/mois — coût maîtrisé et sentiment de rareté).
+- Widget « Conseiller IA » sur le Dashboard : 3 cartes suggestions pour Pro+ ; pour les plans
+  inférieurs, **teaser flouté + cadenas → CTA upgrade** (le meilleur vendeur du plan Pro).
+- Flag `IA_INSIGHTS_ENABLED` dans `src/lib/features.js` (même interrupteur que l'import).
+
+### Mode démo (exigence Joseph : « je dois faire la démo d'abord »)
+La démo ne dépend PAS des clients : sur ton compte démo (celui des CSV FP6), les données importées
+suffisent à générer de vraies suggestions. Séquence vidéo : dashboard rempli → clic « Conseiller IA »
+→ les cartes apparaissent avec des chiffres réels à l'écran. À tourner après activation de la clé
+et validation à la main de 2-3 générations (jamais de suggestions foireuses à l'écran).
+
+### Ordre d'exécution (inchangé pour l'essentiel)
+1. Crédits API + réactivation import IA (flag) + test réel extraction ← déjà prêt
+2. Phase 4 Conseiller IA (1 session de dev) → démo sur compte démo → vidéo
+3. Phases 2-3 (ZIP, doublons, archivage) ensuite
+
 ## Angle vidéo (après Phase 1)
 « Tu as un dossier plein de factures en PDF ? Regarde. » → drag & drop de 20 fichiers →
 compteur qui monte → tableau trié qui se remplit → « L'IA a tout lu, tout trié, tout importé. »
