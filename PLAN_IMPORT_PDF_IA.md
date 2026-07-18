@@ -157,3 +157,45 @@ C'est LA suite logique de FP6, avec un wow supérieur. Même règle : tester le 
 ## Ce qui est déjà livré aujourd'hui (16/07)
 ✅ **Import devis CSV** (`/dashboard/devis/import`, bouton « Importer » sur la liste des devis) —
 le trou que tu as signalé est bouché, même pattern que factures/dépenses.
+
+---
+
+## Phase 5 — « Copilote » : chatbot IA branché sur les données (idée Joseph 18/07/2026)
+
+### Verdict cadré : ✅ OUI mais PAS un chatbot générique — un copilote qui agit
+Un « Claude/ChatGPT dans FacturPeyi » qui discute de tout = zéro différenciation en 2026
+(ChatGPT est gratuit et meilleur pour ça). Ce qui est vendable et défendable :
+**un assistant branché sur LES DONNÉES du compte, qui répond avec les vrais chiffres
+et exécute des actions.** « Combien j'ai dépensé en carburant ce trimestre ? »,
+« Crée une facture de 450 € pour Kaz a Pain », « Relance mes impayés ».
+Angle pub : *« Le premier copilote de facturation des DOM-TOM — parle-lui, il fait. »*
+
+### V1 — Q&A sur les données (1-2 sessions de dev)
+- `api/chat.js` : auth Firebase → réutilise `buildAggregates()` de generate-insights.js
+  (CA/mois, dépenses par catégorie, impayés par client, territoire/régime) injecté en system prompt
+  → **Claude Haiku 4.5**, historique limité aux 10 derniers messages, réponses ≤ 300 tokens.
+- Grounding fiscal : injecter les règles de `src/lib/territories.js` + seuils micro dans le prompt,
+  interdiction de conseil juridique ferme (« consultez un expert-comptable » au-delà) — un chatbot
+  qui se trompe sur la TVA d'un client réel = risque réputationnel majeur, c'est LE garde-fou n°1.
+- UI : bulle flottante en bas à droite du dashboard (pattern Intercom), historique en
+  `entreprises/{id}/chats/{mois}`.
+- Flag `IA_CHAT_ENABLED` dans features.js, même pattern que les deux autres.
+
+### V2 — Actions (après validation V1)
+Tool use : `creer_facture`, `creer_devis`, `relancer_impayes`, `chercher_document`.
+**Toute écriture = carte de confirmation dans le chat avant exécution** (jamais d'écriture directe).
+C'est la V2 qui fait la pub « massive » : vidéo où on dicte une facture et elle apparaît.
+
+### Coût réel (Haiku 4.5 : 1 $/M in, 5 $/M out)
+- 1 message V1 : ~2 500 tokens in (system + agrégats + historique) + ~300 out ≈ **0,4 centime**.
+  Avec prompt caching sur le system prompt : ~0,2 centime.
+- 1 interaction V2 avec action (2-3 allers-retours tool use) : ~1-1,5 centime.
+- 100 utilisateurs actifs × 100 messages/mois ≈ **40 $/mois** — gérable, MAIS c'est la première
+  feature IA à coût OUVERT (l'import = 1 appel/doc, le Conseiller = cache mensuel ; un chat
+  peut tourner sans fin). Cap par plan OBLIGATOIRE à la réactivation des garde-fous :
+  ex. Découverte 5 msg/mois (teaser), Solo 50, Pro 300, lifetime = Pro.
+
+### Timing — ne PAS déprioriser la pub
+Ordre ferme : ① vidéos (FP6 + vrac PDF + Conseiller) + campagne Pionnier → ② cash →
+③ V1 copilote → ④ V2 actions. Le chatbot est un amplificateur de pub FUTURE,
+pas une raison de retarder celle qui est prête aujourd'hui.
