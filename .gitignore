@@ -26,3 +26,8 @@ dist-ssr
 # Secrets (ne JAMAIS committer)
 .env
 scripts/serviceAccount.json
+
+.vercel
+
+# Docs internes (strategie, pubs, prospection) — jamais dans git
+docs-internes/
