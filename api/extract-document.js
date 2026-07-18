@@ -91,19 +91,14 @@ export default async function handler(req, res) {
     const monthKey = `extractions_${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const counterRef = db.collection("entreprises").doc(entrepriseId)
       .collection("compteurs").doc(monthKey);
-    const allowed = await db.runTransaction(async (tx) => {
+    // ⚠️ TEMPORAIRE (phase de test) : quota NON bloquant — on compte sans refuser.
+    // Réactiver avant le lancement du pricing : if (used >= quota) return false;
+    // puis renvoyer 429 quotaReached comme avant (quota = ${quota} selon le plan).
+    await db.runTransaction(async (tx) => {
       const snap = await tx.get(counterRef);
       const used = snap.exists ? (snap.data().count || 0) : 0;
-      if (used >= quota) return false;
       tx.set(counterRef, { count: used + 1 }, { merge: true });
-      return true;
     });
-    if (!allowed) {
-      return res.status(429).json({
-        error: `Quota mensuel atteint (${quota} documents sur votre plan). Passez au plan supérieur pour continuer.`,
-        quotaReached: true,
-      });
-    }
 
     const client = new Anthropic({ apiKey });
     const contentBlock = mediaType === "application/pdf"

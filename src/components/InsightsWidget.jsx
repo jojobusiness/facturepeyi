@@ -29,8 +29,11 @@ export default function InsightsWidget() {
   const [refreshing, setRefreshing] = useState(false);
 
   // Pionniers (lifetime) : toutes les fonctionnalités incluses, dont le Conseiller IA
-  const allowed = canUseFeature(entreprise?.plan || "decouverte", "ia-insights")
-    || entreprise?.lifetime === true;
+  // ⚠️ TEMPORAIRE (phase de test) : Conseiller IA débloqué pour tous les plans.
+  // Réactiver avant le lancement du pricing :
+  // const allowed = canUseFeature(entreprise?.plan || "decouverte", "ia-insights")
+  //   || entreprise?.lifetime === true;
+  const allowed = true;
 
   const fetchInsights = async (refresh = false) => {
     try {

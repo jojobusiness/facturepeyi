@@ -122,9 +122,12 @@ export default async function handler(req, res) {
     const entreprise = entSnap.data() || {};
     // Pionniers (lifetime) : toutes les fonctionnalités incluses, dont le Conseiller IA
     const isPionnier = entreprise.lifetime === true;
-    if (!PLANS_AUTORISES.includes(entreprise.plan) && !isPionnier) {
-      return res.status(403).json({ error: "Le Conseiller IA est disponible à partir du plan Pro.", upgradeRequired: true });
-    }
+    // ⚠️ TEMPORAIRE (phase de test) : gating de plan désactivé — tous les plans passent.
+    // Réactiver avant le lancement du pricing :
+    // if (!PLANS_AUTORISES.includes(entreprise.plan) && !isPionnier) {
+    //   return res.status(403).json({ error: "Le Conseiller IA est disponible à partir du plan Pro.", upgradeRequired: true });
+    // }
+    void isPionnier;
 
     const now = new Date();
     const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -142,9 +145,11 @@ export default async function handler(req, res) {
       });
     }
     const refreshCount = cached.exists ? (cached.data().refreshCount || 0) : 0;
-    if (cached.exists && refresh && refreshCount >= MAX_REFRESH_PAR_MOIS) {
-      return res.status(429).json({ error: "Limite d'actualisations atteinte ce mois-ci." });
-    }
+    // ⚠️ TEMPORAIRE (phase de test) : limite d'actualisations NON bloquante (comptage conservé).
+    // Réactiver avant le lancement du pricing :
+    // if (cached.exists && refresh && refreshCount >= MAX_REFRESH_PAR_MOIS) {
+    //   return res.status(429).json({ error: "Limite d'actualisations atteinte ce mois-ci." });
+    // }
 
     const aggregates = await buildAggregates(entrepriseId, entreprise);
 
