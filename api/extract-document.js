@@ -38,7 +38,13 @@ const EXTRACTION_SCHEMA = {
     montant_ht: { type: ["number", "null"] },
     taux_tva: { type: ["number", "null"], description: "Taux de TVA en pourcentage (ex: 8.5), null si absent" },
     montant_ttc: { type: "number" },
-    statut: { type: ["string", "null"], enum: ["payée", "en attente", null], description: "Si le document indique un paiement reçu/acquitté" },
+    statut: {
+      anyOf: [
+        { type: "string", enum: ["payée", "en attente"] },
+        { type: "null" },
+      ],
+      description: "Si le document indique un paiement reçu/acquitté",
+    },
     confiance: { type: "string", enum: ["haute", "moyenne", "basse"] },
   },
   required: [
