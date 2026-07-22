@@ -199,6 +199,7 @@ La config Firebase est publique dans `src/lib/firebase.js` (normal pour Firebase
 - [x] Paramètres fiscaux complets (adresse, n° TVA, IBAN/BIC, mentions légales) dans Settings → PDF + Factur-X
 - [x] Factur-X (XML CII EN 16931 BASIC embarqué — `src/utils/facturX.js` + `pdfFacturX.js`) — 🔶 reste PDF/A-3b certifié + raccordement PDP
 - [x] Import bancaire CSV/OFX
+- [x] **Devis : acceptation en ligne par le client** (`/portail/:token` + `/api/devis-accept`) — preuve horodatée (nom, date, IP, user-agent), relances auto J+3/J+7/pré-expiration dans le cron `send-reminders`, statut `expiré` auto, KPI taux d'acceptation au Dashboard. Interrupteur `entreprise.relancesDevisActives`. Accessible à **tous les plans** (seul le paiement reste Pro + Stripe Connect).
 - [ ] Pages SEO par territoire (/martinique, /guadeloupe, etc.) — partiellement (TerritoirePage existe)
 - [ ] Gestion SCIs + holding (Phase 3-4, voir mémoire projet)
 
