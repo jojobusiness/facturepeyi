@@ -24,6 +24,7 @@ export default function Confidentialite() {
         <li><strong>Données métier</strong> : factures, devis, clients, dépenses, paiements (saisis par l'utilisateur).</li>
         <li><strong>Données de paiement</strong> : aucune donnée bancaire complète n'est stockée par Factur'Peyi. Elles sont traitées exclusivement par Stripe (PCI-DSS niveau 1).</li>
         <li><strong>Données techniques</strong> : adresse IP, journaux d'accès, type de navigateur, identifiants techniques, cookies.</li>
+        <li><strong>Preuve d'acceptation d'un devis</strong> : lorsqu'un client accepte un devis en ligne depuis le portail, nous enregistrons le nom qu'il saisit, la date et l'heure, son adresse IP et son navigateur. Ces éléments constituent la preuve de l'acceptation et sont conservés avec le devis.</li>
       </ul>
 
       <h2 className="text-xl font-semibold mt-8 mb-2">3. Finalités et bases légales</h2>
@@ -53,6 +54,7 @@ export default function Confidentialite() {
         <li><strong>Données du compte</strong> : pendant toute la durée de la relation contractuelle, puis 3 ans après la dernière activité à des fins de prospection.</li>
         <li><strong>Données comptables et factures</strong> : 10 ans à compter de l'exercice concerné, conformément aux obligations légales (art. L.123-22 du Code de commerce).</li>
         <li><strong>Journaux techniques</strong> : 12 mois maximum.</li>
+        <li><strong>Preuves d'acceptation de devis</strong> : conservées avec le devis concerné, pendant la durée de la relation contractuelle puis 5 ans (durée de la prescription contractuelle, art. 2224 du Code civil).</li>
         <li><strong>Cookies</strong> : durée maximale de 13 mois.</li>
       </ul>
 

@@ -97,8 +97,9 @@ const templates = {
         ${lienDevis ? `
         <a href="${esc(lienDevis)}"
            style="display:inline-block;background:#059669;color:#fff;font-weight:700;padding:12px 28px;border-radius:10px;text-decoration:none;font-size:14px">
-          Voir le devis
-        </a>` : ""}
+          Voir et accepter le devis
+        </a>
+        <p style="color:#777;font-size:13px;margin-top:12px">Vous pouvez accepter ce devis en ligne, en un clic.</p>` : ""}
         <p style="color:#aaa;font-size:12px;margin-top:32px">
           Email envoyé via Factur'Peyi · facturepeyi.com
         </p>

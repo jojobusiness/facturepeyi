@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   collection, getDocs, query, orderBy,
-  deleteDoc, doc, getDoc, updateDoc, serverTimestamp, Timestamp,
+  deleteDoc, doc, getDoc, setDoc, updateDoc, serverTimestamp, Timestamp,
 } from "firebase/firestore";
 import { useNavigate, Link } from "react-router-dom";
 import { db } from "../lib/firebase";
@@ -10,14 +10,25 @@ import { downloadDevisPDF, getDevisPDFBase64 } from "../utils/downloadPDF";
 import { createNumberedInvoice } from "../utils/invoiceNumber";
 import { IA_IMPORT_ENABLED } from "../lib/features";
 import { sendEmail } from "../lib/email";
-import { FaCheck, FaEnvelope } from "react-icons/fa";
+import { FaCheck, FaEnvelope, FaLink } from "react-icons/fa";
 
 const STATUS_CONFIG = {
   brouillon: { label: "Brouillon", classes: "bg-gray-100 text-gray-600" },
   "envoyé":  { label: "Envoyé",    classes: "bg-blue-50 text-blue-700" },
   "accepté": { label: "Accepté",   classes: "bg-emerald-50 text-emerald-700" },
   "refusé":  { label: "Refusé",    classes: "bg-red-50 text-red-600" },
+  "expiré":  { label: "Expiré",    classes: "bg-orange-50 text-orange-600" },
 };
+
+/** Un devis dont la validité est dépassée est affiché "Expiré" même si le cron
+ *  quotidien n'est pas encore passé le marquer en base. */
+function statusAffiche(d) {
+  if (d.status === "accepté" || d.status === "refusé" || d.status === "expiré") return d.status;
+  const exp = d.dateExpiration || d.dateValidite;
+  const date = exp?.toDate?.() ?? (exp ? new Date(exp) : null);
+  if (date && !isNaN(date) && date.getTime() < Date.now()) return "expiré";
+  return d.status || "brouillon";
+}
 
 function safeDateStr(d) {
   if (!d) return "";
@@ -36,6 +47,7 @@ export default function DevisList() {
   const [loading, setLoading] = useState(true);
   const [sendingId, setSendingId] = useState(null);
   const [sentId, setSentId] = useState(null);
+  const [copiedId, setCopiedId] = useState(null);
 
   useEffect(() => {
     if (!entrepriseId) return;
@@ -131,6 +143,44 @@ export default function DevisList() {
     };
   }
 
+  /** Crée (une seule fois) le lien public du devis et renvoie son URL. */
+  async function ensureDevisLink(devisItem) {
+    let token = devisItem.devisToken;
+    if (!token) {
+      token = crypto.randomUUID();
+      await setDoc(doc(db, "paymentLinks", token), {
+        kind: "devis",
+        entrepriseId,
+        devisId: devisItem.id,
+        createdBy: user.uid,
+        createdAt: serverTimestamp(),
+      });
+      await updateDoc(doc(db, "entreprises", entrepriseId, "devis", devisItem.id), {
+        devisToken: token,
+      });
+      setDevis((prev) =>
+        prev.map((d) => (d.id === devisItem.id ? { ...d, devisToken: token } : d))
+      );
+    }
+    return `${window.location.origin}/portail/${token}`;
+  }
+
+  const handleCopyLink = async (devisItem) => {
+    try {
+      const link = await ensureDevisLink(devisItem);
+      try {
+        await navigator.clipboard.writeText(link);
+        setCopiedId(devisItem.id);
+        setTimeout(() => setCopiedId(null), 2000);
+      } catch {
+        prompt("Copiez ce lien à envoyer à votre client :", link);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Impossible de générer le lien du devis.");
+    }
+  };
+
   const handleGeneratePDF = async (devisItem) => {
     if (!entrepriseId) return;
     try {
@@ -157,9 +207,10 @@ export default function DevisList() {
     setSendingId(devisItem.id);
     try {
       const pdfBase64 = await getDevisPDFBase64(ctx);
-      const numeroDevis = `DEV-${devisItem.id.slice(0, 8).toUpperCase()}`;
+      const numeroDevis = devisItem.numero || `DEV-${devisItem.id.slice(0, 8).toUpperCase()}`;
       const montant = `${Number(devisItem.totalTTC ?? 0).toFixed(2)} €`;
       const validite = safeDateStr(devisItem.dateValidite);
+      const lienDevis = await ensureDevisLink(devisItem);
 
       await sendEmail(
         "devis_sent",
@@ -170,6 +221,7 @@ export default function DevisList() {
           numeroDevis,
           entrepriseNom: ctx.entrepriseNom,
           validite,
+          lienDevis,
         },
         {
           attachments: [{ filename: `${numeroDevis}.pdf`, content: pdfBase64 }],
@@ -273,9 +325,11 @@ export default function DevisList() {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {devis.map((d) => {
-                const cfg = STATUS_CONFIG[d.status] || STATUS_CONFIG.brouillon;
+                const statut = statusAffiche(d);
+                const cfg = STATUS_CONFIG[statut] || STATUS_CONFIG.brouillon;
                 const sending = sendingId === d.id;
                 const sent = sentId === d.id;
+                const copied = copiedId === d.id;
                 return (
                   <tr key={d.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-4 font-medium text-[#0d1b3e]">{d.clientNom || "—"}</td>
@@ -297,6 +351,12 @@ export default function DevisList() {
                           Converti
                         </span>
                       )}
+                      {d.acceptedAt && (
+                        <p className="text-[11px] text-emerald-600 mt-1">
+                          Accepté le {safeDateStr(d.acceptedAt)}
+                          {d.acceptedBy ? ` par ${d.acceptedBy}` : ""}
+                        </p>
+                      )}
                     </td>
                     <td className="px-5 py-4 text-right">
                       <div className="flex items-center justify-end gap-3 whitespace-nowrap">
@@ -311,6 +371,17 @@ export default function DevisList() {
                           className="text-xs font-medium text-emerald-600 hover:text-emerald-700 transition"
                         >
                           PDF
+                        </button>
+                        <button
+                          onClick={() => handleCopyLink(d)}
+                          title="Copier le lien du devis à envoyer au client (il peut l'accepter en ligne)"
+                          className={`flex items-center gap-1 text-xs font-medium transition ${
+                            copied ? "text-emerald-600" : "text-gray-500 hover:text-[#0d1b3e]"
+                          }`}
+                        >
+                          {copied
+                            ? <><FaCheck className="w-3 h-3" /> Copié</>
+                            : <><FaLink className="w-3 h-3" /> Lien</>}
                         </button>
                         <button
                           onClick={() => handleSendByEmail(d)}

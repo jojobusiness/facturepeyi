@@ -91,6 +91,7 @@ export default function Settings() {
       rcs: entreprise.rcs || "",
       iban: entreprise.iban || "",
       bic: entreprise.bic || "",
+      relancesDevisActives: entreprise.relancesDevisActives ?? true,
     });
   }, [entreprise]);
 
@@ -212,6 +213,23 @@ export default function Settings() {
               <label className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" name="tvaActive" checked={entrepriseForm.tvaActive} onChange={handleChange} className="w-4 h-4 accent-emerald-600" />
                 <span className="text-sm text-gray-700">Activer la gestion de la TVA</span>
+              </label>
+
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="relancesDevisActives"
+                  checked={entrepriseForm.relancesDevisActives ?? true}
+                  onChange={handleChange}
+                  className="w-4 h-4 accent-emerald-600 mt-0.5"
+                />
+                <span className="text-sm text-gray-700">
+                  Relancer automatiquement mes devis sans réponse
+                  <span className="block text-xs text-gray-400 mt-0.5">
+                    Deux relances (3 et 7 jours après l'envoi) puis un rappel 2 jours avant l'expiration.
+                    Aucune relance après acceptation, refus ou conversion en facture.
+                  </span>
+                </span>
               </label>
             </div>
           </section>

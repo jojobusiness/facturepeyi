@@ -10,7 +10,7 @@ import {
 } from 'recharts';
 import {
   FaEuroSign, FaFileInvoice, FaClock, FaChartLine,
-  FaExclamationTriangle, FaArrowUp, FaArrowDown, FaUsers,
+  FaExclamationTriangle, FaArrowUp, FaArrowDown, FaUsers, FaFileSignature,
 } from 'react-icons/fa';
 import OnboardingChecklist from '../components/OnboardingChecklist';
 import InsightsWidget from '../components/InsightsWidget';
@@ -43,6 +43,52 @@ function isEnRetard(facture) {
   if (!d) return false;
   const echeance = facture.dateEcheance ? toDate(facture.dateEcheance) : new Date(d.getTime() + 30 * 86400000);
   return echeance < new Date();
+}
+
+/** Statut effectif d'un devis (un devis périmé compte comme "expiré" même si
+ *  le cron quotidien n'est pas encore passé). */
+function devisStatut(d) {
+  if (d.status === "accepté" || d.status === "refusé" || d.status === "expiré") return d.status;
+  const exp = toDate(d.dateExpiration || d.dateValidite);
+  if (exp && exp < new Date()) return "expiré";
+  return d.status || "brouillon";
+}
+
+/** Stats devis : le taux ne porte que sur les devis TRANCHÉS — inclure ceux
+ *  encore en attente écraserait artificiellement le taux. */
+function statsDevis(devis) {
+  let acceptes = 0, refuses = 0, expires = 0;
+  let enAttente = 0, montantEnAttente = 0, aRelancer = 0;
+  let delaiTotal = 0, delaiCount = 0;
+
+  const now = Date.now();
+  for (const d of devis) {
+    const statut = devisStatut(d);
+    if (statut === "accepté") {
+      acceptes++;
+      const envoi = toDate(d.lastSentAt);
+      const accept = toDate(d.acceptedAt);
+      if (envoi && accept && accept >= envoi) {
+        delaiTotal += accept - envoi;
+        delaiCount++;
+      }
+    } else if (statut === "refusé") refuses++;
+    else if (statut === "expiré") expires++;
+    else if (statut === "envoyé") {
+      enAttente++;
+      montantEnAttente += parseFloat(d.totalTTC || 0);
+      const envoi = toDate(d.lastSentAt);
+      if (envoi && now - envoi.getTime() > 7 * 86400000) aRelancer++;
+    }
+  }
+
+  const clos = acceptes + refuses + expires;
+  return {
+    acceptes, clos, enAttente, montantEnAttente, aRelancer,
+    // Sous 3 devis clos, un pourcentage n'a aucune valeur informative.
+    taux: clos >= 3 ? Math.round((acceptes / clos) * 100) : null,
+    delaiMoyenJours: delaiCount ? Math.round(delaiTotal / delaiCount / 86400000) : null,
+  };
 }
 
 function prepareMonthlyData(factures, depenses) {
@@ -160,6 +206,7 @@ function AlerteRetard({ factures }) {
 export default function Dashboard() {
   const { entrepriseId, entreprise } = useAuth();
   const [invoices, setInvoices] = useState([]);
+  const [devis, setDevis] = useState([]);
   const [depenses, setDepenses] = useState([]);
   const [categories, setCategories] = useState([]);
   const [clients, setClients] = useState([]);
@@ -170,14 +217,16 @@ export default function Dashboard() {
     if (!entrepriseId) return;
     const load = async () => {
       try {
-        const [facSnap, depSnap, catSnap, cliSnap, memSnap] = await Promise.all([
+        const [facSnap, devSnap, depSnap, catSnap, cliSnap, memSnap] = await Promise.all([
           getDocs(collection(db, "entreprises", entrepriseId, "factures")),
+          getDocs(collection(db, "entreprises", entrepriseId, "devis")),
           getDocs(collection(db, "entreprises", entrepriseId, "depenses")),
           getDocs(collection(db, "entreprises", entrepriseId, "categories")),
           getDocs(collection(db, "entreprises", entrepriseId, "clients")),
           getDocs(collection(db, "entreprises", entrepriseId, "membres")),
         ]);
         setInvoices(facSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setDevis(devSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
         setDepenses(depSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
         setCategories(catSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
         setClients(cliSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
@@ -238,6 +287,8 @@ export default function Dashboard() {
 
   const top5 = top5Clients(invoices);
   const maxCA = top5[0]?.ca || 1;
+
+  const sd = statsDevis(devis);
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -355,6 +406,62 @@ export default function Dashboard() {
           accent={facEnRetard.length > 0 ? "red" : "yellow"}
         />
       </div>
+
+      {/* ── Devis ── */}
+      {devis.length > 0 && (
+        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-[#0d1b3e] text-sm flex items-center gap-2">
+              <FaFileSignature className="text-emerald-600 w-4 h-4" /> Devis
+            </h3>
+            <Link to="/dashboard/devis" className="text-xs text-emerald-700 hover:underline">
+              Voir tous
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <div className="text-xl font-extrabold text-[#0d1b3e] leading-tight">
+                {sd.taux !== null ? `${sd.taux}%` : "—"}
+              </div>
+              <div className="text-xs text-gray-500 mt-0.5">
+                Taux d'acceptation
+                {sd.taux === null && (
+                  <span className="block text-[11px] text-gray-300">3 devis clôturés minimum</span>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <div className="text-xl font-extrabold text-[#0d1b3e] leading-tight">
+                {fmt(sd.montantEnAttente)}
+              </div>
+              <div className="text-xs text-gray-500 mt-0.5">
+                En attente de réponse ({sd.enAttente})
+              </div>
+            </div>
+
+            <div>
+              <div className="text-xl font-extrabold text-[#0d1b3e] leading-tight">
+                {sd.delaiMoyenJours !== null ? `${sd.delaiMoyenJours} j` : "—"}
+              </div>
+              <div className="text-xs text-gray-500 mt-0.5">Délai moyen de réponse</div>
+            </div>
+
+            <div>
+              <div className={`text-xl font-extrabold leading-tight ${sd.aRelancer > 0 ? "text-orange-600" : "text-[#0d1b3e]"}`}>
+                {sd.aRelancer}
+              </div>
+              <div className="text-xs text-gray-500 mt-0.5">
+                Sans réponse depuis 7 j
+                {sd.aRelancer > 0 && (
+                  <span className="block text-[11px] text-gray-400">relancés automatiquement</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Graphiques ── */}
       <div className="grid lg:grid-cols-2 gap-6">

@@ -19,7 +19,10 @@ export default async function handler(req, res) {
   const linkDoc = await db.collection("paymentLinks").doc(token).get();
   if (!linkDoc.exists) return res.status(404).json({ error: "Lien invalide" });
 
-  const { entrepriseId, factureId } = linkDoc.data();
+  const { entrepriseId, factureId, kind = "facture" } = linkDoc.data();
+  if (kind !== "facture" || !factureId) {
+    return res.status(400).json({ error: "not_a_payable_link" });
+  }
 
   const [factureSnap, entrepriseSnap] = await Promise.all([
     db.collection("entreprises").doc(entrepriseId).collection("factures").doc(factureId).get(),
