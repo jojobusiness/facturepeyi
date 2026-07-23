@@ -11,6 +11,8 @@ if (!getApps().length) {
 const db = getFirestore();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+const PIONNIER_CAP = 50; // doit rester aligné avec api/stripe-checkout.js et Forfaits.jsx
+
 // Vercel — ne pas parser le body (besoin du buffer brut pour la signature Stripe)
 export const config = { api: { bodyParser: false } };
 
@@ -77,13 +79,13 @@ export default async function handler(req, res) {
             trialEndsAt: null,
           });
 
-          // Compteur de places (cap 50) — transaction pour éviter les races
+          // Compteur de places (cap Pionnier) — transaction pour éviter les races
           const metaRef = db.collection("pionniers").doc("_meta");
           await db.runTransaction(async (tx) => {
             const snap = await tx.get(metaRef);
             const count = snap.exists ? (snap.data().count || 0) : 0;
             tx.set(metaRef, {
-              count: Math.min(count + 1, 50),
+              count: Math.min(count + 1, PIONNIER_CAP),
               updatedAt: FieldValue.serverTimestamp(),
             }, { merge: true });
           });

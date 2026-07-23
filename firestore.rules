@@ -33,7 +33,7 @@ service cloud.firestore {
     }
 
     // ── Compteur places Pionnier ──────────────────────────────────────────────
-    // Lecture publique (badge "X/10 places" sur la page Forfaits).
+    // Lecture publique (badge "X/50 places" sur la page Forfaits).
     // Écriture réservée au serveur (Admin SDK via webhook), jamais depuis le client.
     match /pionniers/{docId} {
       allow read: if true;

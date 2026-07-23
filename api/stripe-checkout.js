@@ -11,7 +11,7 @@ const stripe = new Stripe((process.env.STRIPE_SECRET_KEY || "").trim());
 
 // Offre Pionnier : paiement UNIQUE (one-time), pas un abonnement. Cap à 10 ventes.
 const PIONNIER_PRICE_ID = "price_1TdcJZIck4iMBRE9KizjlK9I";
-const PIONNIER_CAP = 10;
+const PIONNIER_CAP = 50;
 
 // Plan Cabinet : offre de lancement = 2 mois offerts (essai gratuit) avant facturation.
 const CABINET_PRICE_IDS = [
@@ -75,7 +75,7 @@ export default async function handler(req, res) {
   }
 
   // L'offre Pionnier rattache un accès "à vie" à une entreprise précise → connexion obligatoire,
-  // et on vérifie que le cap de 10 places n'est pas atteint avant d'encaisser.
+  // et on vérifie que le cap de 50 places n'est pas atteint avant d'encaisser.
   if (isPionnier) {
     if (!decoded || !entrepriseId) {
       return res.status(401).json({ error: "Connexion requise pour réserver une place Pionnier" });
